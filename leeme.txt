@@ -1,0 +1,33 @@
+Como estan copiando un repositorio hay cosas que no se pueden compartir entre pc's, como los archivos .env que contienen
+información delicada, es un mecanismo de seguridad que lo hace el archivo .gitignore.
+
+Descarguen e Instalen Postgresql en su version 17.6.1
+Abran pgadmin que se encuentra en la carpeta raiz de Postgresql
+Coloquen las credenciales que van a usar para sus bases de datos Postgresql (ANOTENLAS EN FISICO, NO LAS OLVIDEN)
+
+LUEGO, en el archivo .env deben colocar esas credenciales y les deberia quedar algo asi:
+
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=hospital
+DB_SCHEMA=public
+DB_USERNAME=postgres
+DB_PASSWORD=
+
+-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+
+Deben ir al archvio C:/xampp/php/php.ini filtrar con ctrl+f y buscar la extension ;pdo_pgsql y activarla
+quitandole el punto y coma.
+
+-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+
+Cuando pasen el repositorio a su pc local por primera vez, necesitan usar los siguientes comandos:
+
+composer install (Con esto instalan la carpeta vendor)
+
+php artisan key:generate (Esto genera una APP_KEY para poder usar la conexion de laravel a postgresql)
+
+php artisan migrate (con esto migran las tablas laravel a su postgresql)
+
+php artisan serve (inician el server en el local host)
