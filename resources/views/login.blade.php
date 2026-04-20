@@ -11,12 +11,14 @@
                     </a>
                     <h3>Inicia Sesión</h3>
                 </div>
+                <form method="POST" action="{{ route('iniciar-sesion') }}">
+                    @csrf
                 <div class="form-floating mb-3">
-                    <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">
-                    <label for="floatingInput">Email</label>
+                    <input type="text" class="form-control" id="floatingInput" name="name" placeholder="Username">
+                    <label for="floatingInput">Usuario</label>
                 </div>
                 <div class="form-floating mb-4">
-                    <input type="password" class="form-control" id="floatingPassword" placeholder="Password">
+                    <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password">
                     <label for="floatingPassword">Contraseña</label>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-4">
@@ -26,7 +28,8 @@
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary py-3 w-100 mb-4">Iniciar Sesión</button>
-                <p class="text-center mb-0">¿No te has registrado? <a href="#">Regístrate</a></p>
+                <p class="text-center mb-0">¿No te has registrado? <a href="{{ route('signup') }}">Regístrate</a></p>
+                </form>
             </div>
         </div>
     </div>
