@@ -11,6 +11,8 @@ return new class extends Migration
         Schema::create('especialidad', function (Blueprint $table) {
             $table->id('id_especialidad');
             $table->string('nombre', 100)->unique();
+            $table->string('descripcion');
+            $table->boolean('estado');
         });
     }
 

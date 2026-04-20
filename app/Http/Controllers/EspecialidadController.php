@@ -7,59 +7,46 @@ use Illuminate\Http\Request;
 
 class EspecialidadController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $especialidades = Especialidad::all();
+        return view('especialidades', compact('especialidades'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('especialidades_create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'estado' => 'boolean'
+        ]);
+
+        Especialidad::create($request->all());
+        return redirect()->route('especialidades.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Especialidad $especialidad)
+    public function edit($id)
     {
-        //
+        $especialidad = Especialidad::findOrFail($id);
+        return view('especialidades_edit', compact('especialidad'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Especialidad $especialidad)
+    public function update(Request $request, $id)
     {
-        //
+        $especialidad = Especialidad::findOrFail($id);
+        $especialidad->update($request->all());
+        return redirect()->route('especialidades.index');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Especialidad $especialidad)
+    public function destroy($id)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Especialidad $especialidad)
-    {
-        //
+        $especialidad = Especialidad::findOrFail($id);
+        $especialidad->delete();
+        return redirect()->route('especialidades.index');
     }
 }

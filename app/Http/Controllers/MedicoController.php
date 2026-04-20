@@ -3,63 +3,65 @@
 namespace App\Http\Controllers;
 
 use App\Models\Medico;
+use App\Models\Especialidad;
 use Illuminate\Http\Request;
 
 class MedicoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $medicos = Medico::with('especialidad')->get();
+        return view('medico', compact('medicos'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $especialidades = Especialidad::all();
+        return view('medico_create', compact('especialidades'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'cedula' => 'required|string|unique:medico',
+            'telefono' => 'required|string|max:20',
+            'id_especialidad' => 'required|exists:especialidad,id_especialidad',
+            'estado' => 'boolean'
+        ]);
+
+        Medico::create($request->all());
+        return redirect()->route('medicos.index')->with('success', 'Médico creado');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Medico $medico)
+    public function edit($id)
     {
-        //
+        $medico = Medico::findOrFail($id);
+        $especialidades = Especialidad::all();
+        return view('medico_edit', compact('medico', 'especialidades'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Medico $medico)
+    public function update(Request $request, $id)
     {
-        //
+        $medico = Medico::findOrFail($id);
+        $request->validate([
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'cedula' => 'required|string|unique:medico,cedula,' . $id . ',id_medico',
+            'telefono' => 'required|string|max:20',
+            'id_especialidad' => 'required|exists:especialidad,id_especialidad',
+            'estado' => 'boolean'
+        ]);
+
+        $medico->update($request->all());
+        return redirect()->route('medicos.index')->with('success', 'Médico actualizado');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Medico $medico)
+    public function destroy($id)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Medico $medico)
-    {
-        //
+        $medico = Medico::findOrFail($id);
+        $medico->update(['estado' => false]);
+        return redirect()->route('medicos.index')->with('success', 'Médico desactivado');
     }
 }
