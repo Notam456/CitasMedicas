@@ -19,6 +19,7 @@ return new class extends Migration
                   ->onDelete('restrict');
             // Índices
             $table->index('cedula', 'idx_medico_cedula');
+            $table->boolean('estado');
         });
     }
 
