@@ -14,4 +14,6 @@ class Especialidad extends Model
         'descripcion',
         'estado'
     ];
+
+    public $timestamps = false;
 }

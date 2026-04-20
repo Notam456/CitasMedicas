@@ -22,4 +22,6 @@ class Medico extends Model
     {
         return $this->belongsTo(Especialidad::class, 'id_especialidad', 'id_especialidad');
     }
+
+    public $timestamps = false;
 }
