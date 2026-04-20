@@ -2,14 +2,15 @@
     "use strict";
 
     // Spinner
-    var spinner = function () {
-        setTimeout(function () {
-            if ($('#spinner').length > 0) {
-                $('#spinner').removeClass('show');
-            }
-        }, 1);
-    };
-    spinner();
+    window.addEventListener('load', function() {
+        var spinner = document.getElementById('spinner');
+        if (spinner) {
+            spinner.classList.remove('show');
+        }
+        // Muestra el body una vez que todo esté listo
+        document.body.style.visibility = 'visible';
+    });
+   
     
     
     // Back to top button
