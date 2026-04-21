@@ -8,6 +8,7 @@ use App\Http\Controllers\MunicipioController;
 use App\Http\Controllers\ParroquiaController;
 use App\Http\Controllers\UbicacionController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\UserController;
 
 use function PHPUnit\Framework\returnValue;
 
@@ -22,6 +23,9 @@ Route::view('/dashboard', 'dashboard')->name('dashboard')->middleware('auth');
 Route::post('/iniciar-sesion', [LoginController::class, 'login'])->name('iniciar-sesion');
 Route::post('/validar-registro', [LoginController::class, 'register'])->name('register');
 Route::get('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout');
+
+//Ruta user
+Route::resource('users', UserController::class);
 
 
 Route::resource('especialidades', EspecialidadController::class);
