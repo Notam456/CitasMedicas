@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -15,7 +16,7 @@ class UserController extends Controller
     {
         $usuarios = User::all();
         
-        return view('user.listaUsuarios', compact('usuarios'));
+        return view( ('user.listaUsuarios'), compact('usuarios'));
     }
 
     /**
@@ -23,7 +24,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+
     }
 
     /**
@@ -37,13 +38,13 @@ class UserController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        user::create([
+        User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password'=> Hash::make($request->password),
         ]);
 
-        return redirect()->route('users.index')->with('success', 'Usuario creado exitosamente.');
+        return redirect()->route('users.index')->with('message', 'Usuario creado exitosamente.');
     }
 
     /**
@@ -57,24 +58,45 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id_user)
     {
-        //
+        $userToEdit = User::findOrFail($id_user);
+        $usuarios = User::all();
+        return view('user.listaUsuarios', compact('usuarios', 'userToEdit'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id_user)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255,' . Rule::unique('users', 'email')->ignore($id_user),
+            'password' => 'nullable|string|min:8',
+        ]);
+
+        $user = User::findOrFail($id_user);
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return redirect()->route('users.index')->with('message', 'Usuario actualizado exitosamente.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(int $id_user)
     {
-        //
+        $user = User::find($id_user);
+        $user->delete();
+
+        return redirect()->route('users.index')->with('message', 'Usuario eliminado exitosamente.');
     }
 }
