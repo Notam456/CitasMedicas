@@ -16,9 +16,8 @@ return new class extends Migration
             $table->foreignId('id_calendario')
                   ->constrained('calendario', 'id_calendario')
                   ->onDelete('restrict');
-            $table->foreignId('id_user')
-                  ->constrained('users', 'id_user')
-                  ->onDelete('set null');
+            $table->foreignId('id_user')->nullable()->constrained('users', 'id_user')->onDelete('set null');
+                  
             $table->timestamp('fecha_registro')->useCurrent();
             $table->date('fecha_cita');
             $table->time('hora_cita');

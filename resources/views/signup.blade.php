@@ -11,22 +11,29 @@
                     </a>
                     <h3>Registrar</h3>
                 </div>
+                <form action="{{ route('register') }}" method="POST">
+                    @csrf
                 <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="floatingText" placeholder="jhondoe">
+                    <input type="text" class="form-control" id="floatingText" name="name" placeholder="jhondoe">
                     <label for="floatingText">Username</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">
+                    <input type="email" class="form-control" id="floatingInput" name="email" placeholder="name@example.com">
                     <label for="floatingInput">Email</label>
                 </div>
                 <div class="form-floating mb-4">
-                    <input type="password" class="form-control" id="floatingPassword" placeholder="Password">
+                    <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password">
                     <label for="floatingPassword">Contraseña</label>
+                </div>
+                <div class="form-floating mb-4">
+                    <input type="password" class="form-control" id="floatingPasswordConfirmation" name="password_confirmation" placeholder="Confirm Password">
+                    <label for="floatingPasswordConfirmation">Confirmar contraseña</label>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-4">
                 </div>
                 <button type="submit" class="btn btn-primary py-3 w-100 mb-4">Registrarme</button>
-                <p class="text-center mb-0">¿Ya tienes cuenta? <a href="#">Inicia Sesión</a></p>
+                <p class="text-center mb-0">¿Ya tienes cuenta? <a href="{{ route('login') }}">Inicia Sesión</a></p>
+                </form>
             </div>
         </div>
     </div>

@@ -42,10 +42,10 @@
         <div class="nav-item dropdown">
             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                 <img class="rounded-circle me-lg-2" src="{{asset('assets/img/user.jpg')}}" alt="" style="width: 40px; height: 40px;">
-                <span class="d-none d-lg-inline-flex">Usuario</span>
+                <span class="d-none d-lg-inline-flex"> @auth {{Auth::user()->name }}@endauth </span>
             </a>
             <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-                <a href="#" class="dropdown-item">Cerrar Sesión</a>
+                <a href="{{ route('logout') }}" class="dropdown-item">Cerrar Sesión</a>
             </div>
         </div>
     </div>

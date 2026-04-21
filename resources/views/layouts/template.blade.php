@@ -4,12 +4,23 @@
 <head>
     <meta charset="utf-8">
     <title>@yield('title')</title>
+
+    <style>
+        /* esta vaina es para mostrar el spinner de carga y que no salga el html sin estilos */
+        body {
+            visibility: hidden;
+        }
+        #spinner {
+            visibility: visible;
+        }
+    </style>
+    
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
 
     <!-- Favicon -->
-    <link href="{{asset('assets/img/favicon.ico')}}" rel="icon">
+    <link href="{{url('assets/img/favicon.ico')}}" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
