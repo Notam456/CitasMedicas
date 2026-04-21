@@ -9,16 +9,21 @@ use App\Http\Controllers\ParroquiaController;
 use App\Http\Controllers\UbicacionController;
 use App\Http\Controllers\LoginController;
 
+use App\Http\Controllers\DashboardController;
+
+
 use function PHPUnit\Framework\returnValue;
 
-Route::get('/', function () {
+// Route::get('/', [DashboardController::class, 'index'])->name('inicio'); // yajure: no me borren este bypass por favor!
+
+ Route::get('/', function () {
     return view('login');
-});
+}); 
 
 //Rutas para las vistas de autenticación
 Route::view('/login', 'login')->name('login');
 Route::view('/signup', 'signup')->name('signup');
-Route::view('/dashboard', 'dashboard')->name('dashboard')->middleware('auth');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 Route::post('/iniciar-sesion', [LoginController::class, 'login'])->name('iniciar-sesion');
 Route::post('/validar-registro', [LoginController::class, 'register'])->name('register');
 Route::get('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout');
@@ -33,3 +38,4 @@ Route::resource('parroquias', ParroquiaController::class);
 // Rutas para los menús desplegables en cascada
 Route::get('/municipios-por-estado/{estado_id}', [UbicacionController::class, 'getMunicipios']);
 Route::get('/parroquias-por-municipio/{municipio_id}', [UbicacionController::class, 'getParroquias']);
+

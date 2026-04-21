@@ -13,7 +13,7 @@
                                 <i class="fa fa-chart-line fa-3x text-primary"></i>
                                 <div class="ms-3">
                                     <p class="mb-2">Especialidad con Demanda</p>
-                                    <h6 class="mb-0">Aro</h6>
+                                    <h6 class="mb-0">{{ $especialidadDemanda }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -22,7 +22,7 @@
                                 <i class="fa fa-chart-bar fa-3x text-primary"></i>
                                 <div class="ms-3">
                                     <p class="mb-2">Pacientes Atendidos este Mes</p>
-                                    <h6 class="mb-0">542</h6>
+                                    <h6 class="mb-0">{{ $pacientesAtendidosMes }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -31,7 +31,7 @@
                                 <i class="fa fa-chart-area fa-3x text-primary"></i>
                                 <div class="ms-3">
                                     <p class="mb-2">Pacientes del Día</p>
-                                    <h6 class="mb-0">98</h6>
+                                    <h6 class="mb-0">{{ $pacientesDelDia }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -40,7 +40,7 @@
                                 <i class="fa fa-map fa-3x text-primary"></i>
                                 <div class="ms-3">
                                     <p class="mb-2">Procedencia con mas Pacientes</p>
-                                    <h6 class="mb-0">Independencia</h6>
+                                    <h6 class="mb-0">{{ $procedenciaMasPacientes }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -50,25 +50,17 @@
     
     
                 <!-- municipios con mas pacientes chart.js -->
-                <div class="container-fluid pt-4 px-4">
-                    <div class="row g-4">
-                        <div class="col-sm-12 col-xl-6">
-                            <div class="bg-light text-center rounded p-4">
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <h6 class="mb-0">Municipios con mas Pacientes</h6>
-                                    <a href="">Mostrar todos</a>
-                                </div>
-                                <canvas id="worldwide-sales"></canvas>
-                            </div>
+                <div class="row g-4 mx-0">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="bg-light text-center rounded p-4">
+                            <h6 class="mb-0">Top 5 Municipios</h6>
+                            <canvas id="municipiosChart" style="max-height: 300px;"></canvas>
                         </div>
-                        <div class="col-sm-12 col-xl-6">
-                            <div class="bg-light text-center rounded p-4">
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <h6 class="mb-0">Especialidades con mas Pacientes</h6>
-                                    <a href="">Mostrar todos</a>
-                                </div>
-                                <canvas id="salse-revenue"></canvas>
-                            </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="bg-light text-center rounded p-4">
+                            <h6 class="mb-0">Top 5 Especialidades</h6>
+                            <canvas id="especialidadesChart" style="max-height: 300px;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -251,5 +243,16 @@
                     </div>
                 </div>
              Widgets End -->
+
+             <!-- funcion de los charts de municipios y especialidades -->
+             <script>
+                window.municipiosLabels = @json($municipiosLabels);
+                window.municipiosData = @json($municipiosData);
+                window.especialidadesLabels = @json($especialidadesLabels);
+                window.especialidadesData = @json($especialidadesData);
+            </script>
+             <script src="{{asset('assets/js/dashboard.js')}}""></script>
+             <!-- funcion de los charts de municipios y especialidades -->
+
              @include('layouts.footer')
 @endsection
