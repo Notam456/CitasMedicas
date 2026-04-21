@@ -1,9 +1,9 @@
 @extends('layouts.template')
 
 @section('content')
-<div class="container-fluid">
+<div class="container-fluid pt-4 px-4">
     <div class="card">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h3>Médicos</h3>
             <a href="{{ route('medicos.create') }}" class="btn btn-primary">+ Nuevo Médico</a>
         </div>
@@ -41,7 +41,7 @@
                             <a href="{{ route('medicos.edit', $m->id_medico) }}" class="btn btn-warning btn-sm">Editar</a>
                             <form action="{{ route('medicos.destroy', $m->id_medico) }}" method="POST" style="display:inline;">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar médico?')">Eliminar</button>
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este médico?')">Eliminar</button>
                             </form>
                         </td>
                     </tr>

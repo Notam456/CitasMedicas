@@ -1,7 +1,7 @@
 @extends('layouts.template')
 
 @section('content')
-<div class="container-fluid">
+<div class="container-fluid pt-4 px-4">
     <div class="card">
         <div class="card-header">
             <h3>Crear Especialidad</h3>
