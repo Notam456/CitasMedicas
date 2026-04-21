@@ -6,7 +6,8 @@
         <div class="d-flex align-items-center ms-4 mb-4">
         </div>
         <div class="navbar-nav w-100">
-            <a href="#" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+            <a href="{{ route('dashboard') }}" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+            <a href="{{ route('users.index') }}" class="nav-item nav-link "><i class="fa fa-th me-2"></i>Usuarios</a>
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-map me-2"></i>Procedencia</a>
                 <div class="dropdown-menu bg-transparent border-0">
