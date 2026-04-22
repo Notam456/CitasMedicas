@@ -65,20 +65,32 @@
                     @csrf
                     <div class="modal-body">
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="nombreUsuario" name="name" placeholder="Nombre de usuario" required>
+                            <input type="text" value="{{ old('name') }}" class="form-control" id="nombreUsuario" name="name" placeholder="Nombre de usuario" required>
                             <label for="nombreUsuario">Nombre</label>
+                            @error('name')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="emailUsuario" name="email" placeholder="Correo electrónico" required>
+                            <input type="email" value="{{ old('email') }}" class="form-control" id="emailUsuario" name="email" placeholder="Correo electrónico" required>
                             <label for="emailUsuario">Email</label>
+                            @error('email')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
                         </div>
                         <div class="form-floating mb-3">
                             <input type="password" class="form-control" id="passwordUsuario" name="password" placeholder="Contraseña" required>
                             <label for="passwordUsuario">Contraseña</label>
+                            @error('password')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
                         </div>
                         <div class="form-floating mb-3">
                             <input type="password" class="form-control" id="passwordConfirmUsuario" name="password_confirmation" placeholder="Confirmar contraseña" required>
                             <label for="passwordConfirmUsuario">Confirmar Contraseña</label>
+                            @error('password_confirmation')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -103,16 +115,25 @@
                     @method('PUT')
                     <div class="modal-body">
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="editarNombreUsuario" name="name" placeholder="Nombre de usuario" required value="{{ old('name', $userToEdit->name ?? '') }}">
+                            <input type="text" value="{{ old('name', $userToEdit->name ?? '') }}" class="form-control" id="editarNombreUsuario" name="name" placeholder="Nombre de usuario" required>
                             <label for="editarNombreUsuario">Nombre</label>
+                            @error('name')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="editarEmailUsuario" name="email" placeholder="Correo electrónico" required value="{{ old('email', $userToEdit->email ?? '') }}">
+                            <input type="email" value="{{ old('email', $userToEdit->email ?? '') }}" class="form-control" id="editarEmailUsuario" name="email" placeholder="Correo electrónico" required>
                             <label for="editarEmailUsuario">Email</label>
+                            @error('email')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
                         </div>
                         <div class="form-floating mb-3">
                             <input type="password" class="form-control" id="editarPasswordUsuario" name="password" placeholder="Contraseña"">
                             <label for="editarPasswordUsuario">Contraseña (dejar en blanco para no cambiar)</label>
+                            @error('password')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -133,6 +154,27 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.show();
     }
 });
+</script>
+@endif
+
+@if ($errors->any())
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let errorMessages = '';
+        
+        // Recorremos todos los errores de Laravel y los acumulamos
+        @foreach ($errors->all() as $error)
+            errorMessages += '• {{ $error }}\n';
+        @endforeach
+
+        Swal.fire({
+            icon: 'error',
+            title: '¡Ups! Algo salió mal en tu accion intentalo de nuevo',
+            text: errorMessages,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Entendido'
+        });
+    });
 </script>
 @endif
 
