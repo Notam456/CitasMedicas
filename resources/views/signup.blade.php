@@ -14,19 +14,19 @@
                 <form action="{{ route('register') }}" method="POST">
                     @csrf
                 <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="floatingText" name="name" placeholder="jhondoe">
+                    <input type="text" class="form-control" id="floatingText" name="name" placeholder="jhondoe" required>
                     <label for="floatingText">Username</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="email" class="form-control" id="floatingInput" name="email" placeholder="name@example.com">
+                    <input type="email" class="form-control" id="floatingInput" name="email" placeholder="name@example.com" required>
                     <label for="floatingInput">Email</label>
                 </div>
                 <div class="form-floating mb-4">
-                    <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password">
+                    <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required>
                     <label for="floatingPassword">Contraseña</label>
                 </div>
                 <div class="form-floating mb-4">
-                    <input type="password" class="form-control" id="floatingPasswordConfirmation" name="password_confirmation" placeholder="Confirm Password">
+                    <input type="password" class="form-control" id="floatingPasswordConfirmation" name="password_confirmation" placeholder="Confirm Password" required>
                     <label for="floatingPasswordConfirmation">Confirmar contraseña</label>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-4">

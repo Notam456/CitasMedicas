@@ -20,9 +20,7 @@ class LoginController
             return redirect()->route('dashboard');
         }
 
-        return back()->withErrors([
-            'name' => 'Las credenciales no son correctas.',
-        ]);
+        return back()->withErrors(['name' => 'Las credenciales no son correctas.',]);
     }
 
     public function register(Request $request)
@@ -33,7 +31,7 @@ class LoginController
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-    $user = User::create([
+        $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),

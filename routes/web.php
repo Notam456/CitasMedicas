@@ -17,7 +17,7 @@ use function PHPUnit\Framework\returnValue;
 
 // Route::get('/', [DashboardController::class, 'index'])->name('inicio'); // yajure: no me borren este bypass por favor!
 
- Route::get('/', function () {
+Route::get('/', function () {
     return view('login');
 }); 
 
@@ -30,7 +30,7 @@ Route::post('/validar-registro', [LoginController::class, 'register'])->name('re
 Route::get('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout');
 
 //Ruta user
-Route::resource('users', UserController::class);
+Route::resource('users', UserController::class)->middleware('auth');
 
 
 Route::resource('especialidades', EspecialidadController::class);
