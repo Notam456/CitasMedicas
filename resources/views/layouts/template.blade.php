@@ -75,9 +75,9 @@
         <!-- Content End -->
 
 
-        <!-- Back to Top -->
-        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
     </div>
+
+    @include('sweetalert::alert')
 
     <!-- JavaScript Libraries -->
     <script src="{{asset('assets/js/jquery-3.4.1.js')}}""></script>
@@ -92,6 +92,8 @@
 
     <!-- Template Javascript -->
     <script src="{{asset('assets/js/main.js')}}"></script>
+
+
 </body>
 
 </html>

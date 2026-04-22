@@ -19,7 +19,7 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Role</th>
-                    <th>Acciones</th>
+                    <th class="text-end">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,13 +41,9 @@
                                 <a href="{{ route('users.edit', $usuario->id_user) }}" class="btn btn-xs btn-square btn-neutral">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <form action="{{ route('users.destroy', $usuario->id_user) }}" method="POST" style="display: inline-block;">
-                                    @csrf
-                                    @method ('DELETE')
-                                    <button type="submit" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                                <a href="{{ route('users.destroy', $usuario->id_user) }}" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true">
+                                    <i class="bi bi-trash"></i>
+                                </a>
                             </div>
                         </td>
                     </tr>

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class UserController extends Controller
 {
@@ -15,6 +16,10 @@ class UserController extends Controller
     public function index()
     {
         $usuarios = User::all();
+
+        $title = '¿Estas seguro de que deseas eliminar este usuario?';
+        $texrt = 'Esta acción no se puede deshacer.';
+        confirmDelete($title, $texrt);
         
         return view( ('user.listaUsuarios'), compact('usuarios'));
     }
@@ -44,7 +49,9 @@ class UserController extends Controller
             'password'=> Hash::make($request->password),
         ]);
 
-        return redirect()->route('users.index')->with('message', 'Usuario creado exitosamente.');
+        Alert::success('Usuario creado exitosamente.');
+
+        return redirect()->route('users.index');
     }
 
     /**
@@ -86,7 +93,9 @@ class UserController extends Controller
 
         $user->save();
 
-        return redirect()->route('users.index')->with('message', 'Usuario actualizado exitosamente.');
+            Alert::success('Usuario actualizado exitosamente.');
+
+        return redirect()->route('users.index');
     }
 
     /**
@@ -97,6 +106,8 @@ class UserController extends Controller
         $user = User::find($id_user);
         $user->delete();
 
-        return redirect()->route('users.index')->with('message', 'Usuario eliminado exitosamente.');
+        alert()->success('Usuario eliminado exitosamente.');
+
+        return redirect()->route('users.index');
     }
 }
