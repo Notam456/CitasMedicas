@@ -11,11 +11,10 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\UserController;
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ReporteController;
 
 
 use function PHPUnit\Framework\returnValue;
-
-// Route::get('/', [DashboardController::class, 'index'])->name('inicio'); // yajure: no me borren este bypass por favor!
 
  Route::get('/', function () {
     return view('login');
@@ -42,4 +41,15 @@ Route::resource('parroquias', ParroquiaController::class);
 // Rutas para los menús desplegables en cascada
 Route::get('/municipios-por-estado/{estado_id}', [UbicacionController::class, 'getMunicipios']);
 Route::get('/parroquias-por-municipio/{municipio_id}', [UbicacionController::class, 'getParroquias']);
+
+// Dashboard y Reportes Yajure
+
+// Route::get('/', [DashboardController::class, 'index'])->name('inicio'); // yajure: no me borren este bypass por favor!
+
+Route::middleware('auth')->group(function () {
+    Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
+    Route::get('/reportes/medicos-por-especialidad', [ReporteController::class, 'medicosPorEspecialidad'])->name('reportes.medicos_especialidad');
+});
+
+Route::get('/reportes/medicos/excel', [ReporteController::class, 'exportarMedicosExcel'])->name('reportes.medicos_excel');
 

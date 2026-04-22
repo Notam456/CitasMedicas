@@ -20,13 +20,7 @@
             <a href="#" class="nav-item nav-link"><i class="fa fa-keyboard me-2"></i>Planificación</a>
             <a href="#" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Agenda de Cita</a>
             <a href="#" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Paciente</a>
-            <div class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="far fa-file-alt me-2"></i>Reportes</a>
-                <div class="dropdown-menu bg-transparent border-0">
-                    <a href="#" class="dropdown-item">Morbilidad</a>
-                    <a href="#" class="dropdown-item">Citas por Procedencia</a>
-                </div>
-            </div>
+            <a href="{{route('reportes.index')}}" class="nav-link nav-item"><i class="far fa-file-alt me-2"></i>Reportes</a>
         </div>
     </nav>
 </div>
