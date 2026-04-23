@@ -11,13 +11,13 @@ class MedicoController extends Controller
     public function index()
     {
         $medicos = Medico::with('especialidad')->get();
-        return view('medico', compact('medicos'));
+        return view('medicos.index', compact('medicos'));  // 👈 CAMBIADO
     }
 
     public function create()
     {
         $especialidades = Especialidad::all();
-        return view('medico_create', compact('especialidades'));
+        return view('medicos.create', compact('especialidades'));  // 👈 CAMBIADO
     }
 
     public function store(Request $request)
@@ -39,7 +39,7 @@ class MedicoController extends Controller
     {
         $medico = Medico::findOrFail($id);
         $especialidades = Especialidad::all();
-        return view('medico_edit', compact('medico', 'especialidades'));
+        return view('medicos.edit', compact('medico', 'especialidades'));  // 👈 CAMBIADO
     }
 
     public function update(Request $request, $id)

@@ -10,13 +10,7 @@
         <div class="card-body">
             <table class="table table-bordered">
                 <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Descripción</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
+                    <tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Estado</th><th>Acciones</th></tr>
                 </thead>
                 <tbody>
                     @foreach($especialidades as $e)

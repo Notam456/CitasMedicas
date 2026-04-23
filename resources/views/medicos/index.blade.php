@@ -41,7 +41,7 @@
                             <a href="{{ route('medicos.edit', $m->id_medico) }}" class="btn btn-warning btn-sm">Editar</a>
                             <form action="{{ route('medicos.destroy', $m->id_medico) }}" method="POST" style="display:inline;">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar médico?')">Eliminar</button>
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar?')">Eliminar</button>
                             </form>
                         </td>
                     </tr>
