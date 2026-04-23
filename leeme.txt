@@ -17,8 +17,14 @@ DB_PASSWORD=
 
 -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
 
-Deben ir al archvio C:/xampp/php/php.ini filtrar con ctrl+f y buscar la extension ;pdo_pgsql y activarla
-quitandole el punto y coma.
+Deben ir al archvio C:/xampp/php/php.ini filtrar con ctrl+f y buscar las siguientes extensiones y activarlas
+quitandoles el punto y coma.
+
+habilitar en php.ini:
+;gd_extension
+;zip_extension
+;xls_extension
+;pdo_pgsql
 
 -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
 
