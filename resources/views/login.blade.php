@@ -14,12 +14,18 @@
                 <form method="POST" action="{{ route('iniciar-sesion') }}">
                     @csrf
                 <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="floatingInput" name="name" placeholder="Username">
+                    <input type="text" value="{{ old('name') }}" class="form-control" id="floatingInput" name="name" placeholder="Username">
                     <label for="floatingInput">Usuario</label>
+                    @error('name')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
                 </div>
                 <div class="form-floating mb-4">
                     <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password">
                     <label for="floatingPassword">Contraseña</label>
+                    @error('password')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <div class="form-check">
@@ -34,3 +40,6 @@
         </div>
     </div>
 </div>
+
+
+@include('layouts.footer')

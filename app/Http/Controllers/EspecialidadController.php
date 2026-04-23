@@ -10,12 +10,12 @@ class EspecialidadController extends Controller
     public function index()
     {
         $especialidades = Especialidad::all();
-        return view('especialidades', compact('especialidades'));
+        return view('especialidades.index', compact('especialidades'));
     }
 
     public function create()
     {
-        return view('especialidades_create');
+        return view('especialidades.create');
     }
 
     public function store(Request $request)
@@ -33,7 +33,7 @@ class EspecialidadController extends Controller
     public function edit($id)
     {
         $especialidad = Especialidad::findOrFail($id);
-        return view('especialidades_edit', compact('especialidad'));
+        return view('especialidades.edit', compact('especialidad'));
     }
 
     public function update(Request $request, $id)

@@ -29,7 +29,7 @@ Route::post('/validar-registro', [LoginController::class, 'register'])->name('re
 Route::get('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout');
 
 //Ruta user
-Route::resource('users', UserController::class);
+Route::resource('users', UserController::class)->middleware('auth');
 
 
 Route::resource('especialidades', EspecialidadController::class);
