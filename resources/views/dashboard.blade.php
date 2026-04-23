@@ -54,13 +54,13 @@
                     <div class="col-sm-12 col-md-6">
                         <div class="bg-light text-center rounded p-4">
                             <h6 class="mb-0">Top 5 Municipios</h6>
-                            <canvas id="municipiosChart" style="max-height: 300px;"></canvas>
+                            <canvas id="municipiosChart" style="max-height: 200px;"></canvas>
                         </div>
                     </div>
                     <div class="col-sm-12 col-md-6">
                         <div class="bg-light text-center rounded p-4">
                             <h6 class="mb-0">Top 5 Especialidades</h6>
-                            <canvas id="especialidadesChart" style="max-height: 300px;"></canvas>
+                            <canvas id="especialidadesChart" style="max-height: 200px;"></canvas>
                         </div>
                     </div>
                 </div>
