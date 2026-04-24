@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Médicos en {{ $especialidad->nombre }}</title>
+    <title>Médicos</title>
     <style>
         body { font-family: 'DejaVu Sans', sans-serif; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -15,7 +15,12 @@
 <img src="{{ $membrete }}" style="width: 100%;">
 
 <body>
-    <h1>Médicos en {{ $especialidad->nombre }}</h1>
+        @if($especialidad)
+            <h1>Médicos de {{ $especialidad->nombre }}</h1>
+        @else
+            <h1>Todos los Médicos</h1>
+        @endif
+
     <p><strong>Fecha del reporte:</strong> {{ now()->format('d/m/Y H:i') }}</p>
 
     @if($medicos->count())
