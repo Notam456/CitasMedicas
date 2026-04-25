@@ -30,6 +30,12 @@ class EspecialidadController extends Controller
         return redirect()->route('especialidades.index');
     }
 
+    public function show($id)
+    {
+        $especialidad = Especialidad::findOrFail($id);
+        return redirect()->route('especialidades.index');
+    }
+
     public function edit($id)
     {
         $especialidad = Especialidad::findOrFail($id);

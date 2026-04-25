@@ -11,13 +11,14 @@ class MedicoController extends Controller
     public function index()
     {
         $medicos = Medico::with('especialidad')->get();
-        return view('medicos.index', compact('medicos'));  // 👈 CAMBIADO
+        $especialidades = Especialidad::all();  // 👈 AGREGADO
+        return view('medicos.index', compact('medicos', 'especialidades'));  // 👈 AGREGADO $especialidades
     }
 
     public function create()
     {
         $especialidades = Especialidad::all();
-        return view('medicos.create', compact('especialidades'));  // 👈 CAMBIADO
+        return view('medicos.create', compact('especialidades'));
     }
 
     public function store(Request $request)
@@ -39,7 +40,7 @@ class MedicoController extends Controller
     {
         $medico = Medico::findOrFail($id);
         $especialidades = Especialidad::all();
-        return view('medicos.edit', compact('medico', 'especialidades'));  // 👈 CAMBIADO
+        return view('medicos.edit', compact('medico', 'especialidades'));
     }
 
     public function update(Request $request, $id)
@@ -61,7 +62,7 @@ class MedicoController extends Controller
     public function destroy($id)
     {
         $medico = Medico::findOrFail($id);
-        $medico->update(['estado' => false]);
+        $medico->update(['estado' => false]);  // Desactiva en lugar de eliminar
         return redirect()->route('medicos.index')->with('success', 'Médico desactivado');
     }
 }
