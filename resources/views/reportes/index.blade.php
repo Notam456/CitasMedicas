@@ -9,7 +9,7 @@
         <div class="col-md-6 col-xl-4">
             <div class="bg-light rounded p-4">
                 <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h5 class="mb-0">Médicos por Especialidad</h5>
+                    <h5 class="mb-0">Médicos</h5>
                     <i class="bi bi-printer fa-2x text-primary"></i>
                 </div>
                 <p class="mb-3">Listado de médicos con opcion de filtro por especialidad.</p>
