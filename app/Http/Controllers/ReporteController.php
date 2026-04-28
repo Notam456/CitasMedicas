@@ -35,7 +35,7 @@ class ReporteController extends Controller
 
         $especialidad = $especialidadId ? Especialidad::find($especialidadId) : null;
 
-        $logoRuta = public_path('assets/img/membreteMPPS.png');
+        $logoRuta = public_path('assets/img/membreteMPPS2.png');
         $logoData = base64_encode(file_get_contents($logoRuta));
         $membrete = 'data:image/png;base64,' . $logoData;
 
