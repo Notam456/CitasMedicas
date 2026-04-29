@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('parroquias', function (Blueprint $table) {
-            $table->id();
-            $table->string('nombre');
-            // Esta línea lo conecta con el municipio
-            $table->foreignId('municipio_id')->constrained('municipios');
-            $table->timestamps();
-        });
+    Schema::create('parroquias', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('municipio_id')->constrained('municipios')->cascadeOnDelete();
+    $table->string('nombre');
+    $table->timestamps();
+    });
     }
 
     /**
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('parroquias');
+        //
     }
 };

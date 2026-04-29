@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('medico', function (Blueprint $table) {
-            //
-        });
+    Schema::create('expedientes', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('paciente_id')->unique()->constrained('pacientes')->cascadeOnDelete();
+    $table->string('numero_expediente')->unique();
+    $table->date('fecha_apertura');
+    $table->timestamps();
+    });
     }
 
     /**
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('medico', function (Blueprint $table) {
-            //
-        });
+        //
     }
 };

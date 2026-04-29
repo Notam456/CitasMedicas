@@ -32,7 +32,7 @@ Route::get('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout')
 //Ruta user
 Route::resource('users', UserController::class)->middleware('auth');
 
-//Ruts paciente
+//Ruta paciente
 Route::resource('paciente', PacienteController::class)->middleware('auth');
 
 

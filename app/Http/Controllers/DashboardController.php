@@ -9,59 +9,60 @@ use Carbon\Carbon;
 class DashboardController extends Controller
 {
     public function index()
-    {
-        $mesActual = Carbon::now()->month;
-        $anioActual = Carbon::now()->year;
-        $hoy = Carbon::now()->toDateString();
+{
+    $mesActual = Carbon::now()->month;
+    $anioActual = Carbon::now()->year;
+    $hoy = Carbon::now()->toDateString();
 
-        // Top 5 municipios
-        $municipios = DB::table('cita')
-            ->join('paciente', 'cita.id_paciente', '=', 'paciente.id_paciente')
-            ->whereRaw('EXTRACT(MONTH FROM cita.fecha_cita) = ?', [$mesActual])
-            ->whereRaw('EXTRACT(YEAR FROM cita.fecha_cita) = ?', [$anioActual])
-            ->select('paciente.direccion as municipio', DB::raw('COUNT(DISTINCT paciente.id_paciente) as total'))
-            ->groupBy('paciente.direccion')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->get();
+    // 1. Top 5 municipios (Usando la nueva estructura geográfica)
+    $municipios = DB::table('citas')
+        ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
+        ->join('parroquias', 'pacientes.parroquia_id', '=', 'parroquias.id')
+        ->join('municipios', 'parroquias.municipio_id', '=', 'municipios.id')
+        ->whereMonth('citas.fecha_cita', $mesActual)
+        ->whereYear('citas.fecha_cita', $anioActual)
+        ->select('municipios.nombre as municipio', DB::raw('COUNT(DISTINCT pacientes.id) as total'))
+        ->groupBy('municipios.nombre')
+        ->orderByDesc('total')
+        ->limit(5)
+        ->get();
 
-        // Top 5 especialidades
-        $especialidades = DB::table('cita')
-            ->join('calendario', 'cita.id_calendario', '=', 'calendario.id_calendario')
-            ->join('especialidad', 'calendario.id_especialidad', '=', 'especialidad.id_especialidad')
-            ->whereRaw('EXTRACT(MONTH FROM cita.fecha_cita) = ?', [$mesActual])
-            ->whereRaw('EXTRACT(YEAR FROM cita.fecha_cita) = ?', [$anioActual])
-            ->select('especialidad.nombre', DB::raw('COUNT(cita.id_cita) as total'))
-            ->groupBy('especialidad.nombre')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->get();
+    // 2. Top 5 especialidades
+    $especialidades = DB::table('citas')
+        ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
+        ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
+        ->whereMonth('citas.fecha_cita', $mesActual)
+        ->whereYear('citas.fecha_cita', $anioActual)
+        ->select('medicos.nombre', DB::raw('COUNT(citas.id) as total'))
+        ->groupBy('medicos.nombre')
+        ->orderByDesc('total')
+        ->limit(5)
+        ->get();
 
-        // Estadísticas básicas
-        $especialidadDemanda = $especialidades->first()->nombre ?? 'N/A';
-        
-        $pacientesAtendidosMes = DB::table('cita')
-            ->whereRaw('EXTRACT(MONTH FROM fecha_cita) = ?', [$mesActual])
-            ->whereRaw('EXTRACT(YEAR FROM fecha_cita) = ?', [$anioActual])
-            ->distinct('id_paciente')
-            ->count('id_paciente');
-        
-        $pacientesDelDia = DB::table('cita')
-            ->whereDate('fecha_cita', $hoy)
-            ->distinct('id_paciente')
-            ->count('id_paciente');
-        
-        $procedenciaMasPacientes = $municipios->first()->municipio ?? 'N/A';
+    // 3. Estadísticas básicas
+    $especialidadDemanda = $especialidades->first()->nombre ?? 'N/A';
+    
+    $pacientesAtendidosMes = DB::table('citas')
+        ->whereMonth('citas.fecha_cita', $mesActual)
+        ->whereYear('citas.fecha_cita', $anioActual)
+        ->distinct('paciente_id')
+        ->count('paciente_id');
+    
+    $pacientesDelDia = DB::table('citas')
+        ->whereDate('citas.fecha_cita', $hoy)
+        ->count('paciente_id');
+    
+    $procedenciaMasPacientes = $municipios->first()->municipio ?? 'N/A';
 
-        return view('dashboard', [
-            'municipiosLabels' => $municipios->pluck('municipio'),
-            'municipiosData'   => $municipios->pluck('total'),
-            'especialidadesLabels' => $especialidades->pluck('nombre'),
-            'especialidadesData'   => $especialidades->pluck('total'),
-            'especialidadDemanda' => $especialidadDemanda,
-            'pacientesAtendidosMes' => $pacientesAtendidosMes,
-            'pacientesDelDia' => $pacientesDelDia,
-            'procedenciaMasPacientes' => $procedenciaMasPacientes,
-        ]);
-    }
+    return view('dashboard', [
+        'municipiosLabels'        => $municipios->pluck('municipio'),
+        'municipiosData'          => $municipios->pluck('total'),
+        'medicosLabels'    => $especialidades->pluck('nombre'),
+        'medicosData'      => $especialidades->pluck('total'),
+        'medicosDemanda'     => $especialidadDemanda,
+        'pacientesAtendidosMes'   => $pacientesAtendidosMes,
+        'pacientesDelDia'         => $pacientesDelDia,
+        'procedenciaMasPacientes' => $procedenciaMasPacientes,
+    ]);
+}
 }

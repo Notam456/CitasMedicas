@@ -8,6 +8,11 @@ class Municipio extends Model
 {
     protected $fillable = ['nombre', 'estado_id'];
 
+    public function parroquias()
+    {
+        return $this->hasMany(Parroquia::class);
+    }
+
     public function estado()
     {
         return $this->belongsTo(Estado::class);
