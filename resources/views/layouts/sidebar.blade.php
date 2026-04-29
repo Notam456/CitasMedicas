@@ -11,9 +11,9 @@
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-map me-2"></i>Procedencia</a>
                 <div class="dropdown-menu bg-transparent border-0">
-                    <a href="#" class="dropdown-item">Estado</a>
-                    <a href="#" class="dropdown-item">Municipio</a>
-                    <a href="#" class="dropdown-item">Parroquía</a>
+                    <a href="{{route('estados.index')}}" class="dropdown-item">Estado</a>
+                    <a href="{{route('municipios.index')}}" class="dropdown-item">Municipio</a>
+                    <a href="{{route('parroquias.index')}}" class="dropdown-item">Parroquía</a>
                 </div>
             </div>
             <a href="#" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Especialidad</a>

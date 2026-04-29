@@ -6,12 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Estado extends Model
 {
-    // Esto le permite al Seeder guardar el nombre
-    protected $fillable = ['nombre'];
+    protected $table = 'estados';
+    protected $primaryKey = 'id';
+    public $timestamps = true;
 
-    // Esto conecta el estado con sus municipios
-    public function municipios() 
-    {
-        return $this->hasMany(Municipio::class);
-    }
+    protected $fillable = ['nombre'];
 }
