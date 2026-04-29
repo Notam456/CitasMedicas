@@ -9,6 +9,7 @@ use App\Http\Controllers\ParroquiaController;
 use App\Http\Controllers\UbicacionController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PacienteController;
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReporteController;
@@ -30,6 +31,9 @@ Route::get('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout')
 
 //Ruta user
 Route::resource('users', UserController::class)->middleware('auth');
+
+//Ruts paciente
+Route::resource('paciente', PacienteController::class)->middleware('auth');
 
 
 Route::resource('especialidades', EspecialidadController::class);

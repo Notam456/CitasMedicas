@@ -12,7 +12,8 @@ class PacienteController extends Controller
      */
     public function index()
     {
-        //
+        $pacientes = Paciente::with('parroquia.municipio.estado')->get();
+        return view('paciente.listapacientes', compact('pacientes'));
     }
 
     /**
@@ -20,7 +21,7 @@ class PacienteController extends Controller
      */
     public function create()
     {
-        //
+    
     }
 
     /**
