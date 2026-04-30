@@ -11,57 +11,90 @@ class MedicoController extends Controller
     public function index()
     {
         $medicos = Medico::with('especialidad')->get();
-        return view('medicos.index', compact('medicos'));  // 👈 CAMBIADO
+        $especialidades = Especialidad::all();
+
+        $title = '¿Estas seguro de que deseas eliminar este médico?';
+        $texrt = 'Esta acción no se puede deshacer.';
+        confirmDelete($title, $texrt);
+
+        return view('medicos.listaMedicos', compact('medicos', 'especialidades'));
     }
 
     public function create()
     {
+        // El registro se hace desde el modal en la misma vista.
+    }
+
+    public function show(int $id)
+    {
+        $medicoToshow = Medico::with('especialidad')->findOrFail($id);
+        $medicos = Medico::with('especialidad')->get();
         $especialidades = Especialidad::all();
-        return view('medicos.create', compact('especialidades'));  // 👈 CAMBIADO
+
+        return view('medicos.listaMedicos', compact('medicos', 'especialidades', 'medicoToshow'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'nombres' => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255',
-            'cedula' => 'required|string|unique:medico',
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'required|string|max:255',
+            'cedula' => 'required|string|unique:medicos,cedula',
             'telefono' => 'required|string|max:20',
-            'id_especialidad' => 'required|exists:especialidad,id_especialidad',
-            'estado' => 'boolean'
+            'especialidad_id' => 'required|exists:especialidades,id',
         ]);
 
-        Medico::create($request->all());
-        return redirect()->route('medicos.index')->with('success', 'Médico creado');
+        Medico::create($request->only([
+            'nombre',
+            'apellido',
+            'cedula',
+            'telefono',
+            'especialidad_id',
+        ]));
+
+        alert()->success('Médico creado exitosamente.');
+        return redirect()->route('medicos.index');
     }
 
-    public function edit($id)
+    public function edit(int $id)
     {
-        $medico = Medico::findOrFail($id);
+        $medicoToEdit = Medico::with('especialidad')->findOrFail($id);
+        $medicos = Medico::with('especialidad')->get();
         $especialidades = Especialidad::all();
-        return view('medicos.edit', compact('medico', 'especialidades'));  // 👈 CAMBIADO
+
+        return view('medicos.listaMedicos', compact('medicos', 'especialidades', 'medicoToEdit'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         $medico = Medico::findOrFail($id);
+
         $request->validate([
-            'nombres' => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255',
-            'cedula' => 'required|string|unique:medico,cedula,' . $id . ',id_medico',
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'required|string|max:255',
+            'cedula' => 'required|string|unique:medicos,cedula,' . $id,
             'telefono' => 'required|string|max:20',
-            'id_especialidad' => 'required|exists:especialidad,id_especialidad',
-            'estado' => 'boolean'
+            'especialidad_id' => 'required|exists:especialidades,id',
         ]);
 
-        $medico->update($request->all());
-        return redirect()->route('medicos.index')->with('success', 'Médico actualizado');
+        $medico->update($request->only([
+            'nombre',
+            'apellido',
+            'cedula',
+            'telefono',
+            'especialidad_id',
+        ]));
+
+        alert()->success('Médico actualizado exitosamente.');
+        return redirect()->route('medicos.index');
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $medico = Medico::findOrFail($id);
-        $medico->update(['estado' => false]);
-        return redirect()->route('medicos.index')->with('success', 'Médico desactivado');
+        $medico->delete();
+
+        alert()->success('Médico eliminado exitosamente.');
+        return redirect()->route('medicos.index');
     }
 }

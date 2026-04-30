@@ -2,64 +2,81 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\Parroquia;
+use App\Models\Municipio;
 use Illuminate\Http\Request;
 
 class ParroquiaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $parroquias = Parroquia::with('municipio.estado')->get();
+        $municipios = Municipio::with('estado')->get();
+
+        $title = '¿Estas seguro de que deseas eliminar esta parroquia?';
+        $texrt = 'Esta acción no se puede deshacer.';
+        confirmDelete($title, $texrt);
+
+        return view('parroquias.listaParroquias', compact('parroquias', 'municipios'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        // El registro se hace desde el modal en la misma vista.
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function show(int $id)
+    {
+        $parroquiaToshow = Parroquia::with('municipio.estado')->findOrFail($id);
+        $parroquias = Parroquia::with('municipio.estado')->get();
+        $municipios = Municipio::with('estado')->get();
+
+        return view('parroquias.listaParroquias', compact('parroquias', 'municipios', 'parroquiaToshow'));
+    }
+
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'municipio_id' => 'required|exists:municipios,id',
+        ]);
+
+        Parroquia::create($request->only(['nombre', 'municipio_id']));
+
+        alert()->success('Parroquia creada exitosamente.');
+        return redirect()->route('parroquias.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit(int $id)
     {
-        //
+        $parroquiaToEdit = Parroquia::with('municipio.estado')->findOrFail($id);
+        $parroquias = Parroquia::with('municipio.estado')->get();
+        $municipios = Municipio::with('estado')->get();
+
+        return view('parroquias.listaParroquias', compact('parroquias', 'municipios', 'parroquiaToEdit'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(Request $request, int $id)
     {
-        //
+        $parroquia = Parroquia::findOrFail($id);
+
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'municipio_id' => 'required|exists:municipios,id',
+        ]);
+
+        $parroquia->update($request->only(['nombre', 'municipio_id']));
+
+        alert()->success('Parroquia actualizada exitosamente.');
+        return redirect()->route('parroquias.index');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(int $id)
     {
-        //
-    }
+        $parroquia = Parroquia::findOrFail($id);
+        $parroquia->delete();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        alert()->success('Parroquia eliminada exitosamente.');
+        return redirect()->route('parroquias.index');
     }
 }

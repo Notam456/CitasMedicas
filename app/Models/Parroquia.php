@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Parroquia extends Model
 {
-    protected $primaryKey = 'id_parroquia';
 
     protected $fillable = ['nombre', 'municipio_id'];
 
