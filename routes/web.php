@@ -9,16 +9,14 @@ use App\Http\Controllers\ParroquiaController;
 use App\Http\Controllers\UbicacionController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\UserController;
-
+use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReporteController;
 
-
 use function PHPUnit\Framework\returnValue;
 
- Route::get('/', function () {
-    return view('login');
-}); 
+//Ruta de inicio
+Route::get('/', function () {return view('login');}); 
 
 //Rutas para las vistas de autenticación
 Route::view('/login', 'login')->name('login');
@@ -31,16 +29,14 @@ Route::get('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout')
 //Ruta user
 Route::resource('users', UserController::class)->middleware('auth');
 
+//Ruta maestros
+Route::resource('paciente', PacienteController::class)->middleware('auth');
+Route::resource('especialidades', EspecialidadController::class)->middleware('auth');
+Route::resource('medicos', MedicoController::class)->middleware('auth');
+Route::resource('estados', EstadoController::class)->middleware('auth');
+Route::resource('municipios', MunicipioController::class)->middleware('auth');
+Route::resource('parroquias', ParroquiaController::class)->middleware('auth');
 
-Route::resource('especialidades', EspecialidadController::class);
-Route::resource('medicos', MedicoController::class);
-Route::resource('estados', EstadoController::class);
-Route::resource('municipios', MunicipioController::class);
-Route::resource('parroquias', ParroquiaController::class);
-
-// Rutas para los menús desplegables en cascada
-Route::get('/municipios-por-estado/{estado_id}', [UbicacionController::class, 'getMunicipios']);
-Route::get('/parroquias-por-municipio/{municipio_id}', [UbicacionController::class, 'getParroquias']);
 
 Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'getMunicipiosPorEstado']);
 

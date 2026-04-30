@@ -11,9 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('especialidad', function (Blueprint $table) {
-            //
-        });
+    Schema::create('morbilidades', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('cita_id')->unique()->constrained('citas')->cascadeOnDelete();
+    $table->text('diagnostico');
+    $table->text('observaciones')->nullable();
+    $table->boolean('asistio')->default(false);
+    $table->timestamps();
+    });
     }
 
     /**
@@ -21,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('especialidad', function (Blueprint $table) {
-            //
-        });
+        //
     }
 };

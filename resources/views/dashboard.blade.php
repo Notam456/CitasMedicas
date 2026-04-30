@@ -12,8 +12,8 @@
                             <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
                                 <i class="fa fa-chart-line fa-3x text-primary"></i>
                                 <div class="ms-3">
-                                    <p class="mb-2">Especialidad con Demanda</p>
-                                    <h6 class="mb-0">{{ $especialidadDemanda }}</h6>
+                                    <p class="mb-2">Médicos con Demanda</p>
+                                    <h6 class="mb-0">{{ $medicosDemanda }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -59,8 +59,8 @@
                     </div>
                     <div class="col-sm-12 col-md-6">
                         <div class="bg-light text-center rounded p-4">
-                            <h6 class="mb-0">Top 5 Especialidades</h6>
-                            <canvas id="especialidadesChart" style="max-height: 200px;"></canvas>
+                            <h6 class="mb-0">Top 5 Medicos</h6>
+                            <canvas id="medicosChart" style="max-height: 200px;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -248,8 +248,8 @@
              <script>
                 window.municipiosLabels = @json($municipiosLabels);
                 window.municipiosData = @json($municipiosData);
-                window.especialidadesLabels = @json($especialidadesLabels);
-                window.especialidadesData = @json($especialidadesData);
+                window.medicosLabels = @json($medicosLabels);
+                window.medicosData = @json($medicosData);
             </script>
              <script src="{{asset('assets/js/dashboard.js')}}""></script>
              <!-- funcion de los charts de municipios y especialidades -->

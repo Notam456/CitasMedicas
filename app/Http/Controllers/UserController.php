@@ -65,9 +65,9 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id_user)
+    public function edit(int $id)
     {
-        $userToEdit = User::findOrFail($id_user);
+        $userToEdit = User::findOrFail($id);
         $usuarios = User::all();
         return view('user.listaUsuarios', compact('usuarios', 'userToEdit'));
     }
@@ -75,15 +75,15 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id_user)
+    public function update(Request $request,int $id)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255,' . Rule::unique('users', 'email')->ignore($id_user),
+            'email' => 'required|string|email|max:255,' . Rule::unique('users', 'email')->ignore($id),
             'password' => 'nullable|string|min:8',
         ]);
 
-        $user = User::findOrFail($id_user);
+        $user = User::findOrFail($id);
         $user->name = $request->name;
         $user->email = $request->email;
 
@@ -101,9 +101,9 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(int $id_user)
+    public function destroy(int $id)
     {
-        $user = User::find($id_user);
+        $user = User::findOrFail($id);
         $user->delete();
 
         alert()->success('Usuario eliminado exitosamente.');

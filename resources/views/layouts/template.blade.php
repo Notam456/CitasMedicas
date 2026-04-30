@@ -80,7 +80,7 @@
     @include('sweetalert::alert')
 
     <!-- JavaScript Libraries -->
-    <script src="{{asset('assets/js/jquery-3.4.1.js')}}""></script>
+    <script src="{{asset('assets/js/jquery-3.4.1.js')}}"></script>
     <script src="{{asset('assets/js/bootstrap.bundle.min.js')}}"></script>
     <script src="{{asset('assets/lib/chart/chart.min.js')}}"></script>
     <script src="{{asset('assets/lib/easing/easing.min.js')}}"></script>

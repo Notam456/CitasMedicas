@@ -38,10 +38,10 @@
                         </td>
                         <td class="text-end">
                             <div class="hstack gap-2 justify-content-end">
-                                <a href="{{ route('users.edit', $usuario->id_user) }}" class="btn btn-xs btn-square btn-neutral">
+                                <a href="{{ route('users.edit', $usuario->id) }}" class="btn btn-xs btn-square btn-neutral">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <a href="{{ route('users.destroy', $usuario->id_user) }}" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true">
+                                <a href="{{ route('users.destroy', $usuario->id) }}" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </div>
@@ -110,7 +110,7 @@
                     <h5 class="modal-title" id="modalEditarUsuarioLabel">Editar Usuario</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <form action="{{ isset($userToEdit) ? route('users.update', $userToEdit->id_user) : '#' }}" method="POST">
+                <form action="{{ isset($userToEdit) ? route('users.update', $userToEdit->id) : '#' }}" method="POST">
                     @csrf
                     @method('PUT')
                     <div class="modal-body">

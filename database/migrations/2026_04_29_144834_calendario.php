@@ -11,9 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('especialidad', function (Blueprint $table) {
-            //
-        });
+    Schema::create('calendarios', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('medico_id')->constrained('medicos')->cascadeOnDelete();
+    $table->date('fecha');
+    $table->time('hora_inicio');
+    $table->time('hora_fin');
+    $table->integer('cupos_disponibles');
+    $table->timestamps();
+    });
     }
 
     /**
@@ -21,8 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('especialidad', function (Blueprint $table) {
-            //
-        });
+        //
     }
 };

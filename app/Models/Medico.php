@@ -6,22 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Medico extends Model
 {
-    protected $table = 'medico';
-    protected $primaryKey = 'id_medico';
-    
+    protected $table = 'medicos';
+
     protected $fillable = [
-        'nombres',
-        'apellidos',
+        'nombre',
+        'apellido',
         'cedula',
         'telefono',
-        'id_especialidad',
-        'estado'
+        'especialidad_id',
     ];
     
     public function especialidad()
     {
-        return $this->belongsTo(Especialidad::class, 'id_especialidad', 'id_especialidad');
+        return $this->belongsTo(Especialidad::class, 'especialidad_id');
     }
-
-    public $timestamps = false;
 }
