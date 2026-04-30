@@ -11,7 +11,7 @@ class Estado extends Model
     {
         return $this->hasMany(Municipio::class);
     }
-}
+
     protected $table = 'estados';
     protected $primaryKey = 'id';
     public $timestamps = true;
