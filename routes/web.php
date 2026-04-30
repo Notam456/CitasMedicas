@@ -38,6 +38,8 @@ Route::resource('municipios', MunicipioController::class)->middleware('auth');
 Route::resource('parroquias', ParroquiaController::class)->middleware('auth');
 
 
+Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'getMunicipiosPorEstado']);
+
 // Dashboard y Reportes Yajure
 
 // Route::get('/', [DashboardController::class, 'index'])->name('inicio'); // yajure: no me borren este bypass por favor!
