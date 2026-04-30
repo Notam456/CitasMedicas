@@ -6,11 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Parroquia extends Model
 {
+    protected $table = 'parroquias';
+    protected $primaryKey = 'id';
+    public $timestamps = true;
+
     protected $fillable = ['nombre', 'municipio_id'];
 
-    // Una parroquia pertenece a un municipio
     public function municipio()
     {
-        return $this->belongsTo(Municipio::class);
+        return $this->belongsTo(Municipio::class, 'municipio_id');
     }
 }
