@@ -39,6 +39,9 @@ Route::get('/especialidades/{id}/edit', [EspecialidadController::class, 'edit'])
 Route::get('/especialidades/{id}/show', [EspecialidadController::class, 'show']);
 
 Route::resource('medicos', MedicoController::class)->middleware('auth');
+Route::get('/medicos/{id}/edit', [MedicoController::class, 'edit']);
+Route::get('/medicos/{id}/show', [MedicoController::class, 'show']);
+
 
 Route::resource('estados', EstadoController::class)->middleware('auth');
 Route::get('/estados/{id}/edit', [EstadoController::class, 'edit']);
