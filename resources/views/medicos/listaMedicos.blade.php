@@ -294,7 +294,7 @@
 
                 } catch (error) {
                     console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del estado', 'error');
+                    Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
                 }
             }
 
@@ -331,7 +331,7 @@
 
                 } catch (error) {
                     console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del estado', 'error');
+                    Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
                 }
             }
 
