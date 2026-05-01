@@ -35,6 +35,9 @@ Route::resource('paciente', PacienteController::class)->middleware('auth');
 Route::get('/paciente/{id}/edit', [PacienteController::class, 'edit']);
 
 Route::resource('especialidades', EspecialidadController::class)->middleware('auth');
+Route::get('/especialidades/{id}/edit', [EspecialidadController::class, 'edit']);
+Route::get('/especialidades/{id}/show', [EspecialidadController::class, 'show']);
+
 Route::resource('medicos', MedicoController::class)->middleware('auth');
 
 Route::resource('estados', EstadoController::class)->middleware('auth');
