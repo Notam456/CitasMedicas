@@ -13,9 +13,17 @@ class MunicipioController extends Controller
     public function index() {
 
         $municipios = Municipio::with('estado')->get();
-        $estados = Estado::all(); // para el select en el modal
+        $estados = Estado::all();
         confirmDelete('¿Eliminar municipio?', 'Esta acción no se puede deshacer.');
         return view('municipios.listaMunicipios', compact('municipios', 'estados'));
+    }
+    
+    public function show($id)
+    {
+        $municipioToShow = Municipio::with('estado')->findOrFail($id);
+        $municipios = Municipio::with('estado')->get();
+        $estados = Estado::all();
+        return view('municipios.listaMunicipios', compact('municipios', 'estados', 'municipioToShow'));
     }
 
     public function store(Request $request){

@@ -17,7 +17,6 @@
     <table class="table table-hover">
         <thead>
             <tr>
-                <th>ID</th>
                 <th>Nombre</th>
                 <th>Estado</th>
                 <th class="text-end">Acciones</th>
@@ -26,11 +25,13 @@
         <tbody>
             @foreach($municipios as $municipio)
             <tr>
-                <td>{{ $municipio->id }}</td>
                 <td>{{ $municipio->nombre }}</td>
                 <td>{{ $municipio->estado->nombre ?? 'N/A' }}</td>
                 <td class="text-end">
                     <div class="hstack gap-2 justify-content-end">
+                        <a href="{{ route('municipios.show', $municipio->id) }}" class="btn btn-xs btn-square btn-neutral">
+                            <i class="bi bi-eye"></i>
+                        </a>
                         <a href="{{ route('municipios.edit', $municipio->id) }}" class="btn btn-xs btn-square btn-neutral">
                             <i class="bi bi-pencil"></i>
                         </a>
@@ -117,10 +118,57 @@
     </div>
 </div>
 
+<!-- Modal Mostrar Municipio -->
+<div class="modal fade" id="modalShowMunicipio" tabindex="-1" aria-labelledby="modalShowMunicipioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Datos del Municipio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">ID</label>
+                    <p class="form-control">{{ $municipioToShow->id ?? '' }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <p class="form-control">{{ $municipioToShow->nombre ?? '' }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Estado</label>
+                    <p class="form-control">{{ $municipioToShow->estado->nombre ?? 'N/A' }}</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @if(isset($municipioToEdit))
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var modalEl = document.getElementById('modalEditarMunicipio');
+        if (modalEl) new bootstrap.Modal(modalEl).show();
+    });
+</script>
+@endif
+
+@if(isset($municipioToShow))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalEl = document.getElementById('modalShowMunicipio');
+        if (modalEl) new bootstrap.Modal(modalEl).show();
+    });
+</script>
+@endif
+
+@if ($errors->any() && !isset($municipioToEdit) && !isset($municipioToShow))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalEl = document.getElementById('modalMunicipio');
         if (modalEl) new bootstrap.Modal(modalEl).show();
     });
 </script>
