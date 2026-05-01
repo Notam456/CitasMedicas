@@ -204,23 +204,23 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Nombres</label>
-                        <p class="form-control">{{ $medicoToshow->nombre ?? '' }}</p>
+                        <p class="form-control-plaintext" id="mostrarNombreMedico"></p>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Apellidos</label>
-                        <p class="form-control">{{ $medicoToshow->apellido ?? '' }}</p>
+                        <p class="form-control-plaintext" id="mostrarApellidoMedico"></p>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Cédula</label>
-                        <p class="form-control">{{ $medicoToshow->cedula ?? '' }}</p>
+                        <p class="form-control-plaintext" id="mostrarCedulaMedico"></p>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Teléfono</label>
-                        <p class="form-control">{{ $medicoToshow->telefono ?? '' }}</p>
+                        <p class="form-control-plaintext" id="mostrarTelefonoMedico"></p>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Especialidad</label>
-                        <p class="form-control">{{ $medicoToshow->especialidad->nombre ?? 'N/A' }}</p>
+                        <p class="form-control-plaintext" id="mostrarEspecialidadMedico"></p>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -299,21 +299,30 @@
             }
 
             if (btnShow) {
-                const estadoId = btnShow.getAttribute('data-id');
-                var inputNombre = document.getElementById('mostrarEstadoNombre');
+                const medicoId = btnShow.getAttribute('data-id');
+                var inputNombre = document.getElementById('mostrarNombreMedico');
+                var inputApellidos = document.getElementById('mostrarApellidoMedico');
+                var inputCedula = document.getElementById('mostrarCedulaMedico');
+                var inputTelefono = document.getElementById('mostrarTelefonoMedico');
+                var inputEspecialidad = document.getElementById('mostrarEspecialidadMedico');
 
 
                 try {
-                    const modalElement = document.getElementById('modalShowEstado');
+                    const modalElement = document.getElementById('modalShowMedico');
                     let modalInstance = bootstrap.Modal.getInstance(modalElement);
                     if (!modalInstance) {
                         modalInstance = new bootstrap.Modal(modalElement);
                     }
 
                     inputNombre.innerHTML = "Cargando...";
+                    inputApellidos.innerHTML = "Cargando...";
+                    inputCedula.innerHTML = "Cargando...";
+                    inputTelefono.innerHTML = "Cargando...";
+                    inputEspecialidad.innerHTML = "Cargando...";
+
 
                     modalInstance.show();
-                    const response = await fetch(`/estados/${estadoId}/show`, {
+                    const response = await fetch(`/medicos/${medicoId}/show`, {
                         method: 'GET',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
@@ -325,9 +334,11 @@
 
                     const data = await response.json();
 
-
-
                     inputNombre.innerHTML = data.nombre;
+                    inputApellidos.innerHTML = data.apellido;
+                    inputCedula.innerHTML = data.cedula;
+                    inputTelefono.innerHTML = data.telefono;
+                    inputEspecialidad.innerHTML = data.especialidad.nombre;
 
                 } catch (error) {
                     console.error('Error:', error);
