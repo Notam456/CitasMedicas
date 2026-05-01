@@ -30,7 +30,7 @@ class ReporteController extends Controller
             ->when($especialidadId, function ($query) use ($especialidadId) {
                 return $query->where('id_especialidad', $especialidadId);
             })
-            ->where('estado', true)
+           // ->where('estado', true)
             ->get();
 
         $especialidad = $especialidadId ? Especialidad::find($especialidadId) : null;

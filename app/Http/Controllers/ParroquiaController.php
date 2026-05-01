@@ -19,6 +19,14 @@ class ParroquiaController extends Controller
         return view('parroquias.listaParroquias', compact('parroquias', 'estados'));
     }
 
+    public function show($id)
+    {
+        $parroquiaToShow = Parroquia::with('municipio.estado')->findOrFail($id);
+        $parroquias = Parroquia::with('municipio.estado')->get();
+        $estados = Estado::all();
+        return view('parroquias.listaParroquias', compact('parroquias', 'estados', 'parroquiaToShow'));
+    }
+
     public function getMunicipiosPorEstado($estado_id){
 
         $municipios = Municipio::where('estado_id', $estado_id)->get(['id', 'nombre']);

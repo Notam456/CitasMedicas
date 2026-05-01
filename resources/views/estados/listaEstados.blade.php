@@ -17,7 +17,6 @@
     <table class="table table-hover">
         <thead>
             <tr>
-                <th>ID</th>
                 <th>Nombre</th>
                 <th class="text-end">Acciones</th>
             </tr>
@@ -25,10 +24,12 @@
         <tbody>
             @foreach($estados as $estado)
             <tr>
-                <td>{{ $estado->id }}</td>
                 <td>{{ $estado->nombre }}</td>
                 <td class="text-end">
                     <div class="hstack gap-2 justify-content-end">
+                        <a href="{{ route('estados.show', $estado->id) }}" class="btn btn-xs btn-square btn-neutral">
+                            <i class="bi bi-eye"></i>
+                        </a>
                         <a href="{{ route('estados.edit', $estado->id) }}" class="btn btn-xs btn-square btn-neutral">
                             <i class="bi bi-pencil"></i>
                         </a>
@@ -100,10 +101,47 @@
     </div>
 </div>
 
+<!-- Modal Mostrar Estado -->
+<div class="modal fade" id="modalShowEstado" tabindex="-1" aria-labelledby="modalShowEstadoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalShowEstadoLabel">Datos del Estado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">ID</label>
+                    <p class="form-control">{{ $estadoToShow->id ?? '' }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <p class="form-control">{{ $estadoToShow->nombre ?? '' }}</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @if(isset($estadoToEdit))
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var modalEl = document.getElementById('modalEditarEstado');
+        if (modalEl) {
+            var modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+    });
+</script>
+@endif
+
+@if(isset($estadoToShow))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalEl = document.getElementById('modalShowEstado');
         if (modalEl) {
             var modal = new bootstrap.Modal(modalEl);
             modal.show();

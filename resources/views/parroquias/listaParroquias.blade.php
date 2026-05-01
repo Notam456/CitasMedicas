@@ -17,7 +17,6 @@
     <table class="table table-hover">
         <thead>
             <tr>
-                <th>ID</th>
                 <th>Nombre</th>
                 <th>Municipio</th>
                 <th>Estado</th>
@@ -27,12 +26,14 @@
         <tbody>
             @foreach($parroquias as $parroquia)
             <tr>
-                <td>{{ $parroquia->id }}</td>
                 <td>{{ $parroquia->nombre }}</td>
                 <td>{{ $parroquia->municipio->nombre ?? 'N/A' }}</td>
                 <td>{{ $parroquia->municipio->estado->nombre ?? 'N/A' }}</td>
                 <td class="text-end">
                     <div class="hstack gap-2 justify-content-end">
+                        <a href="{{ route('parroquias.show', $parroquia->id) }}" class="btn btn-xs btn-square btn-neutral">
+                            <i class="bi bi-eye"></i>
+                        </a>
                         <a href="{{ route('parroquias.edit', $parroquia->id) }}" class="btn btn-xs btn-square btn-neutral">
                             <i class="bi bi-pencil"></i>
                         </a>
@@ -131,6 +132,39 @@
     </div>
 </div>
 
+<!-- Modal Mostrar Parroquia -->
+<div class="modal fade" id="modalShowParroquia" tabindex="-1" aria-labelledby="modalShowParroquiaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Datos de la Parroquia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">ID</label>
+                    <p class="form-control">{{ $parroquiaToShow->id ?? '' }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <p class="form-control">{{ $parroquiaToShow->nombre ?? '' }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Municipio</label>
+                    <p class="form-control">{{ $parroquiaToShow->municipio->nombre ?? 'N/A' }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Estado</label>
+                    <p class="form-control">{{ $parroquiaToShow->municipio->estado->nombre ?? 'N/A' }}</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     // AJAX: cargar municipios según estado
     async function cargarMunicipios(estadoId, selectElement, valorSeleccionado = null) {
@@ -166,7 +200,6 @@
     estadoRegistro.addEventListener('change', function() {
         cargarMunicipios(this.value, municipioRegistro);
     });
-    // Inicial
     cargarMunicipios(estadoRegistro.value, municipioRegistro);
 
     // Editar
@@ -186,6 +219,24 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var modalEl = document.getElementById('modalEditarParroquia');
+        if (modalEl) new bootstrap.Modal(modalEl).show();
+    });
+</script>
+@endif
+
+@if(isset($parroquiaToShow))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalEl = document.getElementById('modalShowParroquia');
+        if (modalEl) new bootstrap.Modal(modalEl).show();
+    });
+</script>
+@endif
+
+@if ($errors->any() && !isset($parroquiaToEdit) && !isset($parroquiaToShow))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalEl = document.getElementById('modalParroquia');
         if (modalEl) new bootstrap.Modal(modalEl).show();
     });
 </script>
