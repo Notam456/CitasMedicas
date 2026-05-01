@@ -49,6 +49,9 @@ Route::get('/estados/{id}/edit', [EstadoController::class, 'edit']);
 Route::get('/estados/{id}/show', [EstadoController::class, 'show']);
 
 Route::resource('municipios', MunicipioController::class)->middleware('auth');
+Route::get('/municipios/{id}/edit', [MunicipioController::class, 'edit']);
+Route::get('/municipios/{id}/show', [MunicipioController::class, 'show']);
+
 Route::resource('parroquias', ParroquiaController::class)->middleware('auth');
 
 
