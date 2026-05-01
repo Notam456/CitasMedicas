@@ -67,7 +67,7 @@ class UserController extends Controller
      */
     public function edit(int $id)
     {
-        $userToEdit = User::select('id', 'name', 'email')->findOrFail($id);
+        $userToEdit = User::findOrFail($id);
         
         return response()->json($userToEdit);
     }

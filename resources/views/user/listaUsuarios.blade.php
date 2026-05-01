@@ -163,6 +163,8 @@
 
             if (btn) {
                 const userId = btn.getAttribute('data-id');
+                var inputNombre = document.getElementById('editarNombreUsuario');
+                var inputEmail = document.getElementById('editarEmailUsuario');
 
                 try {
                     const modalElement = document.getElementById('modalEditarUsuario');
@@ -171,8 +173,10 @@
                         modalInstance = new bootstrap.Modal(modalElement);
                     }
 
-                    document.getElementById('editarNombreUsuario').value = "Cargando...";
-                    document.getElementById('editarEmailUsuario').value = "Cargando...";
+                    inputNombre.value = "Cargando...";
+                    inputNombre.disabled = true;
+                    inputEmail.value = "Cargando...";
+                    inputEmail.disabled = true;
                     modalInstance.show();
                     const response = await fetch(`/users/${userId}/edit`, {
                         method: 'GET',
@@ -188,8 +192,10 @@
 
 
                     document.getElementById('id').value = data.id;
-                    document.getElementById('editarNombreUsuario').value = data.name;
-                    document.getElementById('editarEmailUsuario').value = data.email;
+                    inputNombre.value = data.name;
+                    inputNombre.disabled = false;
+                    inputEmail.value = data.email;
+                    inputEmail.disabled = false;
                     document.getElementById('editarPasswordUsuario').value = "";
 
                     const form = document.querySelector('#modalEditarUsuario form');
