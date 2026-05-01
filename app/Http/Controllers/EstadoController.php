@@ -20,8 +20,8 @@ class EstadoController extends Controller
         public function show($id)
     {
         $estadoToShow = Estado::findOrFail($id);
-        $estados = Estado::all();
-        return view('estados.listaEstados', compact('estados', 'estadoToShow'));
+        
+        return response()->json($estadoToShow);
     }
 
     public function store(Request $request)

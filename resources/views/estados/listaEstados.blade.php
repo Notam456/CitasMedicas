@@ -27,10 +27,10 @@
                         <td>{{ $estado->nombre }}</td>
                         <td class="text-end">
                             <div class="hstack gap-2 justify-content-end">
-                                <a href="{{ route('estados.show', $estado->id) }}"
-                                    class="btn btn-xs btn-square btn-neutral">
+                                <button type="button" data-id="{{ $estado->id }}"
+                                    class=" btn-show btn btn-xs btn-square btn-neutral">
                                     <i class="bi bi-eye"></i>
-                                </a>
+                                </button>
                                 <button type="button" data-id="{{ $estado->id }}"
                                     class=" btn-edit btn btn-xs btn-square btn-neutral">
                                     <i class="bi bi-pencil"></i>
@@ -121,11 +121,11 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">ID</label>
-                        <p class="form-control">{{ $estadoToShow->id ?? '' }}</p>
+                        <p class="form-control" id="mostrarEstadoId"></p>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Nombre</label>
-                        <p class="form-control">{{ $estadoToShow->nombre ?? '' }}</p>
+                        <p class="form-control"id="mostrarEstadoNombre"></p>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -138,7 +138,7 @@
     <script>
         document.addEventListener('click', async function(event) {
             const btn = event.target.closest('.btn-edit');
-           
+            const btnShow = event.target.closest('.btn-show');
 
             if (btn) {
                 const estadoId = btn.getAttribute('data-id');
@@ -180,6 +180,45 @@
                     Swal.fire('Error', 'No se pudieron cargar los datos del estado', 'error');
                 }
             }
+
+             if (btnShow) {
+                const estadoId = btnShow.getAttribute('data-id');
+                var inputNombre = document.getElementById('mostrarEstadoNombre');
+                var inputId = document.getElementById('mostrarEstadoId');
+
+                try {
+                    const modalElement = document.getElementById('modalShowEstado');
+                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (!modalInstance) {
+                        modalInstance = new bootstrap.Modal(modalElement);
+                    }
+                
+                    inputNombre.innerHTML = "Cargando...";
+                    inputId.innerHTML = "Cargando...";
+                    modalInstance.show();
+                    const response = await fetch(`/estados/${estadoId}/show`, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Error al obtener datos');
+
+                    const data = await response.json();
+
+
+                    inputId.innerHTML = data.id;
+                    inputNombre.innerHTML = data.nombre;
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'No se pudieron cargar los datos del estado', 'error');
+                }
+            }
+
+
         });
     </script>
 
