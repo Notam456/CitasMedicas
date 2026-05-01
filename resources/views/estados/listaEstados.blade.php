@@ -14,33 +14,13 @@
         </button>
     </div>
 
-    <table class="table table-hover">
+    <table class="table table-hover" id="estadosTable">
         <thead>
             <tr>
                 <th>Nombre</th>
                 <th class="text-end">Acciones</th>
             </tr>
         </thead>
-        <tbody>
-            @foreach($estados as $estado)
-            <tr>
-                <td>{{ $estado->nombre }}</td>
-                <td class="text-end">
-                    <div class="hstack gap-2 justify-content-end">
-                        <a href="{{ route('estados.show', $estado->id) }}" class="btn btn-xs btn-square btn-neutral">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                        <a href="{{ route('estados.edit', $estado->id) }}" class="btn btn-xs btn-square btn-neutral">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <a href="{{ route('estados.destroy', $estado->id) }}" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true">
-                            <i class="bi bi-trash"></i>
-                        </a>
-                    </div>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
     </table>
 </div>
 
@@ -130,10 +110,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var modalEl = document.getElementById('modalEditarEstado');
-        if (modalEl) {
-            var modal = new bootstrap.Modal(modalEl);
-            modal.show();
-        }
+        if (modalEl) new bootstrap.Modal(modalEl).show();
     });
 </script>
 @endif
@@ -142,10 +119,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var modalEl = document.getElementById('modalShowEstado');
-        if (modalEl) {
-            var modal = new bootstrap.Modal(modalEl);
-            modal.show();
-        }
+        if (modalEl) new bootstrap.Modal(modalEl).show();
     });
 </script>
 @endif
@@ -154,19 +128,30 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         let errorMessages = '';
-        @foreach ($errors->all() as $error)
-            errorMessages += '• {{ $error }}\n';
-        @endforeach
-        Swal.fire({
-            icon: 'error',
-            title: '¡Ups! Algo salió mal',
-            text: errorMessages,
-            confirmButtonColor: '#3085d6',
-            confirmButtonText: 'Entendido'
-        });
+        @foreach ($errors->all() as $error) errorMessages += '• {{ $error }}\n'; @endforeach
+        Swal.fire({ icon: 'error', title: '¡Ups! Algo salió mal', text: errorMessages, confirmButtonColor: '#3085d6', confirmButtonText: 'Entendido' });
     });
 </script>
 @endif
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        $('#estadosTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: '{{ route("api.estados") }}',
+            columns: [
+                { data: 'nombre', name: 'nombre' },
+                { data: 'action', name: 'action', orderable: false, searchable: false }
+            ],
+            language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
+            responsive: true,
+            order: [[0, 'asc']]
+        });
+    });
+</script>
+@endpush
 
 @include('layouts.footer')
 @endsection

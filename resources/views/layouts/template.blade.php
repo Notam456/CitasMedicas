@@ -40,6 +40,8 @@
 
     <!-- Template Stylesheet -->
     <link href="{{asset('assets/css/style.css')}}" rel="stylesheet">
+
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -93,7 +95,10 @@
     <!-- Template Javascript -->
     <script src="{{asset('assets/js/main.js')}}"></script>
 
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
+    @stack('scripts')
 </body>
 
 </html>

@@ -5,23 +5,38 @@ namespace App\Http\Controllers;
 use App\Models\Estado;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
+use Yajra\DataTables\Facades\DataTables;
 
 class EstadoController extends Controller
 {
     public function index()
     {
-        $estados = Estado::all();
         $title = '¿Estás seguro de eliminar este estado?';
         $text = 'Esta acción no se puede deshacer.';
         confirmDelete($title, $text);
-        return view('estados.listaEstados', compact('estados'));
+        return view('estados.listaEstados');
     }
 
-        public function show($id)
+    public function getEstadosData(Request $request)
+    {
+        $estados = Estado::select(['id', 'nombre']);
+        return DataTables::of($estados)
+            ->addColumn('action', function($row) {
+                $actionBtn = '<div class="hstack gap-2 justify-content-end">';
+                $actionBtn .= '<a href="'. route('estados.show', $row->id) .'" class="btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></a>';
+                $actionBtn .= '<a href="'. route('estados.edit', $row->id) .'" class="btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></a>';
+                $actionBtn .= '<a href="'. route('estados.destroy', $row->id) .'" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
+                $actionBtn .= '</div>';
+                return $actionBtn;
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
+    public function show($id)
     {
         $estadoToShow = Estado::findOrFail($id);
-        $estados = Estado::all();
-        return view('estados.listaEstados', compact('estados', 'estadoToShow'));
+        return view('estados.listaEstados', compact('estadoToShow'));
     }
 
     public function store(Request $request)
@@ -39,8 +54,7 @@ class EstadoController extends Controller
     public function edit($id)
     {
         $estadoToEdit = Estado::findOrFail($id);
-        $estados = Estado::all();
-        return view('estados.listaEstados', compact('estados', 'estadoToEdit'));
+        return view('estados.listaEstados', compact('estadoToEdit'));
     }
 
     public function update(Request $request, $id)
