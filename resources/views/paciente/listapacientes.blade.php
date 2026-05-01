@@ -184,6 +184,7 @@
         </div>
     </div> 
 
+    <!-- Modal para mostrar datos de los pacientes -->
     <div class="modal fade" id="modalShowPaciente" tabindex="-1" aria-labelledby="modalEditarPacienteLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -191,6 +192,7 @@
                     <h5 class="modal-title" id="modalEditarPacienteLabel">Datos del Paciente</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
+                @isset($pacienteToshow)
                     <div class="modal-body">
                         <div class="form-floating mb-3">
                             <label for="editarNombrePaciente">Nombres</label>
@@ -224,19 +226,19 @@
                     <div class="modal-body">
                         <div class="form-floating mb-3">
                             <label for="editarNombrePaciente">Estado</label>
-                            <p class="form-control">{{ $pacienteToshow->estado }}</p>
+                            <p class="form-control">{{ $pacienteToshow->parroquia->municipio->estado->nombre ?? 'N/A' }}</p>
                         </div>
                     </div>
                     <div class="modal-body">
                         <div class="form-floating mb-3">
                             <label for="editarNombrePaciente">Municipio</label>
-                            <p class="form-control">{{ $pacienteToshow->municipio }}</p>
+                            <p class="form-control">{{ $pacienteToshow->parroquia->municipio->nombre ?? 'N/A' }}</p>
                         </div>
                     </div>
                     <div class="modal-body">
                         <div class="form-floating mb-3">
                             <label for="editarNombrePaciente">Parroquia</label>
-                            <p class="form-control">{{ $pacienteToshow->parroquia }}</p>
+                            <p class="form-control">{{ $pacienteToshow->parroquia->nombre ?? 'N/A' }}</p>
                         </div>
                     </div>
                     <div class="modal-body">
@@ -245,6 +247,7 @@
                             <p class="form-control">{{ $pacienteToshow->direccion }}</p>
                         </div>
                     </div>
+                @endisset
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     </div>
