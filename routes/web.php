@@ -33,6 +33,7 @@ Route::get('/users/{id}/edit', [UserController::class, 'edit']);
 //Ruta maestros
 Route::resource('paciente', PacienteController::class)->middleware('auth');
 Route::get('/paciente/{id}/edit', [PacienteController::class, 'edit']);
+Route::get('/paciente/{id}/show', [PacienteController::class, 'show']);
 
 Route::resource('especialidades', EspecialidadController::class)->middleware('auth');
 Route::get('/especialidades/{id}/edit', [EspecialidadController::class, 'edit']);
