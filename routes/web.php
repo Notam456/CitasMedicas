@@ -28,6 +28,7 @@ Route::get('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout')
 
 //Ruta user
 Route::resource('users', UserController::class)->middleware('auth');
+Route::get('/users/{id}/edit', [UserController::class, 'edit']);
 
 //Ruta maestros
 Route::resource('paciente', PacienteController::class)->middleware('auth');
