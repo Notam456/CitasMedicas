@@ -119,13 +119,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">ID</label>
-                        <p class="form-control" id="mostrarEstadoId"></p>
-                    </div>
+                    
                     <div class="mb-3">
                         <label class="form-label">Nombre</label>
-                        <p class="form-control"id="mostrarEstadoNombre"></p>
+                        <p class="form-control-plaintext"id="mostrarEstadoNombre"></p>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -184,7 +181,7 @@
              if (btnShow) {
                 const estadoId = btnShow.getAttribute('data-id');
                 var inputNombre = document.getElementById('mostrarEstadoNombre');
-                var inputId = document.getElementById('mostrarEstadoId');
+                
 
                 try {
                     const modalElement = document.getElementById('modalShowEstado');
@@ -194,7 +191,7 @@
                     }
                 
                     inputNombre.innerHTML = "Cargando...";
-                    inputId.innerHTML = "Cargando...";
+                    
                     modalInstance.show();
                     const response = await fetch(`/estados/${estadoId}/show`, {
                         method: 'GET',
@@ -209,7 +206,7 @@
                     const data = await response.json();
 
 
-                    inputId.innerHTML = data.id;
+                    
                     inputNombre.innerHTML = data.nombre;
 
                 } catch (error) {
