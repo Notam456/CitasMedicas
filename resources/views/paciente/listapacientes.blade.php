@@ -26,8 +26,7 @@
                     <tr>
                         <td>
                             <div>
-                                <a class="d-inline-block text-heading text-primary-hover fw-semibold"
-                                    href="{{ route('paciente.show', $paciente->id_paciente) }}">
+                                <a class="d-inline-block text-heading text-primary-hover fw-semibold" href="#">
                                     {{ $paciente->nombre }}
                                 </a>
                             </div>
@@ -197,8 +196,8 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalShowPaciente" tabindex="-1" aria-labelledby="modalShowPacienteLabel"
-        aria-hidden="true">
+    <!-- Modal para mostrar datos de los pacientes -->
+    <div class="modal fade" id="modalShowPaciente" tabindex="-1" aria-labelledby="modalEditarPacienteLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">

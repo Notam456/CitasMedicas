@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Paciente;
+use App\Models\Parroquia;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -25,9 +26,18 @@ class PacienteController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create() {}
+
+        //Funcion para buscar si el paciente existe y mandar los datos si lo encuentra
+    public function buscarPorCedula($cedula)
     {
-    
+        $paciente = Paciente::with(['parroquia.municipio.estado'])->where('cedula', $cedula)->first();
+
+        if ($paciente) {
+            return response()->json(['encontrado' => true, 'datos' => $paciente]);
+        } else {
+            return response()->json(['encontrado' => false]);
+        }
     }
 
     /**
@@ -56,6 +66,7 @@ class PacienteController extends Controller
         ]);
 
         Alert::success('Paciente creado exitosamente.');
+
         return redirect()->route('paciente.index');
     }
 
@@ -86,7 +97,7 @@ class PacienteController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
-            'cedula' => 'required|string|min:8|max:20|unique:pacientes,cedula,' . $id,
+            'cedula' => 'required|string|min:8|max:20|unique:pacientes,cedula,'.$id,
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'required|string|min:7|max:15',
             'parroquia_id' => 'required|exists:parroquias,id',
@@ -105,6 +116,7 @@ class PacienteController extends Controller
         ]);
 
         Alert::success('Paciente actualizado exitosamente.');
+
         return redirect()->route('paciente.index');
     }
 
@@ -117,6 +129,7 @@ class PacienteController extends Controller
         $paciente->delete();
 
         Alert::success('Paciente eliminado exitosamente.');
+
         return redirect()->route('paciente.index');
     }
 }

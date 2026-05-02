@@ -12,6 +12,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\CitaController;
 
 use function PHPUnit\Framework\returnValue;
 
@@ -55,6 +56,19 @@ Route::get('/municipios/{id}/show', [MunicipioController::class, 'show']);
 Route::resource('parroquias', ParroquiaController::class)->middleware('auth');
 Route::get('/parroquias/{id}/edit', [ParroquiaController::class, 'edit']);
 Route::get('/parroquias/{id}/show', [ParroquiaController::class, 'show']);
+
+//Rutas para Agendar Cita
+Route::get('Citas/agendar/{id}', [CitaController::class, 'create'])->name('Citas.agendar.especialidad')->middleware('auth');
+Route::get('Citas/especialidad/{id}/agendar', [CitaController::class, 'createParaEspecialidad'])->name('Citas.createEspecialidad')->middleware('auth');
+// Ruta API para que el formulario busque al paciente sin recargar la página
+Route::get('api/paciente/buscar/{cedula}', [PacienteController::class, 'buscarPorCedula'])->name('paciente.buscar')->middleware('auth');
+//Rutas resource
+Route::resource('Citas', CitaController::class)->middleware('auth');
+//Rutas para el select de ubicacion
+Route::get('/api/municipios/{estado_id}', function($estado_id) 
+{return App\Models\Municipio::where('estado_id', $estado_id)->get();});
+Route::get('/api/parroquias/{municipio_id}', function($municipio_id) 
+{return App\Models\Parroquia::where('municipio_id', $municipio_id)->get();});
 
 
 Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'getMunicipiosPorEstado']);
