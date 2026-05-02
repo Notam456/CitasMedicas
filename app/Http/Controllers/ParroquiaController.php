@@ -22,9 +22,7 @@ class ParroquiaController extends Controller
     public function show($id)
     {
         $parroquiaToShow = Parroquia::with('municipio.estado')->findOrFail($id);
-        $parroquias = Parroquia::with('municipio.estado')->get();
-        $estados = Estado::all();
-        return view('parroquias.listaParroquias', compact('parroquias', 'estados', 'parroquiaToShow'));
+        return response()->json($parroquiaToShow);
     }
 
     public function getMunicipiosPorEstado($estado_id){
@@ -55,10 +53,8 @@ class ParroquiaController extends Controller
 
     public function edit($id){
 
-        $parroquiaToEdit = Parroquia::findOrFail($id);
-        $parroquias = Parroquia::with('municipio.estado')->get();
-        $estados = Estado::all();
-        return view('parroquias.listaParroquias', compact('parroquias', 'parroquiaToEdit', 'estados'));
+        $parroquiaToEdit = Parroquia::with('municipio.estado')->findOrFail($id);
+        return response()->json($parroquiaToEdit);
     }
 
     public function update(Request $request, $id){

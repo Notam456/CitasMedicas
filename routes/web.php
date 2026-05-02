@@ -28,14 +28,33 @@ Route::get('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout')
 
 //Ruta user
 Route::resource('users', UserController::class)->middleware('auth');
+Route::get('/users/{id}/edit', [UserController::class, 'edit']);
 
 //Ruta maestros
 Route::resource('paciente', PacienteController::class)->middleware('auth');
+Route::get('/paciente/{id}/edit', [PacienteController::class, 'edit']);
+Route::get('/paciente/{id}/show', [PacienteController::class, 'show']);
+
 Route::resource('especialidades', EspecialidadController::class)->middleware('auth');
+Route::get('/especialidades/{id}/edit', [EspecialidadController::class, 'edit']);
+Route::get('/especialidades/{id}/show', [EspecialidadController::class, 'show']);
+
 Route::resource('medicos', MedicoController::class)->middleware('auth');
+Route::get('/medicos/{id}/edit', [MedicoController::class, 'edit']);
+Route::get('/medicos/{id}/show', [MedicoController::class, 'show']);
+
+
 Route::resource('estados', EstadoController::class)->middleware('auth');
+Route::get('/estados/{id}/edit', [EstadoController::class, 'edit']);
+Route::get('/estados/{id}/show', [EstadoController::class, 'show']);
+
 Route::resource('municipios', MunicipioController::class)->middleware('auth');
+Route::get('/municipios/{id}/edit', [MunicipioController::class, 'edit']);
+Route::get('/municipios/{id}/show', [MunicipioController::class, 'show']);
+
 Route::resource('parroquias', ParroquiaController::class)->middleware('auth');
+Route::get('/parroquias/{id}/edit', [ParroquiaController::class, 'edit']);
+Route::get('/parroquias/{id}/show', [ParroquiaController::class, 'show']);
 
 
 Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'getMunicipiosPorEstado']);

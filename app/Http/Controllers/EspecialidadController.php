@@ -26,10 +26,10 @@ class EspecialidadController extends Controller
 
     public function show(int $id)
     {
-        $especialidadToshow = Especialidad::findOrFail($id);
-        $especialidades = Especialidad::all();
+        $especialidadToShow = Especialidad::findOrFail($id);
+        
 
-        return view('especialidades.listaEspecialidades', compact('especialidades', 'especialidadToshow'));
+       return response()->json($especialidadToShow);
     }
 
     public function store(Request $request)
@@ -47,8 +47,8 @@ class EspecialidadController extends Controller
     public function edit(int $id)
     {
         $especialidadToEdit = Especialidad::findOrFail($id);
-        $especialidades = Especialidad::all();
-        return view('especialidades.listaEspecialidades', compact('especialidades', 'especialidadToEdit'));
+        
+        return response()->json($especialidadToEdit);
     }
 
     public function update(Request $request,int $id)

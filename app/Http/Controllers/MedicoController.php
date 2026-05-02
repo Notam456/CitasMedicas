@@ -27,11 +27,9 @@ class MedicoController extends Controller
 
     public function show(int $id)
     {
-        $medicoToshow = Medico::with('especialidad')->findOrFail($id);
-        $medicos = Medico::with('especialidad')->get();
-        $especialidades = Especialidad::all();
+        $medicoToShow = Medico::with('especialidad')->findOrFail($id);
 
-        return view('medicos.listaMedicos', compact('medicos', 'especialidades', 'medicoToshow'));
+        return response()->json($medicoToShow);
     }
 
     public function store(Request $request)
@@ -59,10 +57,7 @@ class MedicoController extends Controller
     public function edit(int $id)
     {
         $medicoToEdit = Medico::with('especialidad')->findOrFail($id);
-        $medicos = Medico::with('especialidad')->get();
-        $especialidades = Especialidad::all();
-
-        return view('medicos.listaMedicos', compact('medicos', 'especialidades', 'medicoToEdit'));
+        return response()->json($medicoToEdit);
     }
 
     public function update(Request $request, int $id)

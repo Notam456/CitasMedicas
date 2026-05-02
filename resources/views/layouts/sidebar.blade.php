@@ -17,7 +17,7 @@
                 <div class="dropdown-menu bg-transparent border-0">
                     <a href="{{ route('estados.index') }}" class="nav-item nav-link dropdown-item">Estado</a>
                     <a href="{{ route('municipios.index') }}" class="nav-item nav-link dropdown-item">Municipio</a>
-                    <a href="{{ route('parroquias.index') }}" class="nav-item nav-link dropdown-item">Parroquía</a>
+                    <a href="{{ route('parroquias.index') }}" class="nav-item nav-link dropdown-item">Parroquia</a>
                 </div>
             </div>
             
