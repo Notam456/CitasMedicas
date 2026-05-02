@@ -68,8 +68,8 @@ class UserController extends Controller
     public function edit(int $id)
     {
         $userToEdit = User::findOrFail($id);
-        $usuarios = User::all();
-        return view('user.listaUsuarios', compact('usuarios', 'userToEdit'));
+        
+        return response()->json($userToEdit);
     }
 
     /**

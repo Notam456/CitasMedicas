@@ -17,6 +17,13 @@ class EstadoController extends Controller
         return view('estados.listaEstados', compact('estados'));
     }
 
+        public function show($id)
+    {
+        $estadoToShow = Estado::findOrFail($id);
+        
+        return response()->json($estadoToShow);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -32,8 +39,8 @@ class EstadoController extends Controller
     public function edit($id)
     {
         $estadoToEdit = Estado::findOrFail($id);
-        $estados = Estado::all();
-        return view('estados.listaEstados', compact('estados', 'estadoToEdit'));
+       
+       return response()->json($estadoToEdit);
     }
 
     public function update(Request $request, $id)

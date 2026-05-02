@@ -14,6 +14,8 @@ class Especialidad extends Model
     }
 
     protected $fillable = ['nombre'];
+    
+    protected $attributes = ['estado' => true,];
 
     public $timestamps = false;
 }

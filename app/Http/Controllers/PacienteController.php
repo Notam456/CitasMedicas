@@ -75,10 +75,9 @@ class PacienteController extends Controller
      */
     public function show(int $id)
     {
-        $pacienteToshow = Paciente::with('parroquia.municipio.estado')->findOrFail($id);
-        $pacientes = Paciente::with('parroquia.municipio.estado')->get();
-
-        return view('paciente.listapacientes', compact('pacientes', 'pacienteToshow'));
+        $pacienteToShow = Paciente::with('parroquia.municipio.estado')->findOrFail($id);
+        
+        return response()->json($pacienteToShow);
     }
 
     /**
@@ -87,9 +86,7 @@ class PacienteController extends Controller
     public function edit(Paciente $paciente)
     {
         $pacienteToEdit = Paciente::findOrFail($paciente->id);
-        $pacientes = Paciente::with('parroquia.municipio.estado')->get();
-
-        return view('paciente.listapacientes', compact('pacientes', 'pacienteToEdit'));
+        return response()->json($pacienteToEdit);
     }
 
     /**
