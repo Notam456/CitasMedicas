@@ -54,14 +54,14 @@
                         </td>
                         <td class="text-end">
                             <div class="hstack gap-2 justify-content-end">
-                                <a href="{{ route('paciente.show', $paciente->id) }}"
-                                    class="btn btn-xs btn-square btn-neutral">
+                                <button type="button" data-id="{{ $paciente->id }}"
+                                    class="btn-show btn btn-xs btn-square btn-neutral">
                                     <i class="bi bi-eye"></i>
-                                </a>
-                                <a href="{{ route('paciente.edit', $paciente->id) }}"
-                                    class="btn btn-xs btn-square btn-neutral">
+                                </button>
+                                <button type="button" data-id="{{ $paciente->id }}"
+                                    class="btn-edit btn btn-xs btn-square btn-neutral">
                                     <i class="bi bi-pencil"></i>
-                                </a>
+                                </button>
                                 <a href="{{ route('paciente.destroy', $paciente->id) }}"
                                     class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover"
                                     data-confirm-delete="true">
@@ -76,54 +76,6 @@
     </div>
 
 
-    <!-- Modal Registrar Paciente
-            <div class="modal fade" id="modalPaciente" tabindex="-1" aria-labelledby="modalPacienteLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalPacienteLabel">Registrar Paciente</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                        </div>
-                        <form action="{{ route('paciente.store') }}" method="POST">
-                            @csrf
-                            <div class="modal-body">
-                                <div class="form-floating mb-3">
-                                    <input type="text" value="{{ old('name') }}" class="form-control" id="nombreUsuario" name="name" placeholder="Nombre de usuario" required>
-                                    <label for="nombreUsuario">Nombres</label>
-                                    @error('name')
-        <small class="text-danger">{{ $message }}</small>
-    @enderror
-                                </div>
-                                <div class="form-floating mb-3">
-                                    <input type="email" value="{{ old('email') }}" class="form-control" id="emailUsuario" name="email" placeholder="Correo electrónico" required>
-                                    <label for="emailUsuario">Email</label>
-                                    @error('email')
-        <small class="text-danger">{{ $message }}</small>
-    @enderror
-                                </div>
-                                <div class="form-floating mb-3">
-                                    <input type="password" class="form-control" id="passwordUsuario" name="password" placeholder="Contraseña" required>
-                                    <label for="passwordUsuario">Contraseña</label>
-                                    @error('password')
-        <small class="text-danger">{{ $message }}</small>
-    @enderror
-                                </div>
-                                <div class="form-floating mb-3">
-                                    <input type="password" class="form-control" id="passwordConfirmUsuario" name="password_confirmation" placeholder="Confirmar contraseña" required>
-                                    <label for="passwordConfirmUsuario">Confirmar Contraseña</label>
-                                    @error('password_confirmation')
-        <small class="text-danger">{{ $message }}</small>
-    @enderror
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-primary">Registrar</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div> -->
 
     <!-- Modal Editar Paciente (similar al de registrar, pero con campos prellenados) -->
     <div class="modal fade" id="modalEditarPaciente" tabindex="-1" aria-labelledby="modalEditarPacienteLabel"
@@ -148,7 +100,7 @@
                             @enderror
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="text class="form-control" id="editarApellidoPaciente" name="apellido"
+                            <input type="text" class="form-control" id="editarApellidoPaciente" name="apellido"
                                 placeholder="Apellidos del paciente" required>
                             <label for="editarApellidoPaciente">Apellidos</label>
                             @error('apellido')
@@ -187,17 +139,18 @@
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 
     <!-- Modal para mostrar datos de los pacientes -->
-    <div class="modal fade" id="modalShowPaciente" tabindex="-1" aria-labelledby="modalEditarPacienteLabel" aria-hidden="true">
+    <div class="modal fade" id="modalShowPaciente" tabindex="-1" aria-labelledby="modalShowPacienteLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -205,56 +158,40 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-floating mb-3">
-                        <label for="editarNombrePaciente">Nombres</label>
+                    <div class="mb-3">
+                        <label class="fw-bold">Nombres</label>
                         <p class="form-control" id="mostrarNombrePaciente"></p>
                     </div>
-                </div>
-                <div class="modal-body">
-                    <div class="form-floating mb-3">
-                        <label for="editarNombrePaciente">Apellidos</label>
+                    <div class="mb-3">
+                        <label class="fw-bold">Apellidos</label>
                         <p class="form-control" id="mostrarApellidoPaciente"></p>
                     </div>
-                </div>
-                <div class="modal-body">
-                    <div class="form-floating mb-3">
-                        <label for="editarNombrePaciente" >Cédula</label>
+                    <div class="mb-3">
+                        <label class="fw-bold">Cédula</label>
                         <p class="form-control" id="mostrarCedulaPaciente"></p>
                     </div>
-                </div>
-                <div class="modal-body">
-                    <div class="form-floating mb-3">
-                        <label for="editarNombrePaciente" >Fecha de Nacimiento</label>
+                    <div class="mb-3">
+                        <label class="fw-bold">Fecha de Nacimiento</label>
                         <p class="form-control" id="mostrarFechaNacimientoPaciente"></p>
                     </div>
-                </div>
-                <div class="modal-body">
-                    <div class="form-floating mb-3">
-                        <label for="editarNombrePaciente" >Teléfono</label>
+                    <div class="mb-3">
+                        <label class="fw-bold">Teléfono</label>
                         <p class="form-control" id="mostrarTelefonoPaciente"></p>
                     </div>
-                </div>
-                <div class="modal-body">
-                    <div class="form-floating mb-3">
-                        <label for="editarNombrePaciente">Estado</label>
-                        <p class="form-control"></p>
+                    <div class="mb-3">
+                        <label class="fw-bold">Estado</label>
+                        <p class="form-control" id="mostrarEstadoPaciente"></p>
                     </div>
-                </div>
-                <div class="modal-body">
-                    <div class="form-floating mb-3">
-                        <label for="editarNombrePaciente">Municipio</label>
-                        <p class="form-control"></p>
+                    <div class="mb-3">
+                        <label class="fw-bold">Municipio</label>
+                        <p class="form-control" id="mostrarMunicipioPaciente"></p>
                     </div>
-                </div>
-                <div class="modal-body">
-                    <div class="form-floating mb-3">
-                        <label for="editarNombrePaciente">Parroquia</label>
-                        <p class="form-control"></p>
+                    <div class="mb-3">
+                        <label class="fw-bold">Parroquia</label>
+                        <p class="form-control" id="mostrarParroquiaPaciente"></p>
                     </div>
-                </div>
-                <div class="modal-body">
-                    <div class="form-floating mb-3">
-                        <label for="editarNombrePaciente">Dirección</label>
+                    <div class="mb-3">
+                        <label class="fw-bold">Dirección</label>
                         <p class="form-control" id="mostrarDireccionPaciente"></p>
                     </div>
                 </div>
@@ -329,7 +266,7 @@
 
 
                     const form = document.querySelector('#modalEditarPaciente form');
-                    form.action = `/pacientes/${data.id}`;
+                    form.action = `/paciente/${data.id}`;
 
 
                 } catch (error) {
@@ -346,8 +283,9 @@
                 var inputFechaNacimiento = document.getElementById('mostrarFechaNacimientoPaciente');
                 var inputTelefono = document.getElementById('mostrarTelefonoPaciente');
                 var inputDireccion = document.getElementById('mostrarDireccionPaciente');
-
-
+                var inputEstado = document.getElementById('mostrarEstadoPaciente');
+                var inputMunicipio = document.getElementById('mostrarMunicipioPaciente');
+                var inputParroquia = document.getElementById('mostrarParroquiaPaciente');
 
                 try {
                     const modalElement = document.getElementById('modalShowPaciente');
@@ -362,9 +300,12 @@
                     inputFechaNacimiento.innerHTML = "Cargando...";
                     inputTelefono.innerHTML = "Cargando...";
                     inputDireccion.innerHTML = "Cargando...";
+                    inputEstado.innerHTML = "Cargando...";
+                    inputMunicipio.innerHTML = "Cargando...";
+                    inputParroquia.innerHTML = "Cargando...";
 
                     modalInstance.show();
-                    const response = await fetch(`/paciente/${pacienteId}/show`, {
+                    const response = await fetch(`/paciente/${pacienteId}`, {
                         method: 'GET',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
@@ -384,6 +325,10 @@
                     inputFechaNacimiento.innerHTML = data.fecha_nacimiento;
                     inputTelefono.innerHTML = data.telefono;
                     inputDireccion.innerHTML = data.direccion;
+                    
+                    inputParroquia.innerHTML = data.parroquia ? data.parroquia.nombre : 'N/A';
+                    inputMunicipio.innerHTML = data.parroquia?.municipio ? data.parroquia.municipio.nombre : 'N/A';
+                    inputEstado.innerHTML = data.parroquia?.municipio?.estado ? data.parroquia.municipio.estado.nombre : 'N/A';
 
                 } catch (error) {
                     console.error('Error:', error);

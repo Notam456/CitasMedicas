@@ -29,7 +29,7 @@ class CitaController extends Controller
 
     public function create(Request $request, int $id)
     {
-        $especialidad = Especialidad::findOrFails($id);  
+        $especialidad = Especialidad::findOrfail($id);  
 
         $estados = Estado::orderBy('nombre', 'asc')->get();   
         
@@ -38,7 +38,7 @@ class CitaController extends Controller
 
     public function createParaEspecialidad(int $id)
     {
-        $especialidad = Especialidad::findOrFail($id);
+        $especialidad = Especialidad::findOrfail($id);
 
         $estados = Estado::orderBy('nombre', 'asc')->get();
         

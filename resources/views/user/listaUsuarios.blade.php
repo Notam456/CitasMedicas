@@ -9,7 +9,7 @@
     <div class="table-responsive bg-light rounded h-100 p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="mb-0">Lista de Usuarios</h3>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="# ">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUsuario">
                 <i class="bi bi-person-plus me-1"></i> Registrar Usuario
             </button>
         </div>
