@@ -79,7 +79,7 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255,' . Rule::unique('users', 'email')->ignore($id),
+            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
             'password' => 'nullable|string|min:8',
         ]);
 
@@ -93,7 +93,7 @@ class UserController extends Controller
 
         $user->save();
 
-            Alert::success('Usuario actualizado exitosamente.');
+        Alert::success('Usuario actualizado exitosamente.');
 
         return redirect()->route('users.index');
     }
