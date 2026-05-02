@@ -59,8 +59,8 @@
                     </div>
                     <div class="col-sm-12 col-md-6">
                         <div class="bg-light text-center rounded p-4">
-                            <h6 class="mb-0">Top 5 Medicos</h6>
-                            <canvas id="medicosChart" style="max-height: 200px;"></canvas>
+                            <h6 class="mb-0">Top 5 Especialidades</h6>
+                            <canvas id="especialidadesChart" style="max-height: 200px;"></canvas>
                         </div>
                     </div>
                 </div>
