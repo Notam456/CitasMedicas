@@ -26,7 +26,7 @@
                     <tr>
                         <td>
                             <div>
-                                <a class="d-inline-block text-heading text-primary-hover fw-semibold" href="{{ route('paciente.show', $paciente->id_paciente) }}">
+                                <a class="d-inline-block text-heading text-primary-hover fw-semibold" href="#">
                                     {{ $paciente->nombre }}
                                 </a>
                             </div>
