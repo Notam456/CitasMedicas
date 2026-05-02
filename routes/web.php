@@ -53,6 +53,8 @@ Route::get('/municipios/{id}/edit', [MunicipioController::class, 'edit']);
 Route::get('/municipios/{id}/show', [MunicipioController::class, 'show']);
 
 Route::resource('parroquias', ParroquiaController::class)->middleware('auth');
+Route::get('/parroquias/{id}/edit', [ParroquiaController::class, 'edit']);
+Route::get('/parroquias/{id}/show', [ParroquiaController::class, 'show']);
 
 
 Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'getMunicipiosPorEstado']);
