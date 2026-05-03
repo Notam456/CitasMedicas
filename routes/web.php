@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CalendarioController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\MedicoController;
@@ -69,6 +70,12 @@ Route::get('/api/municipios/{estado_id}', function($estado_id)
 {return App\Models\Municipio::where('estado_id', $estado_id)->get();});
 Route::get('/api/parroquias/{municipio_id}', function($municipio_id) 
 {return App\Models\Parroquia::where('municipio_id', $municipio_id)->get();});
+
+
+Route::get('/calendario/medicos/{especialidad}', [CalendarioController::class, 'getMedicos']);
+Route::get('/calendario/eventos', [CalendarioController::class, 'getDatosMes']);
+Route::resource('calendario', CalendarioController::class)->middleware('auth');
+
 
 
 Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'getMunicipiosPorEstado']);
