@@ -15,9 +15,13 @@ class Medico extends Model
         'telefono',
         'especialidad_id',
     ];
-    
+
     public function especialidad()
     {
         return $this->belongsTo(Especialidad::class, 'especialidad_id');
+    }
+    public function calendarios()
+    {
+        return $this->hasMany(Calendario::class);
     }
 }
