@@ -3,24 +3,63 @@
 namespace App\Http\Controllers;
 
 use App\Models\Calendario;
+use App\Models\Medico;
+use App\Models\Especialidad;
 use Illuminate\Http\Request;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class CalendarioController extends Controller
 {
+    public function getDatosMes(Request $request)
+    {
+        $mes = $request->mes;
+        $anio = $request->anio;
+        $especialidadId = $request->especialidad_id;
+        $medicoId = $request->medico_id;
+
+
+        $query = Calendario::whereYear('fecha', $anio)
+            ->whereMonth('fecha', $mes)
+            ->with('medico');
+
+        if ($medicoId) {
+            $query->where('medico_id', $medicoId);
+        } elseif ($especialidadId) {
+            $query->whereHas('medico', function ($q) use ($especialidadId) {
+                $q->where('especialidad_id', $especialidadId);
+            });
+        }
+
+        $disponibilidad = $query->get();
+        return response()->json($disponibilidad);
+    }
+
+    public function getMedicos($especialidad_id)
+    {
+        $medicos = Medico::where('especialidad_id', $especialidad_id)->get();
+        return response()->json($medicos);
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        $especialidades = Especialidad::where('estado', true)->get();
+        return view('calendario.index', compact('especialidades'));
     }
+
 
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        //
+        $especialidades = Especialidad::where('estado', true)->get();
+        $title = '¿Estas seguro de que deseas eliminar este registro?';
+        $texrt = 'Esta acción no se puede deshacer.';
+        confirmDelete($title, $texrt);
+
+        return view('calendario.create', compact('especialidades'));
     }
 
     /**
@@ -28,7 +67,20 @@ class CalendarioController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'medico_id' => 'required',
+            'fecha' => 'required|date',
+            'hora_inicio' => 'required',
+            'hora_fin' => 'required',
+            'cupos_disponibles' => 'required|integer|min:0'
+        ]);
+
+        Calendario::updateOrCreate(
+            ['medico_id' => $request->medico_id, 'fecha' => $request->fecha],
+            $request->only(['hora_inicio', 'hora_fin', 'cupos_disponibles'])
+        );
+        
+        return back()->with('success', 'Cupos actualizados correctamente.');
     }
 
     /**
