@@ -1,0 +1,191 @@
+classDiagram
+    class User {
+        +int id
+        +string name
+        +string email
+        +timestamp email_verified_at
+        +string password
+        +string remember_token
+        +timestamps()
+        +index()
+        +create()
+        +store(Request request)
+        +show(string id)
+        +edit(int id)
+        +update(Request request, int id)
+        +destroy(int id)
+        +login(Request request)
+        +register(Request request)
+        +logout()
+    }
+
+    class Estado {
+        +int id
+        +string nombre
+        +timestamps()
+        +index()
+        +show(id)
+        +store(Request request)
+        +edit(id)
+        +update(Request request, id)
+        +destroy(id)
+    }
+
+    class Municipio {
+        +int id
+        +int estado_id
+        +string nombre
+        +timestamps()
+        +index()
+        +show(id)
+        +store(Request request)
+        +edit(id)
+        +update(Request request, id)
+        +destroy(id)
+    }
+
+    class Parroquia {
+        +int id
+        +int municipio_id
+        +string nombre
+        +timestamps()
+        +index()
+        +show(id)
+        +getMunicipiosPorEstado(estado_id)
+        +store(Request request)
+        +edit(id)
+        +update(Request request, id)
+        +destroy(id)
+    }
+
+    class Especialidad {
+        +int id
+        +string nombre
+        +boolean estado
+        +timestamps()
+        +index()
+        +create()
+        +show(int id)
+        +store(Request request)
+        +edit(int id)
+        +update(Request request, int id)
+        +destroy(int id)
+    }
+
+    class Medico {
+        +int id
+        +int especialidad_id
+        +string nombre
+        +string apellido
+        +string cedula
+        +string telefono
+        +timestamps()
+        +index()
+        +create()
+        +show(int id)
+        +store(Request request)
+        +edit(int id)
+        +update(Request request, int id)
+        +destroy(int id)
+    }
+
+    class Calendario {
+        +int id
+        +int medico_id
+        +date fecha
+        +time hora_inicio
+        +time hora_fin
+        +int cupos_disponibles
+        +timestamps()
+        +getDatosMes(Request request)
+        +getMedicos(especialidad_id)
+        +index()
+        +create()
+        +store(Request request)
+        +show(Calendario calendario)
+        +edit(Calendario calendario)
+        +update(Request request, Calendario calendario)
+        +destroy(Calendario calendario)
+    }
+
+    class Paciente {
+        +int id
+        +int parroquia_id
+        +string nombre
+        +string apellido
+        +string cedula
+        +date fecha_nacimiento
+        +string telefono
+        +string direccion
+        +timestamps()
+        +index()
+        +create()
+        +buscarPorCedula(cedula)
+        +store(Request request)
+        +show(int id)
+        +edit(Paciente paciente)
+        +update(Request request, int id)
+        +destroy(int id)
+    }
+
+    class Expediente {
+        +int id
+        +int paciente_id
+        +string numero_expediente
+        +date fecha_apertura
+        +timestamps()
+        +index()
+        +create()
+        +store(Request request)
+        +show(Expediente expediente)
+        +edit(Expediente expediente)
+        +update(Request request, Expediente expediente)
+        +destroy(Expediente expediente)
+    }
+
+    class Cita {
+        +int id
+        +int paciente_id
+        +int calendario_id
+        +int user_id
+        +date fecha_registro
+        +date fecha_cita
+        +string estado
+        +text observacion
+        +timestamps()
+        +index()
+        +create(Request request, int id)
+        +createParaEspecialidad(int id)
+        +store(Request request)
+        +show(Cita cita)
+        +edit(Cita cita)
+        +update(Request request, Cita cita)
+        +destroy(Cita cita)
+    }
+
+    class AtencionMedica {
+        +int id
+        +int cita_id
+        +text diagnostico
+        +text observaciones
+        +boolean asistio
+        +timestamps()
+        +index()
+        +create()
+        +store(Request request)
+        +show(AtencionMedica atencionMedica)
+        +edit(AtencionMedica atencionMedica)
+        +update(Request request, AtencionMedica atencionMedica)
+        +destroy(AtencionMedica atencionMedica)
+    }
+
+    Estado "1" -- "*" Municipio : contiene
+    Municipio "1" -- "*" Parroquia : contiene
+    Parroquia "1" -- "*" Paciente : reside
+    Especialidad "1" -- "*" Medico : tiene
+    Medico "1" -- "*" Calendario : programa
+    Paciente "1" -- "1" Expediente : posee
+    Paciente "1" -- "*" Cita : solicita
+    Calendario "1" -- "*" Cita : agendada_en
+    User "1" -- "*" Cita : gestiona
+    Cita "1" -- "1" AtencionMedica : genera
