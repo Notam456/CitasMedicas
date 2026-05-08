@@ -16,6 +16,7 @@ class Cita extends Model
         'calendario_id',
         'fecha_registro',
         'fecha_cita',
+        'numero_cupo',
         'estado',
         'observacion',
     ];

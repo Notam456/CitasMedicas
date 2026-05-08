@@ -61,8 +61,9 @@ Route::get('/parroquias/{id}/show', [ParroquiaController::class, 'show']);
 //Rutas para Agendar Cita
 Route::get('Citas/agendar/{id}', [CitaController::class, 'create'])->name('Citas.agendar.especialidad')->middleware('auth');
 Route::get('Citas/especialidad/{id}/agendar', [CitaController::class, 'createParaEspecialidad'])->name('Citas.createEspecialidad')->middleware('auth');
-// Ruta API para que el formulario busque al paciente sin recargar la página
+// Ruta API para que el formulario
 Route::get('api/paciente/buscar/{cedula}', [PacienteController::class, 'buscarPorCedula'])->name('paciente.buscar')->middleware('auth');
+Route::get('/api/calendario/{calendario_id}/siguiente-cupo', [CitaController::class, 'contarcupos'])->name('api.cupo.siguiente')->middleware('auth');
 //Rutas resource
 Route::resource('Citas', CitaController::class)->middleware('auth');
 //Rutas para el select de ubicacion

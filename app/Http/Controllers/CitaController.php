@@ -7,25 +7,20 @@ use App\Models\Cita;
 use App\Models\Especialidad;
 use App\Models\Paciente;
 use App\Models\Estado;
+use App\Models\Calendario;
 use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Support\Facades\Auth;
 
 class CitaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
     public function index()
     {
         $especialidades = Especialidad::with('medicos')->get();
 
         return view('Cita.SeleccionarEspecialidad', compact('especialidades'));
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
 
     public function create(Request $request, int $id)
     {
@@ -52,6 +47,37 @@ class CitaController extends Controller
         
         return view('Cita.Formcita', compact('especialidad' , 'estados'));
     }
+
+    public function contarcupos($calendario_id)
+{
+    // Buscamos el registro del calendario para saber el límite total de cupos
+    $calendario = Calendario::findOrFail($calendario_id);
+
+    // Obtenemos los números de cupo que ya están registrados en la tabla citas para este calendario
+    $cuposOcupados = Cita::where('calendario_id', $calendario_id)
+                        ->pluck('numero_cupo')
+                        ->toArray();
+
+    $siguienteCupo = null;
+
+    // Recorremos desde el 1 hasta el máximo definido en el calendario
+    for ($i = 1; $i <= $calendario->cupos_disponibles; $i++) {
+        // El primer número que no esté en el array de ocupados es el nuestro
+        if (!in_array($i, $cuposOcupados)) {
+            $siguienteCupo = $i;
+            break; 
+        }
+    }
+
+    if (!$siguienteCupo) {
+        return response()->json(['error' => 'No hay cupos disponibles para esta fecha'], 422);
+    }
+
+    return response()->json([
+        'numero_cupo' => $siguienteCupo,
+        'calendario_id' => $calendario->id
+    ]);
+}
 
     public function store(Request $request)
     {

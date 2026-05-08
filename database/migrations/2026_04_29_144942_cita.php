@@ -18,7 +18,8 @@ return new class extends Migration
     $table->foreignId('user_id')->constrained();
     $table->date('fecha_registro');
     $table->date('fecha_cita');
-    $table->string('estado');
+    $table->integer('numero_cupo');
+    $table->enum('estado', ['pendiente', 'confirmada', 'cancelada'])->default('pendiente');
     $table->text('observacion')->nullable();
     $table->timestamps();
     });

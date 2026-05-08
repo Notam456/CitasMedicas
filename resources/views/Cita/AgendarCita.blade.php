@@ -26,6 +26,7 @@
                         <th>Paciente</th>
                         <th>Cédula</th>
                         <th>Fecha de Cita</th>
+                        <th>Estado</th>
                         <th>Observación</th>
                     </tr>
                 </thead>
@@ -35,6 +36,11 @@
                             <td>{{ $cita->paciente->nombre }} {{ $cita->paciente->apellido }}</td>
                             <td>{{ $cita->paciente->cedula }}</td>
                             <td>{{ \Carbon\Carbon::parse($cita->fecha_cita)->format('d/m/Y') }}</td>
+                            <td>
+                                <span class="badge bg-{{ $cita->estado === 'confirmada' ? 'success' : ($cita->estado === 'cancelada' ? 'danger' : 'warning') }}">
+                                    {{ ucfirst($cita->estado) }}
+                                </span>
+                            </td>
                             <td>{{ $cita->observacion ?? 'N/A' }}</td>
                         </tr>
                     @empty

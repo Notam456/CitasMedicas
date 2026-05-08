@@ -47,6 +47,14 @@
                 </div>
 
                 <div class="col-md-4">
+                    <label class="form-label">RIF</label>
+                    <input type="text" name="rif" id="input_rif" class="form-control @error('rif') is-invalid @enderror" value="{{ old('rif') }}" required>
+                    @error('rif')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-md-4">
                     <label class="form-label">F. Nacimiento</label>
                     <input type="date" name="fecha_nacimiento" id="input_fecha" class="form-control @error('fecha_nacimiento') is-invalid @enderror" value="{{ old('fecha_nacimiento') }}" required>
                     @error('fecha_nacimiento')
@@ -62,10 +70,6 @@
                     @enderror
                 </div>
 
-            <div class="row g-3 bg-light p-3 rounded mb-4 border">
-                <h5 class="text-secondary border-bottom pb-2">Ubicación del Paciente</h5>
-
-                <!-- Estado -->
                 <div class="col-md-4">
                     <label class="form-label">Estado</label>
                     <select id="select-estado" class="form-select">
@@ -78,7 +82,6 @@
                     </select>
                 </div>
             
-                <!-- Municipio -->
                 <div class="col-md-4">
                     <label class="form-label">Municipio</label>
                     <select id="select-municipio" class="form-select">
@@ -86,7 +89,6 @@
                     </select>
                 </div>
             
-                <!-- Parroquia -->
                 <div class="col-md-4">
                     <label class="form-label">Parroquia</label>
                     <select name="parroquia_id" id="select-parroquia" class="form-select @error('parroquia_id') is-invalid @enderror" required>
@@ -97,34 +99,32 @@
                     @enderror
                 </div>
                 
-                <!-- Dirección -->
                 <div class="col-md-12">
                     <label class="form-label">Dirección exacta</label>
                     <input type="text" name="direccion" id="input_direccion" class="form-control">
                 </div>
             </div>
 
-                
-            </div>
-
             <h4 class="text-secondary mb-3"><i class="fas fa-calendar-check me-2"></i>Datos de la Cita</h4>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Cupo</label>
-                    <input type="number" name="calendario_id" class="form-control" required>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Fecha de Cita</label>
-                    <input type="date" name="fecha_cita" class="form-control" required>
-                </div>
 
-                <div class="col-md-4">
-                    <label class="form-label">Observación</label>
-                    <textarea name="observacion" class="form-control" rows="1" placeholder="Síntomas o nota..."></textarea>
+            <div class="row g-3 bg-light p-3 rounded mb-4 border">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Cupo</label>
+                        <input type="number" name="calendario_id" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha de Cita</label>
+                        <input type="date" name="fecha_cita" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Observación</label>
+                        <textarea name="observacion" class="form-control" rows="1" placeholder="Síntomas o nota..."></textarea>
+                    </div>
                 </div>
             </div>
-
         </div>
+        
         <div class="card-footer bg-white text-end py-3">
             <a href="{{ route('Citas.agendar.especialidad', $especialidad->id) }}" class="btn btn-outline-danger me-2">Cancelar</a>
             <button type="submit" class="btn btn-success px-5">Confirmar y Agendar Cita</button>
