@@ -31,9 +31,17 @@ class CitaController extends Controller
     {
         $especialidad = Especialidad::findOrfail($id);  
 
-        $estados = Estado::orderBy('nombre', 'asc')->get();   
+        $estados = Estado::orderBy('nombre', 'asc')->get();
         
-        return view('Cita.AgendarCita', compact('especialidad', 'estados'));
+        $citas = Cita::whereHas('calendario.medico', function($query) use ($id) {
+        $query->where('especialidad_id', $id);
+            })
+            ->with('paciente')
+            ->orderBy('fecha_cita', 'desc')
+            ->take(10)
+            ->get();
+
+        return view('Cita.AgendarCita', compact('especialidad', 'estados', 'citas'));
     }
 
     public function createParaEspecialidad(int $id)

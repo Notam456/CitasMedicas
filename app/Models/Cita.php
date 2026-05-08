@@ -22,6 +22,17 @@ class Cita extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_user');
+        return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function paciente()
+    {
+        return $this->belongsTo(Paciente::class, 'paciente_id');
+    }
+
+    public function calendario()
+    {
+        return $this->belongsTo(Calendario::class, 'calendario_id');
+    }    
+    
 }

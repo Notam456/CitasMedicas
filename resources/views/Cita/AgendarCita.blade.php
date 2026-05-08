@@ -26,18 +26,22 @@
                         <th>Paciente</th>
                         <th>Cédula</th>
                         <th>Fecha de Cita</th>
-                        <th>Estado</th>
                         <th>Observación</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- @forelse($citas as $cita) --}}
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
-                            Aún no hay citas agendadas o el módulo de cupos está en desarrollo.
-                        </td>
-                    </tr>
-                    {{-- @endforelse --}}
+                    @forelse($citas as $cita)
+                        <tr>
+                            <td>{{ $cita->paciente->nombre }} {{ $cita->paciente->apellido }}</td>
+                            <td>{{ $cita->paciente->cedula }}</td>
+                            <td>{{ \Carbon\Carbon::parse($cita->fecha_cita)->format('d/m/Y') }}</td>
+                            <td>{{ $cita->observacion ?? 'N/A' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No hay citas agendadas para esta especialidad.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
