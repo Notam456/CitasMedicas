@@ -128,7 +128,7 @@
 
             fetch(`/calendario/medicos/${espId}`)
                 .then(res => res.json())
-                .then(data = > {
+                .then(data => {
                     selectMed.innerHTML = '<option value="">Todos los médicos</option>';
                     data.forEach(m => {
                         selectMed.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
