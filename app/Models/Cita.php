@@ -24,4 +24,24 @@ class Cita extends Model
     {
         return $this->belongsTo(User::class, 'id_user');
     }
+
+    public function paciente()
+    {
+        return $this->belongsTo(Paciente::class);
+    }
+
+    public function calendario()
+    {
+        return $this->belongsTo(Calendario::class);
+    }
+
+    public function medico()
+    {
+        return $this->hasOneThrough(Medico::class, Calendario::class, 'id', 'id', 'calendario_id', 'medico_id');
+    }
+    
+    public function especialidad()
+    {
+        return $this->medico()->especialidad();
+    }
 }
