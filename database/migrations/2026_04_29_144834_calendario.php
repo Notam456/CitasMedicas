@@ -17,7 +17,8 @@ return new class extends Migration
     $table->date('fecha');
     $table->time('hora_inicio');
     $table->time('hora_fin');
-    $table->integer('cupos_disponibles');
+    $table->integer('cupos_sucesivos');
+    $table->integer('cupos_primera_vez');
     $table->timestamps();
     });
     }
