@@ -14,6 +14,7 @@ use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\CitaController;
+use App\Http\Controllers\MorbilidadController;
 
 use function PHPUnit\Framework\returnValue;
 
@@ -83,6 +84,10 @@ Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'g
 // Dashboard y Reportes Yajure
 
 // Route::get('/', [DashboardController::class, 'index'])->name('inicio'); // yajure: no me borren este bypass por favor!
+
+Route::middleware('auth')->group(function () {
+    Route::get('/morbilidad', [MorbilidadController::class, 'index'])->name('morbilidad.index');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');

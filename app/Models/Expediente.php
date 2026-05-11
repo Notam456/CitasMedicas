@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Expediente extends Model
 {
-    protected $primaryKey = "id_expediente";
+    protected $primaryKey = "id";
 
     public function paciente()
     {
-        return $this->belongsTo(Paciente::class, 'id_paciente');
+        return $this->belongsTo(Paciente::class, 'paciente_id');
     }
 
-    protected $fillable = ['numero_expediente', 'fecha_apertura', 'id_paciente'];
+    protected $fillable = ['numero_expediente', 'fecha_apertura', 'paciente_id'];
 }
