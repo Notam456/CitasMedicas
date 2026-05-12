@@ -36,7 +36,7 @@ class CitaSeeder extends Seeder
                     'updated_at' => now(),
                 ]);
                 // Reducir cupos disponibles en el calendario
-                $calendario->decrement('cupos_disponibles');
+                // $calendario->decrement('cupos_disponibles'); LA QUITÉ PORQUE ASÍ NO SE VAN A LLEVAR LOS CUPOS, POR AHORA NO VA A HACER FALTA
             }
         }
     }
