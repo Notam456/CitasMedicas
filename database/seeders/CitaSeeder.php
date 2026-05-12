@@ -20,7 +20,7 @@ class CitaSeeder extends Seeder
 
         foreach ($calendarios as $calendario) {
             // Máximo 3 citas por calendario según cupos
-            $numCitas = rand(0, min(3, $calendario->cupos_disponibles));
+            $numCitas = rand(0, min(3, $calendario->cupos_primera_vez));
             for ($i = 0; $i < $numCitas; $i++) {
                 $paciente = $pacientes->random();
                 $estado = $estados[array_rand($estados)];
