@@ -29,7 +29,8 @@ class CalendarioSeeder extends Seeder
                         [
                             'hora_inicio' => '08:00:00',
                             'hora_fin' => '12:00:00',
-                            'cupos_disponibles' => rand(5, 15),
+                            'cupos_primera_vez' => rand(5, 15),
+                            'cupos_sucesivos' => rand(5, 15),
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]
