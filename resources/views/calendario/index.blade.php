@@ -128,7 +128,7 @@
 
             fetch(`/calendario/medicos/${espId}`)
                 .then(res => res.json())
-                .then(data = > {
+                .then(data => {
                     selectMed.innerHTML = '<option value="">Todos los médicos</option>';
                     data.forEach(m => {
                         selectMed.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
@@ -187,7 +187,7 @@
                 const fechaStr =
                     `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
                 const eventosDia = eventos.filter(e => e.fecha === fechaStr);
-                const totalCupos = eventosDia.reduce((sum, e) => sum + e.cupos_disponibles, 0);
+                const totalCupos = eventosDia.reduce((sum, e) => sum + e.cupos_primera_vez + e.cupos_sucesivos, 0);
 
                 const divDia = document.createElement('div');
                 divDia.className = 'col p-2 border-end border-bottom calendar-day bg-white text-dark';
@@ -243,7 +243,8 @@
                             <div class="card-body py-2">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0 fw-bold text-primary">Dr. ${ev.medico.nombre} ${ev.medico.apellido}</h6>
-                                    <span class="badge bg-primary rounded-pill">${ev.cupos_disponibles} cupos</span>
+                                    <span class="badge bg-primary rounded-pill">${ev.cupos_primera_vez} cupos de primera vez</span>
+                                    <span class="badge bg-primary rounded-pill">${ev.cupos_sucesivos} cupos sucesivos</span>
                                 </div>
                                 <div class="small text-muted mt-1">
                                     <i class="far fa-clock me-1 text-secondary"></i> Jornada: ${ev.hora_inicio.substring(0,5)} - ${ev.hora_fin.substring(0,5)}

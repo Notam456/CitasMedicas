@@ -98,8 +98,13 @@
                                 <input type="time" name="hora_fin" id="input-fin" class="form-control" required>
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label text-muted fw-bold small">Cupos Disponibles *</label>
-                                <input type="number" name="cupos_disponibles" id="input-cupos" class="form-control"
+                                <label class="form-label text-muted fw-bold small">Cupos primera vez *</label>
+                                <input type="number" name="cupos_primera_vez" id="input-cupos-p" class="form-control"
+                                    required min="1">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label text-muted fw-bold small">Cupos sucesivos *</label>
+                                <input type="number" name="cupos_sucesivos" id="input-cupos-s" class="form-control"
                                     required min="1">
                             </div>
                         </div>
@@ -192,7 +197,7 @@
                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle d-block mb-1">
                                 ${ev.hora_inicio.substring(0,5)} - ${ev.hora_fin.substring(0,5)}
                             </span>
-                            <span class="small fw-bold text-muted">${ev.cupos_disponibles} Cupos</span>
+                            <span class="small fw-bold text-muted">${ev.cupos_primera_vez + ev.cupos_sucesivos} Cupos</span>
                         </div>`;
                 } else {
                     div.innerHTML +=
@@ -234,7 +239,8 @@
 
             document.getElementById('input-inicio').value = evento ? evento.hora_inicio : "08:00";
             document.getElementById('input-fin').value = evento ? evento.hora_fin : "12:00";
-            document.getElementById('input-cupos').value = evento ? evento.cupos_disponibles : "10";
+            document.getElementById('input-cupos-p').value = evento ? evento.cupos_primera_vez : "10";
+            document.getElementById('input-cupos-s').value = evento ? evento.cupos_sucesivos : "10";
 
             modalBS.show();
         }

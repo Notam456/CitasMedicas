@@ -11,5 +11,5 @@ class Calendario extends Model
         return $this->belongsTo(Medico::class, 'medico_id');
     }
 
-    public $fillable = ['medico_id', 'hora_inicio', 'hora_fin', 'fecha', 'cupos_disponibles'];
+    public $fillable = ['medico_id', 'hora_inicio', 'hora_fin', 'fecha', 'cupos_primera_vez', 'cupos_sucesivos'];
 }
