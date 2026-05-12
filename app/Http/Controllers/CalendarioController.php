@@ -65,23 +65,39 @@ class CalendarioController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'medico_id' => 'required',
-            'fecha' => 'required|date',
-            'hora_inicio' => 'required',
-            'hora_fin' => 'required',
-            'cupos_disponibles' => 'required|integer|min:0'
-        ]);
+   public function store(Request $request)
+{
+    $request->validate([
+        'medico_id' => 'required',
+        'fecha' => 'required|date',
+        'hora_inicio' => 'required',
+        'hora_fin' => 'required',
+        'cupos_primera_vez' => [
+            'required', 
+            'integer', 
+            'min:0',
+            function ($attribute, $value, $fail) use ($request) {
+                $total = $value + $request->cupos_sucesivos;
+                if ($total <= 0) {
+                    $fail('La suma de cupos (primera vez + sucesivos) debe ser mayor a cero.');
+                }
+            },
+        ],
+        'cupos_sucesivos' => 'required|integer|min:0',
+    ]);
 
-        Calendario::updateOrCreate(
-            ['medico_id' => $request->medico_id, 'fecha' => $request->fecha],
-            $request->only(['hora_inicio', 'hora_fin', 'cupos_disponibles'])
-        );
-        
-        return back()->with('success', 'Cupos actualizados correctamente.');
-    }
+    Calendario::updateOrCreate(
+        ['medico_id' => $request->medico_id, 'fecha' => $request->fecha],
+        [
+            'hora_inicio' => $request->hora_inicio,
+            'hora_fin' => $request->hora_fin,
+            'cupos_primera_vez' => $request->cupos_primera_vez,
+            'cupos_sucesivos' => $request->cupos_sucesivos,
+        ]
+    );
+
+    return back()->with('success', 'Cupos actualizados correctamente.');
+}
 
     /**
      * Display the specified resource.
