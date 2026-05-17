@@ -7,6 +7,8 @@ use App\Models\Cita;
 use App\Models\Especialidad;
 use App\Models\Paciente;
 use App\Models\Estado;
+use App\Models\Calendario;
+use App\Models\Medico;
 use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Support\Facades\Auth;
@@ -27,23 +29,72 @@ class CitaController extends Controller
      * Show the form for creating a new resource.
      */
 
-    public function create(Request $request, int $id)
+    public function create()
     {
-        $especialidad = Especialidad::findOrfail($id);  
+        $especialidades = Especialidad::all();
+        $estados = Estado::all();
 
-        $estados = Estado::orderBy('nombre', 'asc')->get();   
-        
-        return view('Cita.AgendarCita', compact('especialidad', 'estados'));
+        return view('Cita.Formcita', compact('especialidades', 'estados'));
     }
 
-    public function createParaEspecialidad(int $id)
+    public function getMedicosPorEspecialidad($id)
     {
-        $especialidad = Especialidad::findOrfail($id);
-
-        $estados = Estado::orderBy('nombre', 'asc')->get();
-        
-        return view('Cita.Formcita', compact('especialidad' , 'estados'));
+        $medicos = Medico::where('especialidad_id', $id)->get();
+        return response()->json($medicos);
     }
+
+    public function disponibilidadMes(Request $request, $medico_id)
+    {
+        try {
+            $mes = $request->mes;
+            $anio = $request->anio;
+            $tipo_paciente = $request->tipo_paciente; // Recibe 'primera_vez' o 'control'
+
+            // 1. Obtener las planificaciones del médico para ese mes
+            $calendarios = Calendario::where('medico_id', $medico_id)
+                ->whereYear('fecha', $anio)
+                ->whereMonth('fecha', $mes)
+                ->get();
+
+            // 2. Mapear y calcular cupos libres
+            $eventos = $calendarios->map(function ($cal) use ($tipo_paciente) {
+
+                // Contamos las citas existentes filtrando por el valor exacto del HTML
+                $ocupados = Cita::where('calendario_id', $cal->id)
+                    ->where('tipo_paciente', $tipo_paciente)
+                    ->whereIn('estado', ['Agendada', 'Atendida'])
+                    ->count();
+
+                // Sincronizamos las columnas de tu tabla calendarios con el valor del HTML
+                $capacidad_maxima = ($tipo_paciente === 'primera_vez') 
+                                    ? $cal->cupos_primera_vez 
+                                    : $cal->cupos_sucesivos;
+
+                $disponibles = $capacidad_maxima - $ocupados;
+
+                return [
+                    'id' => $cal->id,
+                    'fecha' => $cal->fecha,
+                    'hora_inicio' => $cal->hora_inicio,
+                    'hora_fin' => $cal->hora_fin,
+                    'disponibles' => max(0, $disponibles),
+                    'total' => $capacidad_maxima
+                ];
+            });
+
+            return response()->json($eventos);
+
+        } catch (\Exception $e) {
+            // Si algo falla adentro, esto enviará el texto del error en JSON limpio a la consola
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
+        }
+    }
+
 
     public function store(Request $request)
     {

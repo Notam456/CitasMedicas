@@ -19,6 +19,7 @@ return new class extends Migration
     $table->date('fecha_registro');
     $table->date('fecha_cita');
     $table->string('estado');
+    $table->string('tipo_paciente');
     $table->text('observacion')->nullable();
     $table->timestamps();
     });

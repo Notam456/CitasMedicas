@@ -22,7 +22,7 @@
             </div>
             
             <a href="{{ route('calendario.index') }}" class="nav-item nav-link"><i class="fa fa-keyboard me-2"></i>Planificación</a>
-            <a href="{{ route('Citas.index') }}" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Agenda de Cita</a>
+            <a href="{{ route('Citas.create') }}" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Agenda de Cita</a>
             <a href="{{route('reportes.index')}}" class="nav-link nav-item"><i class="far fa-file-alt me-2"></i>Reportes</a>
             <a href="{{route('morbilidad.index')}}" class="nav-link nav-item"><i class="fas fa-chart-line"></i>Morbilidad</a>
         </div>
