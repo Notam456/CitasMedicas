@@ -9,12 +9,12 @@
 <div class="container-fluid px-4 py-4">
     
     <div class="mb-4">
-        <h2 class="fw-bold text-primary border-bottom pb-2">Agendar Cita: {{ $especialidad->nombre }}</h2>
+        <h2 class="fw-bold text-primary border-bottom pb-2">Agendar Cita</h2>
     </div>
 
     <form action="{{ route('Citas.store') }}" method="POST" class="card shadow-sm border-0">
         @csrf
-        <input type="hidden" name="especialidad_id" value="{{ $especialidad->id }}">
+        <!-- <input type="hidden" name="especialidad_id" value=""> -->
         
         <div class="card-body p-4">
             
@@ -40,8 +40,16 @@
                 
                 <div class="col-md-4">
                     <label class="form-label">Apellido</label>
-                    <input type="text" name="apellido" id="input_apellido" class="form-control @error('aepllido') is-invalid @enderror" value="{{ old('apellido') }}" required>
+                    <input type="text" name="apellido" id="input_apellido" class="form-control @error('apellido') is-invalid @enderror" value="{{ old('apellido') }}" required>
                     @error('apellido')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Rif</label>
+                    <input type="text" name="rif" id="input_rif" class="form-control @error('rif') is-invalid @enderror" value="{{ old('rif') }}">
+                    @error('rif')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -62,9 +70,8 @@
                     @enderror
                 </div>
 
-            <div class="row g-3 bg-light p-3 rounded mb-4 border">
-                <h5 class="text-secondary border-bottom pb-2">Ubicación del Paciente</h5>
-
+                <h6 class="text-secondary border-bottom pb-2">Ubicación del Paciente</h6>
+                    
                 <!-- Estado -->
                 <div class="col-md-4">
                     <label class="form-label">Estado</label>
@@ -100,33 +107,91 @@
                 <!-- Dirección -->
                 <div class="col-md-12">
                     <label class="form-label">Dirección exacta</label>
-                    <input type="text" name="direccion" id="input_direccion" class="form-control">
+                    <input type="text" name="direccion" id="input_direccion" value="{{ old('direccion') }}" class="form-control">
                 </div>
-            </div>
-
-                
             </div>
 
             <h4 class="text-secondary mb-3"><i class="fas fa-calendar-check me-2"></i>Datos de la Cita</h4>
             <div class="row g-3">
                 <div class="col-md-4">
-                    <label class="form-label">Cupo</label>
-                    <input type="number" name="calendario_id" class="form-control" required>
+                    <label class="form-label fw-bold small text-uppercase text-muted">Especialidad</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fas fa-stethoscope"></i></span>
+                        <select id="select-especialidad" class="form-select shadow-none">
+                            <option value="">Seleccione Especialidad</option>
+                            @foreach ($especialidades as $e)
+                                <option value="{{ $e->id }}">{{ $e->nombre }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Fecha de Cita</label>
-                    <input type="date" name="fecha_cita" class="form-control" required>
+                    <label class="form-label fw-bold small text-uppercase text-muted">Médico</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fas fa-user-md"></i></span>
+                        <select id="select-medico" class="form-select shadow-none">
+                            <option value="">Seleccione Médico</option>
+                        </select>
+                    </div>
                 </div>
+                <div class="col-md-4 fw-bold small text-uppercase text-muted">
+                    <label class="form-label">Tipo de atención</label>
+                    <select name="tipo_paciente" id="tipo_paciente" class="form-select" required>
+                        <option value="">Seleccione una opción</option>
+                        <option value="primera_vez">Primera vez</option>
+                        <option value="control">Control / Sucesivo</option>
+                    </select>
+                </div>
+            </div>
+            <br>
 
-                <div class="col-md-4">
+            <div class="row g-3">
+                <div class="col-md-4 text-center">
+                    <div class="btn-group shadow-sm" role="group">
+                        <button class="btn btn-outline-secondary px-3" onclick="cambiarMes(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="btn btn-light fw-bold text-capitalize" style="min-width: 150px;" id="mes-actual"
+                            disabled>
+                        </button>
+                        <button class="btn btn-outline-secondary px-3" onclick="cambiarMes(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive rounded shadow-sm border">
+                    <div class="row g-0 bg-light border-bottom text-center fw-bold py-2 text-muted small text-uppercase">
+                        <div class="col" style="width: 14.28%;">Dom</div>
+                        <div class="col" style="width: 14.28%;">Lun</div>
+                        <div class="col" style="width: 14.28%;">Mar</div>
+                        <div class="col" style="width: 14.28%;">Mie</div>
+                        <div class="col" style="width: 14.28%;">Jue</div>
+                        <div class="col" style="width: 14.28%;">Vie</div>
+                        <div class="col" style="width: 14.28%;">Sab</div>
+                    </div>
+
+
+                    <div id="calendario-grid" class="row g-0 bg-white" style="min-height: 400px;">
+                        <!-- lo llena el JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <br>
+
+            <div class="row g-3">
+                <div class="col-md-4 fw-bold small text-uppercase text-muted">
+                    <label class="form-label">Fecha de Cita</label>
+                    <input type="date" name="fecha_cita" id="input_fecha_cita" class="form-control" required readonly>
+                    <input type="hidden" name="calendario_id" id="input_calendario_id" required>
+                </div>
+                <div class="col-md-8 fw-bold small text-uppercase text-muted">
                     <label class="form-label">Observación</label>
                     <textarea name="observacion" class="form-control" rows="1" placeholder="Síntomas o nota..."></textarea>
                 </div>
             </div>
-
         </div>
         <div class="card-footer bg-white text-end py-3">
-            <a href="{{ route('Citas.agendar.especialidad', $especialidad->id) }}" class="btn btn-outline-danger me-2">Cancelar</a>
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-danger me-2">Cancelar</a>
             <button type="submit" class="btn btn-success px-5">Confirmar y Agendar Cita</button>
         </div>
     </form>
@@ -251,8 +316,167 @@
                 .catch(err => console.error(err));
         }
     });
-</script>
 
+    let fechaNavegacion = new Date();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        actualizarTextoMes();
+        
+        const selectEspecialidad = document.getElementById('select-especialidad');
+        const selectMedico = document.getElementById('select-medico');
+        const selectTipoPaciente = document.getElementById('tipo_paciente');
+
+        // 1. Cargar médicos al cambiar especialidad
+        selectEspecialidad.addEventListener('change', async function() {
+            const espId = this.value;
+            selectMedico.innerHTML = '<option value="">Seleccione Médico</option>';
+            limpiarCalendario();
+
+            if (!espId) return;
+
+            try {
+                const res = await fetch(`/api/especialidades/${espId}/medicos`);
+                const medicos = await res.json();
+                
+                medicos.forEach(m => {
+                    selectMedico.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
+                });
+            } catch (error) {
+                console.error("Error cargando médicos:", error);
+            }
+        });
+
+        // 2. Escuchar cambios para renderizar calendario
+        selectMedico.addEventListener('change', cargarCalendario);
+        selectTipoPaciente.addEventListener('change', cargarCalendario);
+    });
+
+    function actualizarTextoMes() {
+        const opciones = { month: 'long', year: 'numeric' };
+        document.getElementById('mes-actual').innerText = fechaNavegacion.toLocaleDateString('es-ES', opciones);
+    }
+
+    function cambiarMes(offset) {
+        fechaNavegacion.setMonth(fechaNavegacion.getMonth() + offset);
+        actualizarTextoMes();
+        cargarCalendario();
+    }
+
+    function limpiarCalendario() {
+        document.getElementById('calendario-grid').innerHTML = '<div class="col-12 py-5 text-center text-muted">Seleccione un médico y el tipo de atención para ver disponibilidad.</div>';
+        document.getElementById('input_fecha_cita').value = '';
+        document.getElementById('input_calendario_id').value = '';
+    }
+
+    // 3. Cargar la disponibilidad desde el backend
+    async function cargarCalendario() {
+        const medicoId = document.getElementById('select-medico').value;
+        const tipoPaciente = document.getElementById('tipo_paciente').value;
+        const grid = document.getElementById('calendario-grid');
+
+        if (!medicoId || !tipoPaciente) {
+            limpiarCalendario();
+            return;
+        }
+
+        const mes = fechaNavegacion.getMonth() + 1;
+        const anio = fechaNavegacion.getFullYear();
+
+        grid.innerHTML = '<div class="col-12 py-5 text-center text-primary"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+
+        try {
+            const res = await fetch(`/api/medicos/${medicoId}/disponibilidad?mes=${mes}&anio=${anio}&tipo_paciente=${tipoPaciente}`);
+            const eventos = await res.json();
+            renderizarGrid(eventos);
+        } catch (error) {
+            console.error("Error cargando disponibilidad:", error);
+            grid.innerHTML = '<div class="col-12 py-5 text-center text-danger">Error al cargar el calendario.</div>';
+        }
+    }
+
+    // 4. Dibujar el calendario interactivo
+    function renderizarGrid(eventos) {
+        const grid = document.getElementById('calendario-grid');
+        grid.innerHTML = '';
+
+        const primerDia = new Date(fechaNavegacion.getFullYear(), fechaNavegacion.getMonth(), 1).getDay();
+        const ultimoDia = new Date(fechaNavegacion.getFullYear(), fechaNavegacion.getMonth() + 1, 0).getDate();
+
+        // Rellenar cuadros vacíos antes del día 1
+        for (let i = 0; i < primerDia; i++) {
+            grid.innerHTML += `<div class="col border-end border-bottom bg-light" style="flex: 0 0 14.28%; height: 90px;"></div>`;
+        }
+
+        // Renderizar los días
+        for (let dia = 1; dia <= ultimoDia; dia++) {
+            const mesStr = String(fechaNavegacion.getMonth() + 1).padStart(2, '0');
+            const diaStr = String(dia).padStart(2, '0');
+            const fechaStr = `${fechaNavegacion.getFullYear()}-${mesStr}-${diaStr}`;
+            
+            // Buscar si hay evento planificado para esta fecha
+            const ev = eventos.find(e => e.fecha === fechaStr);
+
+            const div = document.createElement('div');
+            div.className = 'col p-2 border-end border-bottom position-relative calendar-day';
+            div.style.cssText = 'flex: 0 0 14.28%; height: 90px; transition: 0.2s;';
+            div.id = `celda-${fechaStr}`;
+            
+            div.innerHTML = `<span class="fw-bold d-block text-start">${dia}</span>`;
+
+            if (ev) {
+                if (ev.disponibles > 0) {
+                    div.style.cursor = 'pointer';
+                    div.classList.add('bg-white');
+                    div.innerHTML += `
+                        <div class="text-center mt-1">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle d-block mb-1 shadow-sm">
+                                ${ev.disponibles} Cupos
+                            </span>
+                            <small class="text-muted" style="font-size:0.65rem;">${ev.hora_inicio.substring(0,5)}</small>
+                        </div>`;
+                    
+                    // Función al hacer CLIC
+                    div.onclick = () => seleccionarDia(fechaStr, ev.id);
+                } else {
+                    div.classList.add('bg-light');
+                    div.style.cursor = 'not-allowed';
+                    div.innerHTML += `
+                        <div class="text-center mt-2 opacity-75">
+                            <span class="badge bg-danger">Agotado</span>
+                        </div>`;
+                }
+            } else {
+                div.classList.add('bg-light');
+            }
+
+            grid.appendChild(div);
+        }
+    }
+
+    // 5. Rellenar inputs al hacer clic en un cupo disponible
+    let fechaSeleccionadaAnterior = null;
+
+    function seleccionarDia(fecha, calendario_id) {
+        // Remover color de selección anterior si existe
+        if (fechaSeleccionadaAnterior) {
+            const celdaAnterior = document.getElementById(`celda-${fechaSeleccionadaAnterior}`);
+            if(celdaAnterior) {
+                celdaAnterior.classList.remove('bg-primary-subtle', 'border-primary');
+            }
+        }
+
+        // Pintar celda actual de azul
+        const celdaActual = document.getElementById(`celda-${fecha}`);
+        if(celdaActual) {
+            celdaActual.classList.add('bg-primary-subtle', 'border-primary');
+        }
+        fechaSeleccionadaAnterior = fecha;
+
+        // Autocompletar inputs
+        document.getElementById('input_fecha_cita').value = fecha;
+        document.getElementById('input_calendario_id').value = calendario_id;
+    }
+</script>
 
 @include('layouts.footer')
 @endsection
