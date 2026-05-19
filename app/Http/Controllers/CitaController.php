@@ -20,21 +20,27 @@ class CitaController extends Controller
      */
     public function index()
     {
-        $especialidades = Especialidad::with('medicos')->get();
+        $citas = Cita::with(['paciente', 'calendario.medico.especialidad', 'user'])
+            ->orderBy('fecha_cita', 'desc')
+            ->get();
 
-        return view('Cita.SeleccionarEspecialidad', compact('especialidades'));
+        $title = '¿Estas seguro de que deseas eliminar esta cita?';
+        $texrt = 'Esta acción no se puede deshacer.';
+        confirmDelete($title, $texrt);
+
+        return view('Cita.index', compact('citas'));
     }
-
+    
     /**
      * Show the form for creating a new resource.
      */
 
-    public function create()
+    public function create($id = null)
     {
         $especialidades = Especialidad::all();
         $estados = Estado::all();
 
-        return view('Cita.Formcita', compact('especialidades', 'estados'));
+        return view('Cita.Formcita', compact('especialidades', 'estados', 'id'));
     }
 
     public function getMedicosPorEspecialidad($id)
@@ -111,7 +117,8 @@ class CitaController extends Controller
             'calendario_id' => 'required|numeric',
             'fecha_cita' => 'required|date',
             'observacion' => 'nullable|string',
-            'especialidad_id' => 'required|exists:especialidades,id'
+            'especialidad_id' => 'required|exists:especialidades,id',
+            'tipo_paciente' => 'required|string|in:primera_vez,control'
         ]);
 
         try {
@@ -136,20 +143,20 @@ class CitaController extends Controller
                 'fecha_registro' => now()->toDateString(),
                 'fecha_cita' => $request->fecha_cita,
                 'estado' => 'Agendada',
+                'tipo_paciente' => $request->tipo_paciente,
                 'observacion' => $request->observacion,
             ]);
 
             DB::commit();
 
-            Alert::success('¡Éxito!', 'Cita y/o paciente registrados correctamente.');
+            Alert::success('¡Éxito!', 'Cita registrada correctamente.');
             
             return redirect()->route('Citas.index');
 
     }catch (\Exception $e) {
     DB::rollBack();
-    // Esto te mostrará el mensaje exacto del error en lugar de uno genérico
-    Alert::error('Error Crítico', $e->getMessage()); 
-    return back()->withInput();
+        Alert::error('Error', 'No se pudo registrar la cita. Intente de nuevo.');
+    return redirect()->route('Citas.index');
     }
     }
 

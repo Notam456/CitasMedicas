@@ -14,7 +14,7 @@
 
     <form action="{{ route('Citas.store') }}" method="POST" class="card shadow-sm border-0">
         @csrf
-        <!-- <input type="hidden" name="especialidad_id" value=""> -->
+        <input type="hidden" name="especialidad_id" id="input_especialidad_id" value="{{ $id ?? '' }}">
         
         <div class="card-body p-4">
             
@@ -329,6 +329,7 @@
         // 1. Cargar médicos al cambiar especialidad
         selectEspecialidad.addEventListener('change', async function() {
             const espId = this.value;
+            document.getElementById('input_especialidad_id').value = espId;
             selectMedico.innerHTML = '<option value="">Seleccione Médico</option>';
             limpiarCalendario();
 
@@ -349,6 +350,14 @@
         // 2. Escuchar cambios para renderizar calendario
         selectMedico.addEventListener('change', cargarCalendario);
         selectTipoPaciente.addEventListener('change', cargarCalendario);
+
+        // 3. Pre-seleccionar especialidad si se pasó un id desde la vista anterior
+        const especialidadId = '{{ $id ?? '' }}';
+        if (especialidadId) {
+            selectEspecialidad.value = especialidadId;
+            document.getElementById('input_especialidad_id').value = especialidadId;
+            selectEspecialidad.dispatchEvent(new Event('change'));
+        }
     });
 
     function actualizarTextoMes() {
