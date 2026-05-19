@@ -17,6 +17,7 @@ class Cita extends Model
         'fecha_registro',
         'fecha_cita',
         'estado',
+        'tipo_paciente',
         'observacion',
     ];
 

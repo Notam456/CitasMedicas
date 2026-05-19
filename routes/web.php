@@ -60,17 +60,15 @@ Route::get('/parroquias/{id}/edit', [ParroquiaController::class, 'edit']);
 Route::get('/parroquias/{id}/show', [ParroquiaController::class, 'show']);
 
 //Rutas para Agendar Cita
-Route::get('Citas/agendar/{id}', [CitaController::class, 'create'])->name('Citas.agendar.especialidad')->middleware('auth');
-Route::get('Citas/especialidad/{id}/agendar', [CitaController::class, 'createParaEspecialidad'])->name('Citas.createEspecialidad')->middleware('auth');
-// Ruta API para que el formulario busque al paciente sin recargar la página
+
+// Rutas de API
 Route::get('api/paciente/buscar/{cedula}', [PacienteController::class, 'buscarPorCedula'])->name('paciente.buscar')->middleware('auth');
+Route::get('/api/especialidades/{id}/medicos', [CitaController::class, 'getMedicosPorEspecialidad']);
+Route::get('/api/medicos/{medico_id}/disponibilidad', [CitaController::class, 'disponibilidadMes']);
+Route::get('/api/municipios/{estado_id}', function($estado_id) {return App\Models\Municipio::where('estado_id', $estado_id)->get();});
+Route::get('/api/parroquias/{municipio_id}', function($municipio_id) {return App\Models\Parroquia::where('municipio_id', $municipio_id)->get();});
 //Rutas resource
 Route::resource('Citas', CitaController::class)->middleware('auth');
-//Rutas para el select de ubicacion
-Route::get('/api/municipios/{estado_id}', function($estado_id) 
-{return App\Models\Municipio::where('estado_id', $estado_id)->get();});
-Route::get('/api/parroquias/{municipio_id}', function($municipio_id) 
-{return App\Models\Parroquia::where('municipio_id', $municipio_id)->get();});
 
 
 Route::get('/calendario/medicos/{especialidad}', [CalendarioController::class, 'getMedicos']);
