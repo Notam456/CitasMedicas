@@ -4,19 +4,34 @@
     <meta charset="utf-8">
     <title>Reporte de Morbilidad</title>
     <style>
-        body { font-family: sans-serif; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+        body { font-family: 'DejaVu Sans', sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #f2f2f2; }
+        h1 { color: #20356B; text-align: center; }
+        .membrete { width: 100%; margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <h2>Hospital Central "Dr. Plácido D. Rodriguez Rivero"</h2>
-    <h3>Reporte de Morbilidad</h3>
-    <p>Generado: {{ now()->format('d/m/Y H:i') }}</p>
+    @if(file_exists($membrete))
+        <img src="{{ $membrete }}" class="membrete">
+    @endif
+
+    <h1>Reporte de Morbilidad</h1>
+    <p><strong>Fecha del reporte:</strong> {{ now()->format('d/m/Y H:i') }}</p>
+
+    @if($morbilidades->count())
     <table>
         <thead>
-            <tr><th>Paciente</th><th>Cédula</th><th>Fecha Cita</th><th>Especialidad</th><th>Médico</th><th>Diagnóstico</th><th>Observaciones</th></tr>
+            <tr>
+                <th>Paciente</th>
+                <th>Cédula</th>
+                <th>Fecha Cita</th>
+                <th>Especialidad</th>
+                <th>Médico</th>
+                <th>Diagnóstico</th>
+                <th>Observaciones</th>
+            </tr>
         </thead>
         <tbody>
             @foreach($morbilidades as $m)
@@ -32,5 +47,8 @@
             @endforeach
         </tbody>
     </table>
+    @else
+        <p>No hay registros de morbilidad.</p>
+    @endif
 </body>
 </html>
