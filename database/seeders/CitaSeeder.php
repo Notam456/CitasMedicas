@@ -17,6 +17,7 @@ class CitaSeeder extends Seeder
         $userAdmin = User::first(); // asumimos que existe un usuario admin
 
         $estados = ['Agendada', 'Atendida', 'Cancelada'];
+        $tipos_paciente = ['primera_vez', 'control'];
 
         foreach ($calendarios as $calendario) {
             // Máximo 3 citas por calendario según cupos
@@ -24,6 +25,7 @@ class CitaSeeder extends Seeder
             for ($i = 0; $i < $numCitas; $i++) {
                 $paciente = $pacientes->random();
                 $estado = $estados[array_rand($estados)];
+                $tipo_paciente = $tipos_paciente[array_rand($tipos_paciente)];
                 Cita::create([
                     'paciente_id' => $paciente->id,
                     'calendario_id' => $calendario->id,
@@ -31,6 +33,7 @@ class CitaSeeder extends Seeder
                     'fecha_registro' => now()->subDays(rand(0, 30))->format('Y-m-d'),
                     'fecha_cita' => $calendario->fecha,
                     'estado' => $estado,
+                    'tipo_paciente' => $tipo_paciente,
                     'observacion' => 'Observación de la cita',
                     'created_at' => now(),
                     'updated_at' => now(),
