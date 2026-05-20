@@ -34,7 +34,11 @@
                             </div>
                         </td>
                         <td>
-                            <span class="badge bg-secondary">No programado aun</span>
+                            @if ($usuario->role === 'administrador')
+                                <span class="badge bg-danger text-capitalize">{{ $usuario->role }}</span>
+                            @else
+                                <span class="badge bg-secondary text-capitalize">{{ $usuario->role }}</span>
+                            @endif
                         </td>
                         <td class="text-end">
                             <div class="hstack gap-2 justify-content-end">
@@ -99,6 +103,17 @@
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="rolUsuario" name="role">
+                                <option value="usuario" {{ old('role') == 'usuario' ? 'selected' : '' }}>Usuario</option>
+                                <option value="administrador" {{ old('role') == 'administrador' ? 'selected' : '' }}>
+                                    Administrador</option>
+                            </select>
+                            <label for="rolUsuario">Rol del Usuario</label>
+                            @error('role')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -147,6 +162,16 @@
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="editarRolUsuario" name="role" required>
+                                <option value="usuario">Usuario</option>
+                                <option value="administrador">Administrador</option>
+                            </select>
+                            <label for="editarRolUsuario">Rol del Usuario</label>
+                            @error('role')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -165,6 +190,7 @@
                 const userId = btn.getAttribute('data-id');
                 var inputNombre = document.getElementById('editarNombreUsuario');
                 var inputEmail = document.getElementById('editarEmailUsuario');
+                var selectRol = document.getElementById('editarRolUsuario');
 
                 try {
                     const modalElement = document.getElementById('modalEditarUsuario');
@@ -177,6 +203,7 @@
                     inputNombre.disabled = true;
                     inputEmail.value = "Cargando...";
                     inputEmail.disabled = true;
+                    selectRol.disabled = true;
                     modalInstance.show();
                     const response = await fetch(`/users/${userId}/edit`, {
                         method: 'GET',
@@ -196,6 +223,8 @@
                     inputNombre.disabled = false;
                     inputEmail.value = data.email;
                     inputEmail.disabled = false;
+                    selectRol.value = data.role;
+                    selectRol.disabled = false;
                     document.getElementById('editarPasswordUsuario').value = "";
 
                     const form = document.querySelector('#modalEditarUsuario form');

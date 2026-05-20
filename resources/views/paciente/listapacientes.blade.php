@@ -296,7 +296,7 @@
                     inputDireccion.disabled = true;
                     inputDireccion.value = "Cargando...";
 
-                    // Deshabilitar y limpiar selects de ubicación durante la carga
+                    
                     selectEstado.disabled = true;
                     selectEstado.innerHTML = '<option value="">Cargando Estados...</option>';
                     selectMunicipio.disabled = true;
@@ -306,7 +306,7 @@
 
                     modalInstance.show();
 
-                    // 1. Cargar primero la lista global de Estados desde tu API
+                 
                     try {
                         const resEstados = await fetch('/api/estados');
                         if (resEstados.ok) {
@@ -320,7 +320,6 @@
                         console.error("Error al obtener el catálogo de estados:", errEst);
                     }
 
-                    // 2. Obtener los datos particulares del paciente
                     const response = await fetch(`/paciente/${pacienteId}/edit`, {
                         method: 'GET',
                         headers: {
@@ -333,7 +332,6 @@
 
                     const data = await response.json();
 
-                    // Rellenar campos básicos del paciente
                     document.getElementById('id').value = data.id;
                     inputNombre.value = data.nombre;
                     inputNombre.disabled = false;
@@ -351,16 +349,15 @@
                     
                     selectEstado.disabled = false;
 
-                    // 3. Carga asíncrona y encadenada de la ubicación del paciente (AJAX)
+                    
                     if (data.parroquia && data.parroquia.municipio) {
                         const parroquiaId = data.parroquia.id;
                         const municipioId = data.parroquia.municipio.id;
                         const estadoId = data.parroquia.municipio.estado_id || data.parroquia.municipio.estado?.id;
 
-                        // Establecer el valor del Estado seleccionado
+                        
                         selectEstado.value = estadoId;
 
-                        // Traer los municipios del Estado asignado
                         const resMunicipios = await fetch(`/api/municipios/${estadoId}`);
                         if (resMunicipios.ok) {
                             const municipios = await resMunicipios.json();
@@ -373,7 +370,6 @@
                             selectMunicipio.disabled = false;
                         }
 
-                        // Traer las parroquias del Municipio asignado
                         const resParroquias = await fetch(`/api/parroquias/${municipioId}`);
                         if (resParroquias.ok) {
                             const parroquias = await resParroquias.json();
@@ -386,7 +382,6 @@
                             selectParroquia.disabled = false;
                         }
                     } else {
-                        // Si el paciente no posee ubicación previa guardada, reiniciamos a valores por defecto
                         selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
                         selectMunicipio.disabled = false;
                         selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
@@ -464,7 +459,6 @@
             }
         });
 
-        // Evento onChange para el Estado en el Modal de Edición
         document.getElementById('select-estado-edit').addEventListener('change', function() {
             let estadoId = this.value;
             let selectMunicipio = document.getElementById('select-municipio-edit');
@@ -486,7 +480,6 @@
             }
         });
 
-        // Evento onChange para el Municipio en el Modal de Edición
         document.getElementById('select-municipio-edit').addEventListener('change', function() {
             let municipioId = this.value;
             let selectParroquia = document.getElementById('select-parroquia-edit');
