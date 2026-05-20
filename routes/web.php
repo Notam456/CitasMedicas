@@ -48,6 +48,7 @@ Route::get('/medicos/{id}/show', [MedicoController::class, 'show']);
 
 
 Route::resource('estados', EstadoController::class)->middleware('auth');
+Route::get('/api/estados', [EstadoController::class, 'getEstados']);
 Route::get('/estados/{id}/edit', [EstadoController::class, 'edit']);
 Route::get('/estados/{id}/show', [EstadoController::class, 'show']);
 

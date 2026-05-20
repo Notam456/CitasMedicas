@@ -59,7 +59,7 @@
 
     <!-- Modal Registrar Médico -->
     <div class="modal fade" id="modalMedico" tabindex="-1" aria-labelledby="modalMedicoLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalMedicoLabel">Registrar Médico</h5>
@@ -68,51 +68,65 @@
                 <form action="{{ route('medicos.store') }}" method="POST">
                     @csrf
                     <div class="modal-body">
-                        <div class="form-floating mb-3">
-                            <input type="text" name="nombre" value="{{ old('nombre') }}" class="form-control"
-                                id="nombreMedico" placeholder="Nombre" required>
-                            <label for="nombreMedico">Nombres</label>
-                            @error('nombre')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="text" name="apellido" value="{{ old('apellido') }}" class="form-control"
-                                id="apellidoMedico" placeholder="Apellido" required>
-                            <label for="apellidosMedico">Apellidos</label>
-                            @error('apellidos')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="text" name="cedula" value="{{ old('cedula') }}" class="form-control"
-                                id="cedulaMedico" placeholder="Cédula" required>
-                            <label for="cedulaMedico">Cédula</label>
-                            @error('cedula')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="text" name="telefono" value="{{ old('telefono') }}" class="form-control"
-                                id="telefonoMedico" placeholder="Teléfono" required>
-                            <label for="telefonoMedico">Teléfono</label>
-                            @error('telefono')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="especialidad_id" class="form-label">Especialidad</label>
-                            <select name="especialidad_id" id="especialidad_id" class="form-select" required>
-                                <option value="">Seleccione una especialidad</option>
-                                @foreach ($especialidades as $especialidad)
-                                    <option value="{{ $especialidad->id }}"
-                                        {{ old('especialidad_id') == $especialidad->id ? 'selected' : '' }}>
-                                        {{ $especialidad->nombre }}</option>
-                                @endforeach
-                            </select>
-                            @error('especialidad_id')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" name="cedula" value="{{ old('cedula') }}" class="form-control"
+                                        id="cedulaMedico" placeholder="Cédula" required>
+                                    <label for="cedulaMedico">Cédula</label>
+                                </div>
+                                @error('cedula')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3 d-none d-md-block"></div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" name="nombre" value="{{ old('nombre') }}" class="form-control"
+                                        id="nombreMedico" placeholder="Nombre" required>
+                                    <label for="nombreMedico">Nombres</label>
+                                </div>
+                                @error('nombre')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" name="apellido" value="{{ old('apellido') }}"
+                                        class="form-control" id="apellidoMedico" placeholder="Apellido" required>
+                                    <label for="apellidoMedico">Apellidos</label>
+                                </div>
+                                @error('apellido')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" name="telefono" value="{{ old('telefono') }}"
+                                        class="form-control" id="telefonoMedico" placeholder="Teléfono" required>
+                                    <label for="telefonoMedico">Teléfono</label>
+                                </div>
+                                @error('telefono')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="especialidad_id" class="form-label mb-1">Especialidad</label>
+                                <select name="especialidad_id" id="especialidad_id" class="form-select"
+                                    style="padding: 0.58rem 0.75rem;" required>
+                                    <option value="">Seleccione una especialidad</option>
+                                    @foreach ($especialidades as $especialidad)
+                                        <option value="{{ $especialidad->id }}"
+                                            {{ old('especialidad_id') == $especialidad->id ? 'selected' : '' }}>
+                                            {{ $especialidad->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                @error('especialidad_id')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -124,10 +138,9 @@
         </div>
     </div>
 
-    <!-- Modal Editar Médico -->
     <div class="modal fade" id="modalEditarMedico" tabindex="-1" aria-labelledby="modalEditarMedicoLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalEditarMedicoLabel">Editar Médico</h5>
@@ -138,49 +151,63 @@
                     @method('PUT')
                     <div class="modal-body">
                         <input type="hidden" id="id">
-                        <div class="form-floating mb-3">
-                            <input type="text" name="nombre" class="form-control" id="editarNombreMedico"
-                                placeholder="Nombre" required>
-                            <label for="editarNombreMedico">Nombres</label>
-                            @error('nombre')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="text" name="apellido" class="form-control" id="editarApellidoMedico"
-                                placeholder="Apellido" required>
-                            <label for="editarApellidoMedico">Apellidos</label>
-                            @error('apellido')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="text" name="cedula" class="form-control" id="editarCedulaMedico"
-                                placeholder="Cédula" required>
-                            <label for="editarCedulaMedico">Cédula</label>
-                            @error('cedula')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="text" name="telefono" class="form-control" id="editarTelefonoMedico"
-                                placeholder="Teléfono" required>
-                            <label for="editarTelefonoMedico">Teléfono</label>
-                            @error('telefono')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="editarEspecialidadMedico" class="form-label">Especialidad</label>
-                            <select name="especialidad_id" id="editarEspecialidadMedico" class="form-select" required>
-                                <option value="">Seleccione una especialidad</option>
-                                @foreach ($especialidades as $especialidad)
-                                    <option value="{{ $especialidad->id }}">{{ $especialidad->nombre }}</option>
-                                @endforeach
-                            </select>
-                            @error('especialidad_id')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" name="cedula" class="form-control" id="editarCedulaMedico"
+                                        placeholder="Cédula" required>
+                                    <label for="editarCedulaMedico">Cédula</label>
+                                </div>
+                                @error('cedula')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3 d-none d-md-block"></div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" name="nombre" class="form-control" id="editarNombreMedico"
+                                        placeholder="Nombre" required>
+                                    <label for="editarNombreMedico">Nombres</label>
+                                </div>
+                                @error('nombre')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" name="apellido" class="form-control" id="editarApellidoMedico"
+                                        placeholder="Apellido" required>
+                                    <label for="editarApellidoMedico">Apellidos</label>
+                                </div>
+                                @error('apellido')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" name="telefono" class="form-control" id="editarTelefonoMedico"
+                                        placeholder="Teléfono" required>
+                                    <label for="editarTelefonoMedico">Teléfono</label>
+                                </div>
+                                @error('telefono')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editarEspecialidadMedico" class="form-label mb-1">Especialidad</label>
+                                <select name="especialidad_id" id="editarEspecialidadMedico" class="form-select"
+                                    style="padding: 0.58rem 0.75rem;" required>
+                                    <option value="">Seleccione una especialidad</option>
+                                    @foreach ($especialidades as $especialidad)
+                                        <option value="{{ $especialidad->id }}">{{ $especialidad->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                @error('especialidad_id')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -192,35 +219,39 @@
         </div>
     </div>
 
-    <!-- Modal Mostrar Médico -->
     <div class="modal fade" id="modalShowMedico" tabindex="-1" aria-labelledby="modalShowMedicoLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalShowMedicoLabel">Datos del Médico</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Nombres</label>
-                        <p class="form-control-plaintext" id="mostrarNombreMedico"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Apellidos</label>
-                        <p class="form-control-plaintext" id="mostrarApellidoMedico"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Cédula</label>
-                        <p class="form-control-plaintext" id="mostrarCedulaMedico"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Teléfono</label>
-                        <p class="form-control-plaintext" id="mostrarTelefonoMedico"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Especialidad</label>
-                        <p class="form-control-plaintext" id="mostrarEspecialidadMedico"></p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Cédula</label>
+                            <p class="form-control-plaintext" id="mostrarCedulaMedico"></p>
+                        </div>
+                        <div class="col-md-6 mb-3 d-none d-md-block"></div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Nombres</label>
+                            <p class="form-control-plaintext" id="mostrarNombreMedico"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Apellidos</label>
+                            <p class="form-control-plaintext" id="mostrarApellidoMedico"></p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Teléfono</label>
+                            <p class="form-control-plaintext" id="mostrarTelefonoMedico"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Especialidad</label>
+                            <p class="form-control-plaintext" id="mostrarEspecialidadMedico"></p>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -229,6 +260,7 @@
             </div>
         </div>
     </div>
+
 
     <script>
         document.addEventListener('click', async function(event) {
