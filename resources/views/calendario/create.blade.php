@@ -1,5 +1,5 @@
 @extends('layouts.template')
-@section('title', 'Planificación Trimestral | SAGECIM')
+@section('title', 'Configurar Disponibilidad | SAGECIM')
 
 @include('layouts.sidebar')
 
@@ -7,76 +7,166 @@
     @include('layouts.navbar')
 
     <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary fw-bold mb-0">Configurar Disponibilidad</h2>
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalCalendario">
+                <i class="fas fa-calendar-alt me-2"></i>Configuración por día
+            </button>
+        </div>
 
-        <h2 class="text-primary fw-bold mb-4">Configurar Disponibilidad</h2>
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form action="{{ route('calendario.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="tipo_configuracion" value="masivo">
 
-        <div class="card shadow-sm border-0 bg-light p-3">
-            <div class="card-body bg-white rounded shadow-sm">
+                    <div class="row g-4">
+                        <!-- Selección de Médico -->
+                        <div class="col-md-6">
+                            <label class="form-label text-muted fw-bold small">Especialidad *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-stethoscope"></i></span>
+                                <select id="select-especialidad-masivo" class="form-select border-secondary-subtle" required>
+                                    <option value="">Seleccione Especialidad</option>
+                                    @foreach ($especialidades as $e)
+                                        <option value="{{ $e->id }}">{{ $e->nombre }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted fw-bold small">Médico *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-user-md"></i></span>
+                                <select id="select-medico-masivo" name="medico_id" class="form-select border-secondary-subtle" required>
+                                    <option value="">Seleccione Médico</option>
+                                </select>
+                            </div>
+                        </div>
 
-                <div class="row g-3 mb-4 align-items-end">
-                    <div class="col-md-4">
-                        <label class="form-label text-muted fw-bold small">Especialidad *</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="fas fa-stethoscope"></i></span>
-                            <select id="select-especialidad" class="form-select border-secondary-subtle shadow-none">
+                        <!-- Rango de Fechas -->
+                        <div class="col-md-6">
+                            <label class="form-label text-muted fw-bold small">Fecha Inicio *</label>
+                            <input type="date" name="fecha_inicio" class="form-control" value="{{ date('Y-m-d') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted fw-bold small">Fecha Límite *</label>
+                            <input type="date" name="fecha_fin" class="form-control" value="{{ date('Y-m-d', strtotime('+3 months')) }}" required>
+                        </div>
+
+                        <!-- Días de la Semana -->
+                        <div class="col-12">
+                            <label class="form-label text-muted fw-bold small d-block">Días de la semana *</label>
+                            <div class="d-flex flex-wrap gap-3">
+                                @php
+                                    $dias = [
+                                        1 => 'Lunes',
+                                        2 => 'Martes',
+                                        3 => 'Miércoles',
+                                        4 => 'Jueves',
+                                        5 => 'Viernes',
+                                        6 => 'Sábado',
+                                        7 => 'Domingo'
+                                    ];
+                                @endphp
+                                @foreach($dias as $value => $label)
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" name="dias_semana[]" value="{{ $value }}" id="dia_{{ $value }}">
+                                        <label class="form-check-label" for="dia_{{ $value }}">{{ $label }}</label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Horarios y Cupos -->
+                        <div class="col-md-3">
+                            <label class="form-label text-muted fw-bold small">Hora Inicio *</label>
+                            <input type="time" name="hora_inicio" class="form-control" value="08:00" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted fw-bold small">Hora Fin *</label>
+                            <input type="time" name="hora_fin" class="form-control" value="12:00" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted fw-bold small">Cupos 1ra Vez *</label>
+                            <input type="number" name="cupos_primera_vez" class="form-control" min="0" value="10" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted fw-bold small">Cupos Sucesivos *</label>
+                            <input type="number" name="cupos_sucesivos" class="form-control" min="0" value="10" required>
+                        </div>
+
+                        <div class="col-12 mt-4 text-end">
+                            <a href="{{ route('calendario.index') }}" class="btn btn-secondary px-4 me-2">Cancelar</a>
+                            <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                                <i class="fas fa-save me-2"></i>Guardar Configuración Masiva
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal con el calendario actual -->
+    <div class="modal fade" id="modalCalendario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Configuración por Día Específico</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <div class="row g-3 mb-4 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label text-muted fw-bold small">Especialidad *</label>
+                            <select id="select-especialidad" class="form-select">
                                 <option value="">Seleccione Especialidad</option>
                                 @foreach ($especialidades as $e)
                                     <option value="{{ $e->id }}">{{ $e->nombre }}</option>
                                 @endforeach
                             </select>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label text-muted fw-bold small">Médico *</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="fas fa-user-md"></i></span>
-                            <select id="select-medico" class="form-select border-secondary-subtle shadow-none">
+                        <div class="col-md-4">
+                            <label class="form-label text-muted fw-bold small">Médico *</label>
+                            <select id="select-medico" class="form-select">
                                 <option value="">Seleccione Médico</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <div class="btn-group shadow-sm">
-                            <button class="btn btn-outline-primary" onclick="cambiarMes(-1)"><i
-                                    class="fas fa-chevron-left"></i></button>
-                            <button class="btn btn-white fw-bold text-capitalize" id="mes-actual" style="min-width: 140px;"
-                                disabled></button>
-                            <button class="btn btn-outline-primary" onclick="cambiarMes(1)"><i
-                                    class="fas fa-chevron-right"></i></button>
+                        <div class="col-md-4 text-end">
+                            <div class="btn-group shadow-sm">
+                                <button class="btn btn-outline-primary" onclick="cambiarMes(-1)"><i class="fas fa-chevron-left"></i></button>
+                                <button class="btn btn-white fw-bold text-capitalize" id="mes-actual" style="min-width: 140px;" disabled></button>
+                                <button class="btn btn-outline-primary" onclick="cambiarMes(1)"><i class="fas fa-chevron-right"></i></button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Calendario -->
-                <div class="table-responsive rounded shadow-sm border">
-                    <div class="row g-0 bg-light border-bottom text-center fw-bold py-2 text-muted small text-uppercase">
-                        <div class="col" style="width: 14.28%;">Dom</div>
-                        <div class="col" style="width: 14.28%;">Lun</div>
-                        <div class="col" style="width: 14.28%;">Mar</div>
-                        <div class="col" style="width: 14.28%;">Mie</div>
-                        <div class="col" style="width: 14.28%;">Jue</div>
-                        <div class="col" style="width: 14.28%;">Vie</div>
-                        <div class="col" style="width: 14.28%;">Sab</div>
+                    <div class="table-responsive rounded shadow-sm border">
+                        <div class="row g-0 bg-white border-bottom text-center fw-bold py-2 text-muted small text-uppercase">
+                            <div class="col" style="width: 14.28%;">Dom</div>
+                            <div class="col" style="width: 14.28%;">Lun</div>
+                            <div class="col" style="width: 14.28%;">Mar</div>
+                            <div class="col" style="width: 14.28%;">Mie</div>
+                            <div class="col" style="width: 14.28%;">Jue</div>
+                            <div class="col" style="width: 14.28%;">Vie</div>
+                            <div class="col" style="width: 14.28%;">Sab</div>
+                        </div>
+                        <div id="calendario-grid" class="row g-0 bg-white" style="min-height: 400px;"></div>
                     </div>
-                    <div id="calendario-grid" class="row g-0 bg-white" style="min-height: 400px;">
-                        <!-- lo llena el javascript -->
-                    </div>
-                </div>
-
-                <div class="mt-4">
-                    <a href="{{ route('calendario.index') }}" class="btn btn-secondary px-4">Volver al Visor</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="modalConfigurar" tabindex="-1" aria-hidden="true">
+    <!-- Modal para configurar un día individual (dentro del modal de calendario) -->
+    <div class="modal fade" id="modalConfigurar" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <form id="form-guardar-cupo">
                     <div class="modal-header">
                         <h5 class="modal-title fw-bold"><i class="fas fa-clock me-2"></i>Configurar Jornada</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body p-4">
                         <div class="mb-4">
@@ -84,11 +174,9 @@
                             <p class="mb-0 fw-bold fs-5 text-dark" id="display-fecha"></p>
                             <p class="text-primary small mb-0" id="display-medico"></p>
                         </div>
-
                         <div class="row g-3">
                             <input type="hidden" name="medico_id" id="input-medico-id">
                             <input type="hidden" name="fecha" id="input-fecha">
-
                             <div class="col-md-6">
                                 <label class="form-label text-muted fw-bold small">Hora Inicio *</label>
                                 <input type="time" name="hora_inicio" id="input-inicio" class="form-control" required>
@@ -99,13 +187,11 @@
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label text-muted fw-bold small">Cupos primera vez *</label>
-                                <input type="number" name="cupos_primera_vez" id="input-cupos-p" class="form-control"
-                                    required min="1">
+                                <input type="number" name="cupos_primera_vez" id="input-cupos-p" class="form-control" required min="0">
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label text-muted fw-bold small">Cupos sucesivos *</label>
-                                <input type="number" name="cupos_sucesivos" id="input-cupos-s" class="form-control"
-                                    required min="1">
+                                <input type="number" name="cupos_sucesivos" id="input-cupos-s" class="form-control" required min="0">
                             </div>
                         </div>
                     </div>
@@ -125,24 +211,46 @@
         document.addEventListener('DOMContentLoaded', function() {
             modalBS = new bootstrap.Modal(document.getElementById('modalConfigurar'));
             cargarCalendario();
+
+            // Sincronizar selectores si se desea (opcional)
+            const espMasivo = document.getElementById('select-especialidad-masivo');
+            const espManual = document.getElementById('select-especialidad');
+            
+            espMasivo.addEventListener('change', function() {
+                espManual.value = this.value;
+                actualizarMedicos(this.value, 'select-medico-masivo');
+                actualizarMedicos(this.value, 'select-medico');
+            });
+
+            espManual.addEventListener('change', function() {
+                espMasivo.value = this.value;
+                actualizarMedicos(this.value, 'select-medico-masivo');
+                actualizarMedicos(this.value, 'select-medico');
+            });
         });
 
-        document.getElementById('select-especialidad').addEventListener('change', function() {
-
-            fetch(`/calendario/medicos/${this.value}`)
+        function actualizarMedicos(espId, targetId) {
+            if (!espId) {
+                document.getElementById(targetId).innerHTML = '<option value="">Seleccione Médico</option>';
+                return;
+            }
+            fetch(`/calendario/medicos/${espId}`)
                 .then(res => res.json())
                 .then(data => {
-                    const selectMed = document.getElementById('select-medico');
+                    const selectMed = document.getElementById(targetId);
                     selectMed.innerHTML = '<option value="">Seleccione Médico</option>';
                     data.forEach(m => {
-                        selectMed.innerHTML +=
-                            `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
+                        selectMed.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
                     });
-                    cargarCalendario();
+                    if (targetId === 'select-medico') cargarCalendario();
                 });
-        });
+        }
 
         document.getElementById('select-medico').addEventListener('change', cargarCalendario);
+        document.getElementById('select-medico-masivo').addEventListener('change', function() {
+            document.getElementById('select-medico').value = this.value;
+            cargarCalendario();
+        });
 
         function cambiarMes(offset) {
             fechaNavegacion.setMonth(fechaNavegacion.getMonth() + offset);
@@ -177,19 +285,17 @@
             const ultimoDia = new Date(fechaNavegacion.getFullYear(), fechaNavegacion.getMonth() + 1, 0).getDate();
 
             for (let i = 0; i < primerDia; i++) {
-                grid.innerHTML +=
-                    `<div class="col p-2 border-end border-bottom bg-light" style="flex: 0 0 14.28%; height: 110px;"></div>`;
+                grid.innerHTML += `<div class="col p-2 border-end border-bottom bg-light" style="flex: 0 0 14.28%; height: 110px;"></div>`;
             }
 
             for (let dia = 1; dia <= ultimoDia; dia++) {
-                const fechaStr =
-                    `${fechaNavegacion.getFullYear()}-${String(fechaNavegacion.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+                const fechaStr = `${fechaNavegacion.getFullYear()}-${String(fechaNavegacion.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
                 const ev = eventos.find(e => e.fecha === fechaStr);
 
                 const div = document.createElement('div');
                 div.className = 'col p-2 border-end border-bottom calendar-day bg-white position-relative';
                 div.style.cssText = 'flex: 0 0 14.28%; height: 110px; cursor: pointer; transition: 0.2s;';
-                div.innerHTML = `<span class="fw-bold">${dia}</span>`;
+                div.innerHTML = `<span class="fw-bold text-dark">${dia}</span>`;
 
                 if (ev) {
                     div.innerHTML += `
@@ -200,8 +306,7 @@
                             <span class="small fw-bold text-muted">${ev.cupos_primera_vez + ev.cupos_sucesivos} Cupos</span>
                         </div>`;
                 } else {
-                    div.innerHTML +=
-                        `<div class="mt-3 text-center text-light"><i class="fas fa-plus-circle fa-2x"></i></div>`;
+                    div.innerHTML += `<div class="mt-3 text-center text-light"><i class="fas fa-plus-circle fa-2x"></i></div>`;
                 }
 
                 div.onclick = () => abrirConfigurador(fechaStr, ev);
@@ -211,11 +316,9 @@
 
         function abrirConfigurador(fecha, evento) {
             const medId = document.getElementById('select-medico').value;
-            const medNombre = document.getElementById('select-medico').options[document.getElementById('select-medico')
-                .selectedIndex].text;
+            const medNombre = document.getElementById('select-medico').options[document.getElementById('select-medico').selectedIndex].text;
 
             if (!medId) {
-                
                 Swal.fire({
                     title: '¡Atención!',
                     text: 'Para configurar un día, primero debe seleccionar un médico de la lista.',
@@ -223,7 +326,6 @@
                     confirmButtonColor: '#0d6efd',
                     confirmButtonText: 'Entendido'
                 });
-                
                 return;
             }
 
@@ -236,7 +338,6 @@
             document.getElementById('input-medico-id').value = medId;
             document.getElementById('input-fecha').value = fecha;
 
-
             document.getElementById('input-inicio').value = evento ? evento.hora_inicio : "08:00";
             document.getElementById('input-fin').value = evento ? evento.hora_fin : "12:00";
             document.getElementById('input-cupos-p').value = evento ? evento.cupos_primera_vez : "10";
@@ -244,7 +345,6 @@
 
             modalBS.show();
         }
-
 
         document.getElementById('form-guardar-cupo').onsubmit = function(e) {
             e.preventDefault();
@@ -259,10 +359,18 @@
                 })
                 .then(res => res.json())
                 .then(data => {
-
+                    if (data.success) {
+                        modalBS.hide();
+                        cargarCalendario();
+                        Swal.fire({
+                            title: '¡Éxito!',
+                            text: data.message,
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
                 });
-            modalBS.hide();
-            cargarCalendario();
         };
     </script>
 
@@ -270,6 +378,9 @@
         .calendar-day:hover {
             background: #f0f7ff !important;
             box-shadow: inset 0 0 0 2px #0d6efd;
+        }
+        .modal-xl {
+            max-width: 90%;
         }
     </style>
 
