@@ -26,9 +26,9 @@
                     <tr>
                         <td>
                             <div>
-                                <a class="d-inline-block text-heading text-primary-hover fw-semibold" href="#">
+                                <p class="d-inline-block text-heading text-primary-hover fw-semibold" href="#">
                                     {{ $paciente->nombre }}
-                                </a>
+                                </p>
                             </div>
                         </td>
                         <td>
@@ -77,67 +77,113 @@
 
 
 
-    <!-- Modal Editar Paciente (similar al de registrar, pero con campos prellenados) -->
     <div class="modal fade" id="modalEditarPaciente" tabindex="-1" aria-labelledby="modalEditarPacienteLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalEditarPacienteLabel">Editar Paciente</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <form action="" method="POST">
+                <form action="" method="POST" id="formEditarPaciente">
                     @csrf
                     @method('PUT')
                     <div class="modal-body">
                         <input type="hidden" id="id">
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="editarNombrePaciente" name="nombre"
-                                placeholder="Nombres del paciente" required>
-                            <label for="editarNombrePaciente">Nombres</label>
-                            @error('nombre')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="editarApellidoPaciente" name="apellido"
-                                placeholder="Apellidos del paciente" required>
-                            <label for="editarApellidoPaciente">Apellidos</label>
-                            @error('apellido')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="editarCedulaPaciente" name="cedula"
-                                placeholder="Cédula del paciente" required>
-                            <label for="editarCedulaPaciente">Cédula</label>
-                            @error('cedula')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="date" class="form-control" id="editarFechaNacimientoPaciente"
-                                name="fecha_nacimiento" placeholder="Fecha de nacimiento" required>
-                            <label for="editarFechaNacimientoPaciente">Fecha de Nacimiento</label>
-                            @error('fecha_nacimiento')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="editarTelefonoPaciente" name="telefono"
-                                placeholder="Teléfono del paciente" required>
-                            <label for="editarTelefonoPaciente">Teléfono</label>
-                            @error('telefono')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="editarDireccionPaciente" name="direccion"
-                                placeholder="Dirección del paciente" required>
-                            <label for="editarDireccionPaciente">Dirección</label>
-                            @error('direccion')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="editarCedulaPaciente" name="cedula"
+                                        placeholder="Cédula del paciente" required>
+                                    <label for="editarCedulaPaciente">Cédula</label>
+                                </div>
+                                @error('cedula')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3 d-none d-md-block"></div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="editarNombrePaciente" name="nombre"
+                                        placeholder="Nombres del paciente" required>
+                                    <label for="editarNombrePaciente">Nombres</label>
+                                </div>
+                                @error('nombre')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="editarApellidoPaciente" name="apellido"
+                                        placeholder="Apellidos del paciente" required>
+                                    <label for="editarApellidoPaciente">Apellidos</label>
+                                </div>
+                                @error('apellido')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="editarFechaNacimientoPaciente"
+                                        name="fecha_nacimiento" placeholder="Fecha de nacimiento" required>
+                                    <label for="editarFechaNacimientoPaciente">Fecha de Nacimiento</label>
+                                </div>
+                                @error('fecha_nacimiento')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="editarTelefonoPaciente" name="telefono"
+                                        placeholder="Teléfono del paciente" required>
+                                    <label for="editarTelefonoPaciente">Teléfono</label>
+                                </div>
+                                @error('telefono')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="col-12">
+                                <h6 class="text-secondary border-bottom pb-2 mt-2">Ubicación del Paciente</h6>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">Estado</label>
+                                <select id="select-estado-edit" class="form-select">
+                                    <option value="">Seleccione Estado</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">Municipio</label>
+                                <select id="select-municipio-edit" class="form-select">
+                                    <option value="">Seleccione Municipio</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">Parroquia</label>
+                                <select name="parroquia_id" id="select-parroquia-edit"
+                                    class="form-select @error('parroquia_id') is-invalid @enderror" required>
+                                    <option value="">Seleccione Parroquia</option>
+                                </select>
+                                @error('parroquia_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="editarDireccionPaciente"
+                                        name="direccion" placeholder="Dirección del paciente" required>
+                                    <label for="editarDireccionPaciente">Dirección exacta</label>
+                                </div>
+                                @error('direccion')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -149,50 +195,57 @@
         </div>
     </div>
 
-    <!-- Modal para mostrar datos de los pacientes -->
-    <div class="modal fade" id="modalShowPaciente" tabindex="-1" aria-labelledby="modalShowPacienteLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="modal fade" id="modalShowPaciente" tabindex="-1" aria-labelledby="modalShowPacienteLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalShowPacienteLabel">Datos del Paciente</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="fw-bold">Nombres</label>
-                        <p class="form-control" id="mostrarNombrePaciente"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Apellidos</label>
-                        <p class="form-control" id="mostrarApellidoPaciente"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Cédula</label>
-                        <p class="form-control" id="mostrarCedulaPaciente"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Fecha de Nacimiento</label>
-                        <p class="form-control" id="mostrarFechaNacimientoPaciente"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Teléfono</label>
-                        <p class="form-control" id="mostrarTelefonoPaciente"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Estado</label>
-                        <p class="form-control" id="mostrarEstadoPaciente"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Municipio</label>
-                        <p class="form-control" id="mostrarMunicipioPaciente"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Parroquia</label>
-                        <p class="form-control" id="mostrarParroquiaPaciente"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Dirección</label>
-                        <p class="form-control" id="mostrarDireccionPaciente"></p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Cédula</label>
+                            <p class="form-control" id="mostrarCedulaPaciente"></p>
+                        </div>
+                        <div class="col-md-6 mb-3 d-none d-md-block"></div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Nombres</label>
+                            <p class="form-control" id="mostrarNombrePaciente"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Apellidos</label>
+                            <p class="form-control" id="mostrarApellidoPaciente"></p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Fecha de Nacimiento</label>
+                            <p class="form-control" id="mostrarFechaNacimientoPaciente"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Teléfono</label>
+                            <p class="form-control" id="mostrarTelefonoPaciente"></p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Estado</label>
+                            <p class="form-control" id="mostrarEstadoPaciente"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Municipio</label>
+                            <p class="form-control" id="mostrarMunicipioPaciente"></p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Parroquia</label>
+                            <p class="form-control" id="mostrarParroquiaPaciente"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Dirección</label>
+                            <p class="form-control" id="mostrarDireccionPaciente"></p>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -201,6 +254,7 @@
             </div>
         </div>
     </div>
+
 
     <script>
         document.addEventListener('click', async function(event) {
@@ -216,6 +270,11 @@
                 var inputTelefono = document.getElementById('editarTelefonoPaciente');
                 var inputDireccion = document.getElementById('editarDireccionPaciente');
 
+               
+                var selectEstado = document.getElementById('select-estado-edit');
+                var selectMunicipio = document.getElementById('select-municipio-edit');
+                var selectParroquia = document.getElementById('select-parroquia-edit');
+
                 try {
                     const modalElement = document.getElementById('modalEditarPaciente');
                     let modalInstance = bootstrap.Modal.getInstance(modalElement);
@@ -223,6 +282,7 @@
                         modalInstance = new bootstrap.Modal(modalElement);
                     }
 
+                   
                     inputNombre.disabled = true;
                     inputNombre.value = "Cargando...";
                     inputApellido.disabled = true;
@@ -236,7 +296,30 @@
                     inputDireccion.disabled = true;
                     inputDireccion.value = "Cargando...";
 
+                    
+                    selectEstado.disabled = true;
+                    selectEstado.innerHTML = '<option value="">Cargando Estados...</option>';
+                    selectMunicipio.disabled = true;
+                    selectMunicipio.innerHTML = '<option value="">Cargando...</option>';
+                    selectParroquia.disabled = true;
+                    selectParroquia.innerHTML = '<option value="">Cargando...</option>';
+
                     modalInstance.show();
+
+                 
+                    try {
+                        const resEstados = await fetch('/api/estados');
+                        if (resEstados.ok) {
+                            const estados = await resEstados.json();
+                            selectEstado.innerHTML = '<option value="">Seleccione Estado</option>';
+                            estados.forEach(e => {
+                                selectEstado.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
+                            });
+                        }
+                    } catch (errEst) {
+                        console.error("Error al obtener el catálogo de estados:", errEst);
+                    }
+
                     const response = await fetch(`/paciente/${pacienteId}/edit`, {
                         method: 'GET',
                         headers: {
@@ -249,25 +332,64 @@
 
                     const data = await response.json();
 
-
                     document.getElementById('id').value = data.id;
                     inputNombre.value = data.nombre;
                     inputNombre.disabled = false;
                     inputApellido.disabled = false;
-                    inputApellido.value = data.apellido
+                    inputApellido.value = data.apellido;
                     inputCedula.disabled = false;
-                    inputCedula.value = data.cedula
+                    inputCedula.value = data.cedula;
                     inputFechaNacimiento.disabled = false;
-                    inputFechaNacimiento.value = data.fecha_nacimiento
+                    inputFechaNacimiento.value = data.fecha_nacimiento;
                     inputTelefono.disabled = false;
-                    inputTelefono.value = data.telefono
+                    inputTelefono.value = data.telefono;
                     inputDireccion.disabled = false;
-                    inputDireccion.value = data.direccion
+                    inputDireccion.value = data.direccion;
 
+                    
+                    selectEstado.disabled = false;
+
+                    
+                    if (data.parroquia && data.parroquia.municipio) {
+                        const parroquiaId = data.parroquia.id;
+                        const municipioId = data.parroquia.municipio.id;
+                        const estadoId = data.parroquia.municipio.estado_id || data.parroquia.municipio.estado?.id;
+
+                        
+                        selectEstado.value = estadoId;
+
+                        const resMunicipios = await fetch(`/api/municipios/${estadoId}`);
+                        if (resMunicipios.ok) {
+                            const municipios = await resMunicipios.json();
+                            selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
+                            municipios.forEach(m => {
+                                let selected = m.id == municipioId ? 'selected' : '';
+                                selectMunicipio.innerHTML +=
+                                    `<option value="${m.id}" ${selected}>${m.nombre}</option>`;
+                            });
+                            selectMunicipio.disabled = false;
+                        }
+
+                        const resParroquias = await fetch(`/api/parroquias/${municipioId}`);
+                        if (resParroquias.ok) {
+                            const parroquias = await resParroquias.json();
+                            selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+                            parroquias.forEach(p => {
+                                let selected = p.id == parroquiaId ? 'selected' : '';
+                                selectParroquia.innerHTML +=
+                                    `<option value="${p.id}" ${selected}>${p.nombre}</option>`;
+                            });
+                            selectParroquia.disabled = false;
+                        }
+                    } else {
+                        selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
+                        selectMunicipio.disabled = false;
+                        selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+                        selectParroquia.disabled = false;
+                    }
 
                     const form = document.querySelector('#modalEditarPaciente form');
                     form.action = `/paciente/${data.id}`;
-
 
                 } catch (error) {
                     console.error('Error:', error);
@@ -317,26 +439,64 @@
 
                     const data = await response.json();
 
-
-
                     inputNombre.innerHTML = data.nombre;
                     inputApellido.innerHTML = data.apellido;
                     inputCedula.innerHTML = data.cedula;
                     inputFechaNacimiento.innerHTML = data.fecha_nacimiento;
                     inputTelefono.innerHTML = data.telefono;
                     inputDireccion.innerHTML = data.direccion;
-                    
+
                     inputParroquia.innerHTML = data.parroquia ? data.parroquia.nombre : 'N/A';
-                    inputMunicipio.innerHTML = data.parroquia?.municipio ? data.parroquia.municipio.nombre : 'N/A';
-                    inputEstado.innerHTML = data.parroquia?.municipio?.estado ? data.parroquia.municipio.estado.nombre : 'N/A';
+                    inputMunicipio.innerHTML = data.parroquia?.municipio ? data.parroquia.municipio.nombre :
+                        'N/A';
+                    inputEstado.innerHTML = data.parroquia?.municipio?.estado ? data.parroquia.municipio.estado
+                        .nombre : 'N/A';
 
                 } catch (error) {
                     console.error('Error:', error);
                     Swal.fire('Error', 'No se pudieron cargar los datos del paciente', 'error');
                 }
             }
+        });
 
+        document.getElementById('select-estado-edit').addEventListener('change', function() {
+            let estadoId = this.value;
+            let selectMunicipio = document.getElementById('select-municipio-edit');
+            let selectParroquia = document.getElementById('select-parroquia-edit');
 
+            selectMunicipio.innerHTML = '<option value="">Cargando...</option>';
+            selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+
+            if (estadoId) {
+                fetch(`/api/municipios/${estadoId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
+                        data.forEach(m => {
+                            selectMunicipio.innerHTML += `<option value="${m.id}">${m.nombre}</option>`;
+                        });
+                    })
+                    .catch(err => console.error(err));
+            }
+        });
+
+        document.getElementById('select-municipio-edit').addEventListener('change', function() {
+            let municipioId = this.value;
+            let selectParroquia = document.getElementById('select-parroquia-edit');
+
+            selectParroquia.innerHTML = '<option value="">Cargando...</option>';
+
+            if (municipioId) {
+                fetch(`/api/parroquias/${municipioId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+                        data.forEach(p => {
+                            selectParroquia.innerHTML += `<option value="${p.id}">${p.nombre}</option>`;
+                        });
+                    })
+                    .catch(err => console.error(err));
+            }
         });
     </script>
 

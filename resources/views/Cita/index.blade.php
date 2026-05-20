@@ -13,7 +13,7 @@
                 <i class="bi bi-plus me-1"></i> Nueva Cita
             </a>
         </div>
-        <table class="table table-hover">
+        <table class="table table-hover" id="tablaCitas" >
             <thead>
                 <tr>
                     <th>Paciente</th>
@@ -28,49 +28,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($citas as $cita)
-                    <tr>
-                        <td>{{ $cita->paciente->nombre }} {{ $cita->paciente->apellido }}</td>
-                        <td>{{ $cita->paciente->cedula }}</td>
-                        <td>{{ $cita->calendario->medico->nombre }} {{ $cita->calendario->medico->apellido }}</td>
-                        <td>{{ $cita->calendario->medico->especialidad->nombre }}</td>
-                        <td>{{ \Carbon\Carbon::parse($cita->fecha_cita)->format('d/m/Y') }}</td>
-                        <td>{{ \Carbon\Carbon::parse($cita->fecha_registro)->format('d/m/Y') }}</td>
-                        <td>
-                            @if($cita->tipo_paciente == 'primera_vez')
-                                <span class="badge bg-info">Primera vez</span>
-                            @else
-                                <span class="badge bg-warning">Control</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($cita->estado == 'Agendada')
-                                <span class="badge bg-success">Agendada</span>
-                            @elseif($cita->estado == 'Atendida')
-                                <span class="badge bg-primary">Atendida</span>
-                            @else
-                                <span class="badge bg-secondary">{{ $cita->estado }}</span>
-                            @endif
-                        </td>
-                        <td class="text-end">
-                            <div class="hstack gap-2 justify-content-end">
-                                <button type="button" data-id="{{ $cita->id }}"
-                                    class="btn-show btn btn-xs btn-square btn-neutral">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <a href="{{ route('Citas.destroy', $cita->id) }}"
-                                    class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover"
-                                    data-confirm-delete="true">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="9" class="text-center text-muted py-4">No hay citas registradas</td>
-                    </tr>
-                @endforelse
+            
             </tbody>
         </table>
     </div>
@@ -95,3 +53,40 @@
 
     @include('layouts.footer')
 @endsection
+
+@push('scripts')
+
+<link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
+<script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
+
+<script>
+$(document).ready(function() {
+    
+    $('#tablaCitas').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{{ route('Citas.index') }}", 
+            type: 'GET'
+        },
+        columns: [
+            { data: '0', name: 'paciente' },
+            { data: '1', name: 'cedula' },
+            { data: '2', name: 'medico' },
+            { data: '3', name: 'especialidad' },
+            { data: '4', name: 'fecha_cita' },
+            { data: '5', name: 'fecha_registro' },
+            { data: '6', name: 'tipo_paciente', orderable: false, searchable: false },
+            { data: '7', name: 'estado' },
+            { data: '8', name: 'acciones', orderable: false, searchable: false, className: 'text-end' }
+        ],
+        language: {
+            url: "{{ asset('vendor/datatables/es-ES.json') }}"
+        },
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todas"]],
+        order: [[4, 'desc']]
+    });
+});
+</script>
+@endpush

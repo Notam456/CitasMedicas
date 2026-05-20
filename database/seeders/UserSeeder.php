@@ -15,6 +15,7 @@ class UserSeeder extends Seeder
             'email' => 'admin@hospital.gob.ve',
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
+            'role' => 'administrador',
             'remember_token' => null,
             'created_at' => now(),
             'updated_at' => now(),
@@ -27,6 +28,7 @@ class UserSeeder extends Seeder
                 'email' => "empleado$i@hospital.gob.ve",
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),
+                'role' => 'usuario',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

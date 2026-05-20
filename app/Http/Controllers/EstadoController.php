@@ -64,4 +64,11 @@ class EstadoController extends Controller
         Alert::success('Estado eliminado exitosamente.');
         return redirect()->route('estados.index');
     }
+
+    public function getEstados()
+    {   
+        $estados = Estado::orderBy('nombre', 'asc')->get(['id', 'nombre']);
+
+        return response()->json($estados, 200);
+    }
 }
