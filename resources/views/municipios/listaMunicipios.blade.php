@@ -83,6 +83,18 @@
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
+                        <div class="form-floating mb-3">
+                            <select class="form-select" name="distrito_id">
+                                <option value="">Sin distrito asignado</option>
+                                @foreach ($distritos as $distrito)
+                                    <option value="{{ $distrito->id }}" {{ old('distrito_id') == $distrito->id ? 'selected' : '' }}>
+                                        {{ $distrito->nombre }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <label>Distrito (opcional)</label>
+                            @error('distrito_id') <small class="text-danger">{{ $message }}</small> @enderror
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -125,6 +137,15 @@
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
+                        <div class="form-floating mb-3">
+                            <select class="form-select" name="distrito_id" id="editarDistritoMunicipio">
+                                <option value="">Sin distrito asignado</option>
+                                @foreach ($distritos as $distrito)
+                                    <option value="{{ $distrito->id }}">{{ $distrito->nombre }}</option>
+                                @endforeach
+                            </select>
+                            <label>Distrito (opcional)</label>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -153,6 +174,10 @@
                         <label class="form-label">Estado</label>
                         <p class="form-control-plaintext" id="mostrarMunicipioEstado"></p>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Distrito</label>
+                        <p class="form-control-plaintext" id="mostrarMunicipioDistrito"></p>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -160,6 +185,7 @@
             </div>
         </div>
     </div>
+
     <script>
         document.addEventListener('click', async function(event) {
             const btn = event.target.closest('.btn-edit');
@@ -167,8 +193,9 @@
 
             if (btn) {
                 const municipioId = btn.getAttribute('data-id');
-                var inputNombre = document.getElementById('editarNombreMunicipio');
-                var inputEstado = document.getElementById('editarEstadoMunicipio');
+                const inputNombre = document.getElementById('editarNombreMunicipio');
+                const inputEstado = document.getElementById('editarEstadoMunicipio');
+                const selectDistrito = document.getElementById('editarDistritoMunicipio');
 
                 try {
                     const modalElement = document.getElementById('modalEditarMunicipio');
@@ -179,6 +206,7 @@
                     inputNombre.disabled = true;
                     inputNombre.value = "Cargando...";
                     inputEstado.disabled = true;
+                    if (selectDistrito) selectDistrito.disabled = true;
 
                     modalInstance.show();
                     const response = await fetch(`/municipios/${municipioId}/edit`, {
@@ -193,17 +221,18 @@
 
                     const data = await response.json();
 
-
                     document.getElementById('id').value = data.id;
                     inputNombre.value = data.nombre;
                     inputNombre.disabled = false;
                     inputEstado.value = data.estado_id;
                     inputEstado.disabled = false;
-
+                    if (selectDistrito) {
+                        selectDistrito.value = data.distrito_id || '';
+                        selectDistrito.disabled = false;
+                    }
 
                     const form = document.querySelector('#modalEditarMunicipio form');
                     form.action = `/municipios/${data.id}`;
-
 
                 } catch (error) {
                     console.error('Error:', error);
@@ -213,9 +242,9 @@
 
             if (btnShow) {
                 const municipioId = btnShow.getAttribute('data-id');
-                var inputNombre = document.getElementById('mostrarMunicipioNombre');
-                var inputEstado = document.getElementById('mostrarMunicipioEstado');
-
+                const spanNombre = document.getElementById('mostrarMunicipioNombre');
+                const spanEstado = document.getElementById('mostrarMunicipioEstado');
+                const spanDistrito = document.getElementById('mostrarMunicipioDistrito');
 
                 try {
                     const modalElement = document.getElementById('modalShowMunicipio');
@@ -224,8 +253,9 @@
                         modalInstance = new bootstrap.Modal(modalElement);
                     }
 
-                    inputNombre.innerHTML = "Cargando...";
-                    inputEstado.innerHTML = "Cargando..."
+                    spanNombre.innerHTML = "Cargando...";
+                    spanEstado.innerHTML = "Cargando...";
+                    spanDistrito.innerHTML = "Cargando...";
 
                     modalInstance.show();
                     const response = await fetch(`/municipios/${municipioId}/show`, {
@@ -240,18 +270,15 @@
 
                     const data = await response.json();
 
-                    console.log(data);
-
-                    inputNombre.innerHTML = data.nombre;
-                    inputEstado.innerHTML = data.estado.nombre;
+                    spanNombre.innerHTML = data.nombre;
+                    spanEstado.innerHTML = data.estado;
+                    spanDistrito.innerHTML = data.distrito || 'No asignado';
 
                 } catch (error) {
                     console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del estado', 'error');
+                    Swal.fire('Error', 'No se pudieron cargar los datos del municipio', 'error');
                 }
             }
-
-
         });
     </script>
 

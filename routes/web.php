@@ -15,6 +15,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\CitaController;
 use App\Http\Controllers\MorbilidadController;
+use App\Http\Controllers\DistritoController;
 
 use function PHPUnit\Framework\returnValue;
 
@@ -94,4 +95,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/reportes/medicos/excel', [ReporteController::class, 'exportarMedicosExcel'])->name('reportes.medicos_excel');
+
+Route::resource('distritos', DistritoController::class)->middleware('auth');
+Route::get('/api/distritos', [DistritoController::class, 'getDistritosData'])->name('api.distritos');
 

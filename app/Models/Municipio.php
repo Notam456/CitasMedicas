@@ -10,7 +10,7 @@ class Municipio extends Model
     protected $primaryKey = 'id';
     public $timestamps = true;
 
-    protected $fillable = ['nombre', 'estado_id'];
+    protected $fillable = ['nombre', 'estado_id', 'distrito_id'];
 
     public function parroquias()
     {
@@ -21,4 +21,9 @@ class Municipio extends Model
     {
         return $this->belongsTo(Estado::class, 'estado_id');
     }
+
+    public function distrito(){
+        
+    return $this->belongsTo(Distrito::class);
+}
 }
