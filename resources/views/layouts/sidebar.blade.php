@@ -18,6 +18,7 @@
                     <a href="{{ route('estados.index') }}" class="nav-item nav-link dropdown-item">Estado</a>
                     <a href="{{ route('municipios.index') }}" class="nav-item nav-link dropdown-item">Municipio</a>
                     <a href="{{ route('parroquias.index') }}" class="nav-item nav-link dropdown-item">Parroquia</a>
+                    <a href="{{ route('distritos.index') }}" class="nav-item nav-link dropdown-item">Distrito</a>
                 </div>
             </div>
             

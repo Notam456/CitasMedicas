@@ -9,43 +9,77 @@ class EstadoMunicipioParroquiaSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('estados')->insert([
-            'id' => 1,
-            'nombre' => 'Yaracuy',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+ 
+        DB::table('estados')->updateOrInsert(
+            ['id' => 1],
+            ['nombre' => 'Yaracuy', 'created_at' => now(), 'updated_at' => now()]
+        );
 
-        $municipios = [
-            ['id' => 1, 'estado_id' => 1, 'nombre' => 'San Felipe'],
-            ['id' => 2, 'estado_id' => 1, 'nombre' => 'Independencia'],
-            ['id' => 3, 'estado_id' => 1, 'nombre' => 'José Antonio Páez'],
-            ['id' => 4, 'estado_id' => 1, 'nombre' => 'Peña'],
-            ['id' => 5, 'estado_id' => 1, 'nombre' => 'Urachiche'],
-            ['id' => 6, 'estado_id' => 1, 'nombre' => 'Nirgua'],
-            ['id' => 7, 'estado_id' => 1, 'nombre' => 'Sucre'],
-            ['id' => 8, 'estado_id' => 1, 'nombre' => 'La Trinidad'],
-            ['id' => 9, 'estado_id' => 1, 'nombre' => 'Cocorote'],
-            ['id' =>10, 'estado_id' => 1, 'nombre' => 'Veroes'],
-            ['id' =>11, 'estado_id' => 1, 'nombre' => 'Arístides Bastidas'],
-            ['id' =>12, 'estado_id' => 1, 'nombre' => 'Bolívar'],
-        ];
-        DB::table('municipios')->insert($municipios);
 
-        $parroquias = [
-            ['id' => 1, 'municipio_id' => 1, 'nombre' => 'San Felipe'],
-            ['id' => 2, 'municipio_id' => 2, 'nombre' => 'Independencia'],
-            ['id' => 3, 'municipio_id' => 3, 'nombre' => 'José Antonio Páez'],
-            ['id' => 4, 'municipio_id' => 4, 'nombre' => 'Peña'],
-            ['id' => 5, 'municipio_id' => 5, 'nombre' => 'Urachiche'],
-            ['id' => 6, 'municipio_id' => 6, 'nombre' => 'Nirgua'],
-            ['id' => 7, 'municipio_id' => 7, 'nombre' => 'Sucre'],
-            ['id' => 8, 'municipio_id' => 8, 'nombre' => 'La Trinidad'],
-            ['id' => 9, 'municipio_id' => 9, 'nombre' => 'Cocorote'],
-            ['id' =>10, 'municipio_id' =>10, 'nombre' => 'Veroes'],
-            ['id' =>11, 'municipio_id' =>11, 'nombre' => 'Arístides Bastidas'],
-            ['id' =>12, 'municipio_id' =>12, 'nombre' => 'Bolívar'],
+        $distritos = [
+            ['nombre' => 'Distrito I', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Distrito II', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Distrito III', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Distrito IV', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Distrito V', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Otros Estados', 'created_at' => now(), 'updated_at' => now()],
         ];
-        DB::table('parroquias')->insert($parroquias);
+        DB::table('distritos')->upsert($distritos, ['nombre'], ['created_at', 'updated_at']);
+        $distritoIds = DB::table('distritos')->pluck('id', 'nombre')->toArray();
+
+
+        $municipiosConDistrito = [
+
+            'San Felipe' => 'Distrito I',
+            'Independencia' => 'Distrito I',
+            'Cocorote' => 'Distrito I',
+            'Marín' => 'Distrito I',
+            'Albarico' => 'Distrito I',
+            'Farriar' => 'Distrito I',
+            'El Guayabo' => 'Distrito I',
+            'Boraure' => 'Distrito I',
+
+            'Chivacoa' => 'Distrito II',
+            'Campo Elias' => 'Distrito II',
+            'San Pablo' => 'Distrito II',
+            'Guama' => 'Distrito II',
+
+            'Yaritagua' => 'Distrito III',
+            'Urachiche' => 'Distrito III',
+            'Sabana de Parra' => 'Distrito III',
+  
+            'Nirgua' => 'Distrito IV',
+
+            'Yumare' => 'Distrito V',
+            'Aroa' => 'Distrito V',
+
+            'José Antonio Páez' => 'Distrito V',
+            'Peña' => 'Distrito V',
+            'Sucre' => 'Distrito V',
+            'La Trinidad' => 'Distrito V',
+            'Veroes' => 'Distrito V',
+            'Arístides Bastidas' => 'Distrito V',
+            'Bolívar' => 'Distrito V',
+        ];
+
+        foreach ($municipiosConDistrito as $nombre => $distritoNombre) {
+            $distritoId = $distritoIds[$distritoNombre] ?? null;
+            DB::table('municipios')->updateOrInsert(
+                ['nombre' => $nombre, 'estado_id' => 1],
+                [
+                    'distrito_id' => $distritoId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
+
+        $municipios = DB::table('municipios')->where('estado_id', 1)->get(['id', 'nombre']);
+        foreach ($municipios as $municipio) {
+            DB::table('parroquias')->updateOrInsert(
+                ['nombre' => $municipio->nombre, 'municipio_id' => $municipio->id],
+                ['created_at' => now(), 'updated_at' => now()]
+            );
+        }
     }
 }

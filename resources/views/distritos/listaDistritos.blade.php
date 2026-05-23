@@ -1,0 +1,150 @@
+@extends('layouts.template')
+@section('title', 'Lista de Distritos | SAGECIM')
+@include('layouts.sidebar')
+
+@section('content')
+@include('layouts.navbar')
+<div class="table-responsive bg-light rounded h-100 p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">Lista de Distritos</h3>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalDistrito">
+            <i class="bi bi-plus-circle me-1"></i> Registrar Distrito
+        </button>
+    </div>
+    <table class="table table-hover" id="distritosTable">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th class="text-end">Acciones</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+<!-- Modal Registrar -->
+<div class="modal fade" id="modalDistrito" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5>Registrar Distrito</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form action="{{ route('distritos.store') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" name="nombre" required placeholder="Nombre">
+                        <label>Nombre del Distrito</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditarDistrito" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5>Editar Distrito</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form action="" method="POST" id="editForm">
+                @csrf @method('PUT')
+                <div class="modal-body">
+                    <input type="hidden" id="edit_id" name="id">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="edit_nombre" name="nombre" required>
+                        <label>Nombre del Distrito</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Mostrar -->
+<div class="modal fade" id="modalShowDistrito" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5>Datos del Distrito</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <p><strong>ID:</strong> <span id="show_id"></span></p>
+                <p><strong>Nombre:</strong> <span id="show_nombre"></span></p>
+                <p><strong>Municipios:</strong></p>
+                <ul id="show_municipios"></ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+
+<link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
+<script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
+
+<script>
+$(document).ready(function() {
+    $('#distritosTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: '{{ route("api.distritos") }}',
+        columns: [
+            { data: 'nombre', name: 'nombre' },
+            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-end' }
+        ],
+        language: { url: "{{ asset('vendor/datatables/es-ES.json') }}" },
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todas"]],
+        order: [[0, 'asc']]
+    });
+});
+
+// Eventos para editar/mostrar con AJAX
+document.addEventListener('click', async (e) => {
+    const btnEdit = e.target.closest('.btn-edit');
+    const btnShow = e.target.closest('.btn-show');
+    if (btnEdit) {
+        const id = btnEdit.dataset.id;
+        try {
+            const res = await fetch(`/distritos/${id}/edit`, { headers: { 'Accept': 'application/json' } });
+            const data = await res.json();
+            document.getElementById('edit_id').value = data.id;
+            document.getElementById('edit_nombre').value = data.nombre;
+            document.getElementById('editForm').action = `/distritos/${data.id}`;
+            new bootstrap.Modal(document.getElementById('modalEditarDistrito')).show();
+        } catch { Swal.fire('Error', 'No se pudo cargar', 'error'); }
+    }
+    if (btnShow) {
+    const id = btnShow.dataset.id;
+    try {
+        const res = await fetch(`/distritos/${id}`, { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        document.getElementById('show_id').innerText = data.id;
+        document.getElementById('show_nombre').innerText = data.nombre;
+        const ul = document.getElementById('show_municipios');
+        ul.innerHTML = '';
+        (data.municipios || []).forEach(m => {
+            const li = document.createElement('li');
+            li.textContent = m;
+            ul.appendChild(li);
+        });
+        new bootstrap.Modal(document.getElementById('modalShowDistrito')).show();
+    } catch { Swal.fire('Error', 'No se pudo cargar', 'error'); }
+}
+});
+</script>
+@endpush
+
+@if ($errors->any())
+<script>Swal.fire({ icon: 'error', title: 'Error', text: '{!! implode("\\n", $errors->all()) !!}' });</script>
+@endif
+
+@include('layouts.footer')
+@endsection
