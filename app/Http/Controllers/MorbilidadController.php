@@ -15,7 +15,6 @@ class MorbilidadController extends Controller
     {
         $especialidades = Especialidad::where('estado', true)->get();
     
-        // Si es AJAX de DataTables, devuelve la respuesta paginada (sin cambios)
         if ($request->ajax() && $request->has('draw')) {
             return $this->dataTableResponse($request);
         }
@@ -26,7 +25,7 @@ class MorbilidadController extends Controller
             $query->orderBy('citas.fecha_cita', 'desc');
             
             // Opción 1: usar lazy() para evitar cargar todo en memoria
-            $morbilidades = $query->lazy(); // o ->cursor()
+            $morbilidades = $query->lazy();
             
             if ($request->has('export_excel')) {
                 return Excel::download(new MorbilidadExport($morbilidades), 'morbilidades.xlsx');
@@ -36,7 +35,6 @@ class MorbilidadController extends Controller
                 $query = $this->buildBaseQuery($request);
                 $total = $query->count();
                 
-                // Límite seguro para PDF (ajústalo según tu servidor)
                 $limite = 1000;
                 
                 if ($total > $limite) {
@@ -47,8 +45,14 @@ class MorbilidadController extends Controller
                 ini_set('max_execution_time', 300);
                 
                 $morbilidades = $query->orderBy('citas.fecha_cita', 'desc')->get();
-                $pdf = Pdf::loadView('reportes.morbilidad_pdf', ['morbilidades' => $morbilidades]);
-                return $pdf->download('morbilidades.pdf');
+                $membrete = public_path('assets/img/membreteMPPS2.png');
+                
+                $pdf = Pdf::loadView('reportes.morbilidad_pdf', [
+                    'morbilidades' => $morbilidades,
+                    'membrete' => $membrete
+                ]);
+    
+                return $pdf->stream('morbilidades.pdf');
             }
         }
 
