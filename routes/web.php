@@ -17,6 +17,8 @@ use App\Http\Controllers\CitaController;
 use App\Http\Controllers\MorbilidadController;
 use App\Http\Controllers\DistritoController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\DiagnosticoController;
+use App\Http\Controllers\PatologiaController;
 
 use function PHPUnit\Framework\returnValue;
 
@@ -98,8 +100,31 @@ Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'g
 
 // Route::get('/', [DashboardController::class, 'index'])->name('inicio'); // yajure: no me borren este bypass por favor!
 
+
+Route::middleware('auth')->group(function () {
+    Route::get('/citas/{cita}/atender', [DiagnosticoController::class, 'atender'])->name('citas.atender');
+    Route::post('/citas/{cita}/diagnostico', [DiagnosticoController::class, 'store'])->name('citas.diagnostico.store');
+});
+
 Route::middleware(['auth', 'can:Morbilidad'])->group(function () {
     Route::get('/morbilidad', [MorbilidadController::class, 'index'])->name('morbilidad.index');
+    Route::get('/morbilidad/pendientes', [MorbilidadController::class, 'pendientes'])->name('morbilidad.pendientes');
+
+    Route::get('/diagnosticos', [DiagnosticoController::class, 'index'])->name('diagnosticos.index');
+    Route::get('/diagnosticos/{diagnostico}/edit', [DiagnosticoController::class, 'edit'])->name('diagnosticos.edit');
+    Route::put('/diagnosticos/{diagnostico}', [DiagnosticoController::class, 'update'])->name('diagnosticos.update');
+    Route::delete('/diagnosticos/{diagnostico}', [DiagnosticoController::class, 'destroy'])->name('diagnosticos.destroy');
+    Route::get('/diagnosticos/{diagnostico}', [DiagnosticoController::class, 'show'])->name('diagnosticos.show');
+});
+
+Route::get('/api/patologias/por-cita/{cita}', function($citaId) {
+    $cita = App\Models\Cita::findOrFail($citaId);
+    $especialidadId = $cita->medico->especialidad_id;
+    return App\Models\Patologia::where('especialidad_id', $especialidadId)->where('activo', true)->get();
+})->middleware('auth');
+
+Route::middleware(['auth', 'can:Patologia'])->group(function () {
+    Route::resource('patologias', PatologiaController::class);
 });
 
 Route::middleware(['auth', 'can:Reportes'])->group(function () {

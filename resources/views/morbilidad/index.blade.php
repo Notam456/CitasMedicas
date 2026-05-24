@@ -15,8 +15,13 @@
 
     <div class="container py-4">
         <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3">
-                <h3 class="mb-0">Reporte de Morbilidad</h3>
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Reporte de Morbilidad</h3>
+                    <a href="{{ route('morbilidad.pendientes') }}" class="btn btn-primary">
+                        <i class="fas fa-clinic-medical me-1"></i> Citas por Atender
+                    </a>
+                </div>
+             </div>
             </div>
             <div class="card-body">
                 <form method="GET" id="filtroForm" class="row g-3 mb-4 align-items-end">
