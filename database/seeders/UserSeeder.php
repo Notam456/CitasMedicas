@@ -10,28 +10,29 @@ class UserSeeder extends Seeder
 {
     public function run()
     {
-        User::create([
-            'name' => 'Admin Principal',
+        $user = User::create([
+            'name' => 'Admin',
             'email' => 'admin@hospital.gob.ve',
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
-            'role' => 'administrador',
             'remember_token' => null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
+        $user->assignRole('administrador');
+
         // Algunos usuarios adicionales
         for ($i = 1; $i <= 5; $i++) {
-            User::create([
+            $user = User::create([
                 'name' => "Empleado $i",
                 'email' => "empleado$i@hospital.gob.ve",
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),
-                'role' => 'usuario',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            $user->assignRole('usuario');
         }
     }
 }
