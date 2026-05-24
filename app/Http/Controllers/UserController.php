@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use RealRashid\SweetAlert\Facades\Alert;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
 {
@@ -16,12 +18,14 @@ class UserController extends Controller
     public function index()
     {
         $usuarios = User::all();
+        $roles = Role::all();
+        $permisos = Permission::all();
 
         $title = '¿Estas seguro de que deseas eliminar este usuario?';
         $texrt = 'Esta acción no se puede deshacer.';
         confirmDelete($title, $texrt);
         
-        return view( ('user.listaUsuarios'), compact('usuarios'));
+        return view( ('user.listaUsuarios'), compact('usuarios', 'roles', 'permisos'));
     }
 
     /**
@@ -41,15 +45,16 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'nullable|in:administrador,usuario',
+            'role' => 'required|string|exists:roles,name',
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password'=> Hash::make($request->password),
-            'role' => $request->role ?? 'usuario',
         ]);
+
+        $user->assignRole($request->role);
 
         Alert::success('Usuario creado exitosamente.');
 
@@ -70,8 +75,14 @@ class UserController extends Controller
     public function edit(int $id)
     {
         $userToEdit = User::findOrFail($id);
+        $role = $userToEdit->getRoleNames()->first();
         
-        return response()->json($userToEdit);
+        return response()->json([
+            'id' => $userToEdit->id,
+            'name' => $userToEdit->name,
+            'email' => $userToEdit->email,
+            'role' => $role
+        ]);
     }
 
     /**
@@ -83,19 +94,20 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $id,
             'password' => 'nullable|string|min:8',
-            'role' => 'required|in:administrador,usuario',
+            'role' => 'required|string|exists:roles,name',
         ]);
 
         $user = User::findOrFail($id);
         $user->name = $request->name;
         $user->email = $request->email;
-        $user->role = $request->role;
 
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }
 
         $user->save();
+
+        $user->syncRoles([$request->role]);
 
         Alert::success('Usuario actualizado exitosamente.');
 
