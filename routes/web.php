@@ -16,6 +16,7 @@ use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\CitaController;
 use App\Http\Controllers\MorbilidadController;
 use App\Http\Controllers\DistritoController;
+use App\Http\Controllers\RoleController;
 
 use function PHPUnit\Framework\returnValue;
 
@@ -95,6 +96,10 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/reportes/medicos/excel', [ReporteController::class, 'exportarMedicosExcel'])->name('reportes.medicos_excel');
+
+Route::post('/roles', [RoleController::class, 'store'])->name('roles.store')->middleware('auth');
+Route::put('/roles/{role:name}', [RoleController::class, 'update'])->name('roles.update')->middleware('auth');
+Route::get('/roles/{role:name}/permissions', [RoleController::class, 'getPermissions'])->name('roles.permissions')->middleware('auth');
 
 Route::resource('distritos', DistritoController::class)->middleware('auth');
 Route::get('/api/distritos', [DistritoController::class, 'getDistritosData'])->name('api.distritos');

@@ -34,11 +34,13 @@
                             </div>
                         </td>
                         <td>
-                            @if ($usuario->role === 'administrador')
-                                <span class="badge bg-danger text-capitalize">{{ $usuario->role }}</span>
-                            @else
-                                <span class="badge bg-secondary text-capitalize">{{ $usuario->role }}</span>
-                            @endif
+                            @foreach($usuario->getRoleNames() as $role)
+                                @if ($role === 'administrador')
+                                    <span class="badge bg-danger text-capitalize">{{ $role }}</span>
+                                @else
+                                    <span class="badge bg-secondary text-capitalize">{{ $role }}</span>
+                                @endif
+                            @endforeach
                         </td>
                         <td class="text-end">
                             <div class="hstack gap-2 justify-content-end">
@@ -62,7 +64,7 @@
 
     <!-- Modal Registrar Usuario -->
     <div class="modal fade" id="modalUsuario" tabindex="-1" aria-labelledby="modalUsuarioLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalUsuarioLabel">Registrar Usuario</h5>
@@ -103,16 +105,51 @@
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
-                        <div class="form-floating mb-3">
-                            <select class="form-select" id="rolUsuario" name="role">
-                                <option value="usuario" {{ old('role') == 'usuario' ? 'selected' : '' }}>Usuario</option>
-                                <option value="administrador" {{ old('role') == 'administrador' ? 'selected' : '' }}>
-                                    Administrador</option>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label for="rolUsuario" class="form-label mb-0">Rol del Usuario</label>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnNuevoRol">
+                                    <i class="bi bi-plus-circle me-1"></i> Nuevo Rol
+                                </button>
+                            </div>
+                            <select class="form-select" id="rolUsuario" name="role" required>
+                                <option value="">Seleccione un rol</option>
+                                @foreach($roles as $role)
+                                    <option value="{{ $role->name }}" {{ old('role') == $role->name ? 'selected' : '' }}>{{ ucfirst($role->name) }}</option>
+                                @endforeach
                             </select>
-                            <label for="rolUsuario">Rol del Usuario</label>
                             @error('role')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
+                        </div>
+
+                        <!-- Sección para ver/crear roles y permisos -->
+                        <div id="seccionPermisos" class="mt-4 p-3 border rounded bg-white" style="display: none;">
+                            <h6 class="mb-3 border-bottom pb-2" id="tituloPermisos">Permisos del Rol</h6>
+
+                            <div id="crearRolCampos" style="display: none;">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="nombreNuevoRol" placeholder="Nombre del nuevo rol">
+                                    <label for="nombreNuevoRol">Nombre del Nuevo Rol</label>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                @foreach($permisos as $permiso)
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input check-permiso" type="checkbox" value="{{ $permiso->name }}" id="permiso_{{ $permiso->id }}">
+                                            <label class="form-check-label" for="permiso_{{ $permiso->id }}">
+                                                {{ $permiso->name }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <div id="guardarRolAccion" class="mt-3 text-end" style="display: none;">
+                                <button type="button" class="btn btn-success btn-sm" id="btnGuardarRol">Guardar Rol</button>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -127,7 +164,7 @@
     <!-- Modal Editar Usuario (similar al de registrar, pero con campos prellenados) -->
     <div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-labelledby="modalEditarUsuarioLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalEditarUsuarioLabel">Editar Usuario</h5>
@@ -162,15 +199,54 @@
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
-                        <div class="form-floating mb-3">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label for="editarRolUsuario" class="form-label mb-0">Rol del Usuario</label>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnNuevoRolEditar">
+                                    <i class="bi bi-plus-circle me-1"></i> Nuevo Rol
+                                </button>
+                            </div>
                             <select class="form-select" id="editarRolUsuario" name="role" required>
-                                <option value="usuario">Usuario</option>
-                                <option value="administrador">Administrador</option>
+                                @foreach($roles as $role)
+                                    <option value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
+                                @endforeach
                             </select>
-                            <label for="editarRolUsuario">Rol del Usuario</label>
                             @error('role')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
+                        </div>
+
+                        <div id="seccionPermisosEditar" class="mt-4 p-3 border rounded bg-white">
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <h6 class="mb-0" id="tituloPermisosEditar">Permisos del Rol Seleccionado</h6>
+                                <button type="button" class="btn btn-xs btn-outline-warning" id="btnEditarPermisosRol">
+                                    <i class="bi bi-pencil me-1"></i> Editar Permisos del Rol
+                                </button>
+                            </div>
+
+                            <div id="crearRolCamposEditar" style="display: none;">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="nombreNuevoRolEditar" placeholder="Nombre del nuevo rol">
+                                    <label for="nombreNuevoRolEditar">Nombre del Nuevo Rol</label>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                @foreach($permisos as $permiso)
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input check-permiso-editar" type="checkbox" value="{{ $permiso->name }}" id="permiso_edit_{{ $permiso->id }}" disabled>
+                                            <label class="form-check-label" for="permiso_edit_{{ $permiso->id }}">
+                                                {{ $permiso->name }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div id="guardarPermisosRolAccion" class="mt-3 text-end" style="display: none;">
+                                <button type="button" class="btn btn-success btn-sm" id="btnGuardarPermisosRol">Guardar Cambios en el Rol</button>
+                            </div>
+                            <small class="text-muted mt-2 d-block">Nota: Al editar los permisos del rol, se verán afectados todos los usuarios con este rol.</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -183,59 +259,269 @@
     </div>
 
     <script>
-        document.addEventListener('click', async function(event) {
-            const btn = event.target.closest('.btn-edit');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Funcionalidad genérica para crear roles
+            async function guardarNuevoRol(nameInput, checks, selectToUpdate, otherSelect, camposContainer, accionContainer, tituloElement) {
+                const name = nameInput.value;
+                if (!name) {
+                    Swal.fire('Error', 'Por favor ingrese un nombre para el rol', 'error');
+                    return;
+                }
 
-            if (btn) {
-                const userId = btn.getAttribute('data-id');
-                var inputNombre = document.getElementById('editarNombreUsuario');
-                var inputEmail = document.getElementById('editarEmailUsuario');
-                var selectRol = document.getElementById('editarRolUsuario');
+                const selectedPermissions = Array.from(checks)
+                    .filter(c => c.checked)
+                    .map(c => c.value);
 
                 try {
-                    const modalElement = document.getElementById('modalEditarUsuario');
-                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (!modalInstance) {
-                        modalInstance = new bootstrap.Modal(modalElement);
-                    }
-
-                    inputNombre.value = "Cargando...";
-                    inputNombre.disabled = true;
-                    inputEmail.value = "Cargando...";
-                    inputEmail.disabled = true;
-                    selectRol.disabled = true;
-                    modalInstance.show();
-                    const response = await fetch(`/users/${userId}/edit`, {
-                        method: 'GET',
+                    const response = await fetch('{{ route('roles.store') }}', {
+                        method: 'POST',
                         headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
                             'Accept': 'application/json'
-                        }
+                        },
+                        body: JSON.stringify({
+                            name: name,
+                            permissions: selectedPermissions
+                        })
                     });
-
-                    if (!response.ok) throw new Error('Error al obtener datos');
 
                     const data = await response.json();
 
+                    if (!response.ok) {
+                        if (data.errors && data.errors.name) {
+                            throw new Error(data.errors.name[0]);
+                        }
+                        throw new Error(data.message || 'Error al crear el rol');
+                    }
 
-                    document.getElementById('id').value = data.id;
-                    inputNombre.value = data.name;
-                    inputNombre.disabled = false;
-                    inputEmail.value = data.email;
-                    inputEmail.disabled = false;
-                    selectRol.value = data.role;
-                    selectRol.disabled = false;
-                    document.getElementById('editarPasswordUsuario').value = "";
+                    const optionText = data.role.name.charAt(0).toUpperCase() + data.role.name.slice(1);
+                    const optionValue = data.role.name;
 
-                    const form = document.querySelector('#modalEditarUsuario form');
-                    form.action = `/users/${data.id}`;
+                    selectToUpdate.add(new Option(optionText, optionValue));
+                    otherSelect.add(new Option(optionText, optionValue));
 
+                    selectToUpdate.value = optionValue;
+
+                    camposContainer.style.display = 'none';
+                    accionContainer.style.display = 'none';
+                    tituloElement.textContent = 'Permisos del Rol: ' + data.role.name;
+                    nameInput.value = '';
+
+                    checks.forEach(c => c.disabled = true);
+
+                    Swal.fire('Éxito', 'Rol creado correctamente', 'success');
 
                 } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del usuario', 'error');
+                    Swal.fire('Error', error.message, 'error');
                 }
             }
+
+            // Lógica para el modal de Registro
+            const btnNuevoRol = document.getElementById('btnNuevoRol');
+            const seccionPermisos = document.getElementById('seccionPermisos');
+            const crearRolCampos = document.getElementById('crearRolCampos');
+            const guardarRolAccion = document.getElementById('guardarRolAccion');
+            const selectRol = document.getElementById('rolUsuario');
+            const otherSelectEditar = document.getElementById('editarRolUsuario');
+            const tituloPermisos = document.getElementById('tituloPermisos');
+            const checksPermisos = document.querySelectorAll('.check-permiso');
+            const btnGuardarRol = document.getElementById('btnGuardarRol');
+            const nombreNuevoRol = document.getElementById('nombreNuevoRol');
+
+            btnNuevoRol.addEventListener('click', function() {
+                seccionPermisos.style.display = 'block';
+                crearRolCampos.style.display = 'block';
+                guardarRolAccion.style.display = 'block';
+                tituloPermisos.textContent = 'Crear Nuevo Rol y Asignar Permisos';
+                selectRol.value = '';
+                checksPermisos.forEach(check => {
+                    check.checked = false;
+                    check.disabled = false;
+                });
+            });
+
+            selectRol.addEventListener('change', async function() {
+                const roleName = this.value;
+                if (!roleName) {
+                    seccionPermisos.style.display = 'none';
+                    return;
+                }
+                seccionPermisos.style.display = 'block';
+                crearRolCampos.style.display = 'none';
+                guardarRolAccion.style.display = 'none';
+                tituloPermisos.textContent = 'Permisos del Rol: ' + roleName;
+                await cargarPermisosDeRol(roleName, checksPermisos);
+            });
+
+            btnGuardarRol.addEventListener('click', function() {
+                guardarNuevoRol(nombreNuevoRol, checksPermisos, selectRol, otherSelectEditar, crearRolCampos, guardarRolAccion, tituloPermisos);
+            });
+
+            // Lógica para el modal de Edición
+            const selectRolEditar = document.getElementById('editarRolUsuario');
+            const checksPermisosEditar = document.querySelectorAll('.check-permiso-editar');
+            const btnEditarPermisosRol = document.getElementById('btnEditarPermisosRol');
+            const btnGuardarPermisosRol = document.getElementById('btnGuardarPermisosRol');
+            const guardarPermisosRolAccion = document.getElementById('guardarPermisosRolAccion');
+
+            const btnNuevoRolEditar = document.getElementById('btnNuevoRolEditar');
+            const crearRolCamposEditar = document.getElementById('crearRolCamposEditar');
+            const nombreNuevoRolEditar = document.getElementById('nombreNuevoRolEditar');
+            const tituloPermisosEditar = document.getElementById('tituloPermisosEditar');
+
+            btnNuevoRolEditar.addEventListener('click', function() {
+                crearRolCamposEditar.style.display = 'block';
+                guardarPermisosRolAccion.style.display = 'block';
+                btnEditarPermisosRol.style.display = 'none';
+                tituloPermisosEditar.textContent = 'Crear Nuevo Rol y Asignar Permisos';
+                selectRolEditar.value = '';
+                checksPermisosEditar.forEach(check => {
+                    check.checked = false;
+                    check.disabled = false;
+                });
+
+                // Cambiar el comportamiento del botón de guardar temporalmente
+                const originalHandler = btnGuardarPermisosRol.onclick;
+                btnGuardarPermisosRol.onclick = function() {
+                    guardarNuevoRol(nombreNuevoRolEditar, checksPermisosEditar, selectRolEditar, selectRol, crearRolCamposEditar, guardarPermisosRolAccion, tituloPermisosEditar);
+                    btnGuardarPermisosRol.onclick = originalHandler;
+                    btnEditarPermisosRol.style.display = 'block';
+                };
+            });
+
+            selectRolEditar.addEventListener('change', async function() {
+                crearRolCamposEditar.style.display = 'none';
+                guardarPermisosRolAccion.style.display = 'none';
+                btnEditarPermisosRol.style.display = this.value === 'administrador' ? 'none' : 'block';
+                tituloPermisosEditar.textContent = 'Permisos del Rol Seleccionado';
+                await cargarPermisosDeRol(this.value, checksPermisosEditar);
+            });
+
+            btnEditarPermisosRol.addEventListener('click', function() {
+                if (selectRolEditar.value === 'administrador') return;
+
+                checksPermisosEditar.forEach(check => check.disabled = false);
+                guardarPermisosRolAccion.style.display = 'block';
+            });
+
+            btnGuardarPermisosRol.addEventListener('click', async function() {
+                const roleName = selectRolEditar.value;
+                const selectedPermissions = Array.from(checksPermisosEditar)
+                    .filter(c => c.checked)
+                    .map(c => c.value);
+
+                try {
+                    const response = await fetch(`/roles/${roleName}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            permissions: selectedPermissions
+                        })
+                    });
+
+                    if (!response.ok) throw new Error('Error al actualizar permisos del rol');
+
+                    guardarPermisosRolAccion.style.display = 'none';
+                    checksPermisosEditar.forEach(check => check.disabled = true);
+
+                    Swal.fire('Éxito', 'Permisos del rol actualizados correctamente', 'success');
+                } catch (error) {
+                    Swal.fire('Error', error.message, 'error');
+                }
+            });
+
+            async function cargarPermisosDeRol(roleName, containerChecks) {
+                // Si es administrador, marcar todos y deshabilitar
+                if (roleName === 'administrador') {
+                    containerChecks.forEach(check => {
+                        check.checked = true;
+                        check.disabled = true;
+                    });
+                    return;
+                }
+
+                // Obtener permisos vía AJAX
+                try {
+                    const response = await fetch(`/roles/${roleName}/permissions`);
+                    const data = await response.json();
+
+                    containerChecks.forEach(check => {
+                        check.checked = data.permissions.includes(check.value);
+                        check.disabled = true; // Por ahora solo lectura
+                    });
+                } catch (error) {
+                    console.error('Error al cargar permisos:', error);
+                }
+            }
+
+            // Manejador para abrir el modal de edición
+            document.addEventListener('click', async function(event) {
+                const btn = event.target.closest('.btn-edit');
+
+                if (btn) {
+                    const userId = btn.getAttribute('data-id');
+                    const inputNombre = document.getElementById('editarNombreUsuario');
+                    const inputEmail = document.getElementById('editarEmailUsuario');
+                    const selectRolE = document.getElementById('editarRolUsuario');
+
+                    try {
+                        const modalElement = document.getElementById('modalEditarUsuario');
+                        let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                        if (!modalInstance) {
+                            modalInstance = new bootstrap.Modal(modalElement);
+                        }
+
+                        inputNombre.value = "Cargando...";
+                        inputNombre.disabled = true;
+                        inputEmail.value = "Cargando...";
+                        inputEmail.disabled = true;
+                        selectRolE.disabled = true;
+                        modalInstance.show();
+
+                        const response = await fetch(`/users/${userId}/edit`, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) throw new Error('Error al obtener datos');
+
+                        const data = await response.json();
+
+                        document.getElementById('id').value = data.id;
+                        inputNombre.value = data.name;
+                        inputNombre.disabled = false;
+                        inputEmail.value = data.email;
+                        inputEmail.disabled = false;
+                        selectRolE.value = data.role || '';
+                        selectRolE.disabled = false;
+                        document.getElementById('editarPasswordUsuario').value = "";
+
+                        const form = document.querySelector('#modalEditarUsuario form');
+                        form.action = `/users/${data.id}`;
+
+                        // Actualizar visibilidad del botón de editar permisos
+                        btnEditarPermisosRol.style.display = data.role === 'administrador' ? 'none' : 'block';
+                        guardarPermisosRolAccion.style.display = 'none';
+
+                        // Cargar permisos del rol actual
+                        if (data.role) {
+                            await cargarPermisosDeRol(data.role, checksPermisosEditar);
+                        }
+
+                    } catch (error) {
+                        console.error('Error:', error);
+                        Swal.fire('Error', 'No se pudieron cargar los datos del usuario', 'error');
+                    }
+                }
+            });
         });
     </script>
 
