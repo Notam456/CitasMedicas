@@ -1,6 +1,6 @@
 @extends('layouts.template')
 
-@section('title', 'Dashboard | SAGECIM')
+@section('title', 'Lista de Médicos | SAGECIM')
 
 @include('layouts.sidebar')
 
@@ -15,7 +15,7 @@
             </button>
         </div>
 
-        <table class="table table-hover">
+        <table class="table table-hover" id="tablaMedicos">
             <thead>
                 <tr>
                     <th>Nombres</th>
@@ -26,38 +26,11 @@
                     <th class="text-end">Acciones</th>
                 </tr>
             </thead>
-            <tbody>
-                @foreach ($medicos as $medico)
-                    <tr>
-                        <td>{{ $medico->nombre }}</td>
-                        <td>{{ $medico->apellido }}</td>
-                        <td>{{ $medico->cedula }}</td>
-                        <td>{{ $medico->telefono }}</td>
-                        <td>{{ $medico->especialidad->nombre ?? 'N/A' }}</td>
-                        <td class="text-end">
-                            <div class="hstack gap-2 justify-content-end">
-                                <button type="button" data-id="{{ $medico->id }}"
-                                    class=" btn-show btn btn-xs btn-square btn-neutral">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button type="button" data-id="{{ $medico->id }}"
-                                    class=" btn-edit btn btn-xs btn-square btn-neutral">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <a href="{{ route('medicos.destroy', $medico->id) }}"
-                                    class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover"
-                                    data-confirm-delete="true">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
 
-    <!-- Modal Registrar Médico -->
+    <!-- Modal Registrar Médico (sin cambios estructurales, solo se mantiene) -->
     <div class="modal fade" id="modalMedico" tabindex="-1" aria-labelledby="modalMedicoLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -138,6 +111,7 @@
         </div>
     </div>
 
+    <!-- Modal Editar Médico (sin cambios estructurales) -->
     <div class="modal fade" id="modalEditarMedico" tabindex="-1" aria-labelledby="modalEditarMedicoLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -219,6 +193,7 @@
         </div>
     </div>
 
+    <!-- Modal Mostrar Médico (sin cambios estructurales) -->
     <div class="modal fade" id="modalShowMedico" tabindex="-1" aria-labelledby="modalShowMedicoLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -261,138 +236,155 @@
         </div>
     </div>
 
-
-    <script>
-        document.addEventListener('click', async function(event) {
-            const btn = event.target.closest('.btn-edit');
-            const btnShow = event.target.closest('.btn-show');
-
-            if (btn) {
-                const medicoId = btn.getAttribute('data-id');
-                var inputNombre = document.getElementById('editarNombreMedico');
-                var inputApellidos = document.getElementById('editarApellidoMedico');
-                var inputCedula = document.getElementById('editarCedulaMedico');
-                var inputTelefono = document.getElementById('editarTelefonoMedico');
-                var inputEspecialidad = document.getElementById('editarEspecialidadMedico');
-
-                try {
-                    const modalElement = document.getElementById('modalEditarMedico');
-                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (!modalInstance) {
-                        modalInstance = new bootstrap.Modal(modalElement);
-                    }
-
-                    inputNombre.disabled = true;
-                    inputNombre.value = "Cargando...";
-                    inputApellidos.disabled = true;
-                    inputApellidos.value = "Cargando...";
-                    inputCedula.disabled = true;
-                    inputCedula.value = "Cargando...";
-                    inputTelefono.disabled = true;
-                    inputTelefono.value = "Cargando...";
-                    inputEspecialidad.disabled = true;
-                    inputEspecialidad.value = "Cargando...";
-
-                    modalInstance.show();
-                    const response = await fetch(`/medicos/${medicoId}/edit`, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    });
-
-                    if (!response.ok) throw new Error('Error al obtener datos');
-
-                    const data = await response.json();
-
-
-                    document.getElementById('id').value = data.id;
-                    inputNombre.value = data.nombre;
-                    inputNombre.disabled = false;
-                    inputApellidos.disabled = false;
-                    inputApellidos.value = data.apellido;
-                    inputCedula.disabled = false;
-                    inputCedula.value = data.cedula;
-                    inputTelefono.disabled = false;
-                    inputTelefono.value = data.telefono;
-                    inputEspecialidad.disabled = false;
-                    inputEspecialidad.value = data.especialidad_id;
-
-
-                    const form = document.querySelector('#modalEditarMedico form');
-                    form.action = `/medicos/${data.id}`;
-
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
-                }
-            }
-
-            if (btnShow) {
-                const medicoId = btnShow.getAttribute('data-id');
-                var inputNombre = document.getElementById('mostrarNombreMedico');
-                var inputApellidos = document.getElementById('mostrarApellidoMedico');
-                var inputCedula = document.getElementById('mostrarCedulaMedico');
-                var inputTelefono = document.getElementById('mostrarTelefonoMedico');
-                var inputEspecialidad = document.getElementById('mostrarEspecialidadMedico');
-
-
-                try {
-                    const modalElement = document.getElementById('modalShowMedico');
-                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (!modalInstance) {
-                        modalInstance = new bootstrap.Modal(modalElement);
-                    }
-
-                    inputNombre.innerHTML = "Cargando...";
-                    inputApellidos.innerHTML = "Cargando...";
-                    inputCedula.innerHTML = "Cargando...";
-                    inputTelefono.innerHTML = "Cargando...";
-                    inputEspecialidad.innerHTML = "Cargando...";
-
-
-                    modalInstance.show();
-                    const response = await fetch(`/medicos/${medicoId}/show`, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    });
-
-                    if (!response.ok) throw new Error('Error al obtener datos');
-
-                    const data = await response.json();
-
-                    inputNombre.innerHTML = data.nombre;
-                    inputApellidos.innerHTML = data.apellido;
-                    inputCedula.innerHTML = data.cedula;
-                    inputTelefono.innerHTML = data.telefono;
-                    inputEspecialidad.innerHTML = data.especialidad.nombre;
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
-                }
-            }
-
-
-        });
-    </script>
-
-    @if ($errors->any() && !isset($medicoToEdit) && !isset($medicoToshow))
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                var modalEl = document.getElementById('modalMedico');
-                if (modalEl) {
-                    var modal = new bootstrap.Modal(modalEl);
-                    modal.show();
-                }
-            });
-        </script>
-    @endif
-
     @include('layouts.footer')
 @endsection
+
+@push('scripts')
+<link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
+<script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
+
+<script>
+$(document).ready(function() {
+    $('#tablaMedicos').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: '{{ route("medicos.index") }}',
+        columns: [
+            { data: 0, name: 'nombre' },
+            { data: 1, name: 'apellido' },
+            { data: 2, name: 'cedula' },
+            { data: 3, name: 'telefono' },
+            { data: 4, name: 'especialidad' },
+            { data: 5, name: 'action', orderable: false, searchable: false, className: 'text-end' }
+        ],
+        language: { url: "{{ asset('vendor/datatables/es-ES.json') }}" },
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todas"]],
+        order: [[0, 'asc']]
+    });
+});
+
+// Eventos para editar/mostrar (igual que antes, pero ahora usando delegación de eventos en #tablaMedicos)
+document.addEventListener('click', async function(event) {
+    const btnEdit = event.target.closest('.btn-edit');
+    const btnShow = event.target.closest('.btn-show');
+
+    if (btnEdit) {
+        const medicoId = btnEdit.getAttribute('data-id');
+        const inputNombre = document.getElementById('editarNombreMedico');
+        const inputApellidos = document.getElementById('editarApellidoMedico');
+        const inputCedula = document.getElementById('editarCedulaMedico');
+        const inputTelefono = document.getElementById('editarTelefonoMedico');
+        const inputEspecialidad = document.getElementById('editarEspecialidadMedico');
+
+        try {
+            const modalElement = document.getElementById('modalEditarMedico');
+            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (!modalInstance) {
+                modalInstance = new bootstrap.Modal(modalElement);
+            }
+
+            inputNombre.disabled = true;
+            inputNombre.value = "Cargando...";
+            inputApellidos.disabled = true;
+            inputApellidos.value = "Cargando...";
+            inputCedula.disabled = true;
+            inputCedula.value = "Cargando...";
+            inputTelefono.disabled = true;
+            inputTelefono.value = "Cargando...";
+            inputEspecialidad.disabled = true;
+            inputEspecialidad.value = "Cargando...";
+
+            modalInstance.show();
+            const response = await fetch(`/medicos/${medicoId}/edit`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al obtener datos');
+
+            const data = await response.json();
+
+            document.getElementById('id').value = data.id;
+            inputNombre.value = data.nombre;
+            inputNombre.disabled = false;
+            inputApellidos.disabled = false;
+            inputApellidos.value = data.apellido;
+            inputCedula.disabled = false;
+            inputCedula.value = data.cedula;
+            inputTelefono.disabled = false;
+            inputTelefono.value = data.telefono;
+            inputEspecialidad.disabled = false;
+            inputEspecialidad.value = data.especialidad_id;
+
+            const form = document.querySelector('#modalEditarMedico form');
+            form.action = `/medicos/${data.id}`;
+
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
+        }
+    }
+
+    if (btnShow) {
+        const medicoId = btnShow.getAttribute('data-id');
+        const inputNombre = document.getElementById('mostrarNombreMedico');
+        const inputApellidos = document.getElementById('mostrarApellidoMedico');
+        const inputCedula = document.getElementById('mostrarCedulaMedico');
+        const inputTelefono = document.getElementById('mostrarTelefonoMedico');
+        const inputEspecialidad = document.getElementById('mostrarEspecialidadMedico');
+
+        try {
+            const modalElement = document.getElementById('modalShowMedico');
+            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (!modalInstance) {
+                modalInstance = new bootstrap.Modal(modalElement);
+            }
+
+            inputNombre.innerHTML = "Cargando...";
+            inputApellidos.innerHTML = "Cargando...";
+            inputCedula.innerHTML = "Cargando...";
+            inputTelefono.innerHTML = "Cargando...";
+            inputEspecialidad.innerHTML = "Cargando...";
+
+            modalInstance.show();
+            const response = await fetch(`/medicos/${medicoId}/show`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al obtener datos');
+
+            const data = await response.json();
+
+            inputNombre.innerHTML = data.nombre;
+            inputApellidos.innerHTML = data.apellido;
+            inputCedula.innerHTML = data.cedula;
+            inputTelefono.innerHTML = data.telefono;
+            inputEspecialidad.innerHTML = data.especialidad.nombre;
+
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
+        }
+    }
+});
+
+// Mostrar modal de registro si hay errores de validación
+@if ($errors->any() && !isset($medicoToEdit) && !isset($medicoToshow))
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalEl = document.getElementById('modalMedico');
+        if (modalEl) {
+            var modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+    });
+@endif
+</script>
+@endpush
