@@ -22,6 +22,10 @@
             <a href="{{ route('especialidades.index') }}" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Especialidad</a>
             @endcan
 
+            @can('Patologia')
+            <a href="{{ route('patologias.index') }}" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Patologias</a>
+            @endcan
+
             @can('Paciente')
             <a href="{{ route('paciente.index') }}" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Paciente</a>
             @endcan
@@ -51,7 +55,7 @@
             @endcan
 
             @can('Morbilidad')
-            <a href="{{route('morbilidad.index')}}" class="nav-link nav-item"><i class="fas fa-chart-line"></i>Morbilidad</a>
+            <a href="{{route('morbilidad.pendientes')}}" class="nav-link nav-item"><i class="fas fa-chart-line"></i>Morbilidad</a>
             @endcan
         </div>
     </nav>

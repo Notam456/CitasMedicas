@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CitaSeeder::class,
             MorbilidadSeeder::class,
+            PatologiaDiagnosticoSeeder::class,
         ]);
     }
 }

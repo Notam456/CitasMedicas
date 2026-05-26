@@ -15,7 +15,6 @@ class MorbilidadExport implements FromCollection, WithHeadings, WithMapping, Sho
 
     public function __construct($data)
     {
-        // Acepta Collection o LazyCollection
         if ($data instanceof \Illuminate\Support\LazyCollection) {
             $this->data = collect($data);
         } else {
@@ -35,10 +34,28 @@ class MorbilidadExport implements FromCollection, WithHeadings, WithMapping, Sho
 
     public function map($row): array
     {
-        // Asegurar que fecha_cita esté formateada (si no viene formateada)
         $fecha = $row->fecha_cita;
         if ($fecha && !is_string($fecha)) {
             $fecha = \Carbon\Carbon::parse($fecha)->format('d/m/Y');
+        }
+
+        // Diagnóstico combinado (patología + libre)
+        $diagnostico = '';
+        if (!empty($row->patologia_nombre)) {
+            $diagnostico = $row->patologia_nombre;
+            if (!empty($row->diagnostico_libre)) {
+                $diagnostico .= ' - ' . $row->diagnostico_libre;
+            }
+        } elseif (!empty($row->diagnostico_libre)) {
+            $diagnostico = $row->diagnostico_libre;
+        } else {
+            $diagnostico = 'Sin diagnóstico';
+        }
+
+        // Observación: prioriza cita_observacion, luego asistio
+        $observacion = $row->cita_observacion ?? '';
+        if (empty($observacion)) {
+            $observacion = isset($row->asistio) ? ($row->asistio ? 'Asistió' : 'No asistió') : '';
         }
 
         return [
@@ -47,8 +64,8 @@ class MorbilidadExport implements FromCollection, WithHeadings, WithMapping, Sho
             $fecha,
             $row->especialidad_nombre,
             'Dr. ' . $row->medico_nombre . ' ' . $row->medico_apellido,
-            $row->diagnostico,
-            $row->morbilidad_observaciones,
+            $diagnostico,
+            $observacion,
         ];
     }
 
@@ -56,7 +73,6 @@ class MorbilidadExport implements FromCollection, WithHeadings, WithMapping, Sho
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                // Estilo para encabezados (igual que en MedicosExport)
                 $event->sheet->getStyle('A1:G1')->applyFromArray([
                     'font' => ['bold' => true],
                     'borders' => [
@@ -67,7 +83,6 @@ class MorbilidadExport implements FromCollection, WithHeadings, WithMapping, Sho
                     ]
                 ]);
 
-                // Bordes finos a todas las celdas con datos
                 $highestRow = $event->sheet->getHighestRow();
                 if ($highestRow >= 2) {
                     $dataRange = 'A2:G' . $highestRow;

@@ -45,4 +45,9 @@ class Cita extends Model
     {
         return $this->medico()->especialidad();
     }
+
+    public function diagnostico() {
+        
+        return $this->hasOne(Diagnostico::class);
+    }
 }
