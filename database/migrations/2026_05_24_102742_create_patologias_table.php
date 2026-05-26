@@ -11,7 +11,6 @@ return new class extends Migration {
             $table->foreignId('especialidad_id')->constrained('especialidades')->onDelete('cascade');
             $table->string('nombre');
             $table->text('descripcion')->nullable();
-            $table->boolean('activo')->default(true);
             $table->timestamps();
         });
     }

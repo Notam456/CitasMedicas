@@ -26,7 +26,6 @@ class PatologiaDiagnosticoSeeder extends Seeder
                     'especialidad_id' => $especialidad->id,
                     'nombre' => $this->generarPatologia($especialidad->nombre, $i),
                     'descripcion' => $faker->sentence(10),
-                    'activo' => true,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

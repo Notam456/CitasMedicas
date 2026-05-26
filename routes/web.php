@@ -120,7 +120,7 @@ Route::middleware(['auth', 'can:Morbilidad'])->group(function () {
 Route::get('/api/patologias/por-cita/{cita}', function($citaId) {
     $cita = App\Models\Cita::findOrFail($citaId);
     $especialidadId = $cita->medico->especialidad_id;
-    return App\Models\Patologia::where('especialidad_id', $especialidadId)->where('activo', true)->get();
+    return App\Models\Patologia::where('especialidad_id', $especialidadId)->get();
 })->middleware('auth');
 
 Route::middleware(['auth', 'can:Patologia'])->group(function () {
