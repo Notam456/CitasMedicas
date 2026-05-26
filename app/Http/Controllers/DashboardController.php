@@ -85,8 +85,9 @@ class DashboardController extends Controller
         ->distinct('paciente_id')
         ->count('paciente_id');
     
-    $pacientesDelDia = DB::table('citas')
+        $pacientesDelDia = DB::table('citas')
         ->whereDate('citas.fecha_cita', $hoy)
+        ->distinct('paciente_id')
         ->count('paciente_id');
     
     $procedenciaMasPacientes = $municipios->first()->municipio ?? 'N/A';
