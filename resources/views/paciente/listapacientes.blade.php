@@ -1,5 +1,5 @@
 @extends('layouts.template')
-@section('title', 'Dashboard | SAGECIM')
+@section('title', 'Lista de Pacientes | SAGECIM')
 
 @include('layouts.sidebar')
 
@@ -11,72 +11,21 @@
             <h3 class="mb-0">Lista de Pacientes</h3>
         </div>
 
-        <table class="table table-hover">
+        <table class="table table-hover" id="tablaPacientes">
             <thead>
                 <tr>
                     <th>Nombres</th>
                     <th>Apellidos</th>
-                    <th>Cedula</th>
-                    <th>Direccion</th>
+                    <th>Cédula</th>
+                    <th>Dirección</th>
                     <th class="text-end">Acciones</th>
                 </tr>
             </thead>
-            <tbody>
-                @foreach ($pacientes as $paciente)
-                    <tr>
-                        <td>
-                            <div>
-                                <p class="d-inline-block text-heading text-primary-hover fw-semibold" href="#">
-                                    {{ $paciente->nombre }}
-                                </p>
-                            </div>
-                        </td>
-                        <td>
-                            <div>
-                                <p class="d-inline-block text-heading text-primary-hover fw-semibold">
-                                    {{ $paciente->apellido }}
-                                </p>
-                            </div>
-                        </td>
-                        <td>
-                            <div>
-                                <p class="d-inline-block text-heading text-primary-hover fw-semibold">
-                                    {{ $paciente->cedula }}
-                                </p>
-                            </div>
-                        </td>
-                        <td>
-                            <div>
-                                <p class="d-inline-block text-heading text-primary-hover fw-semibold">
-                                    {{ $paciente->direccion }}
-                                </p>
-                            </div>
-                        </td>
-                        <td class="text-end">
-                            <div class="hstack gap-2 justify-content-end">
-                                <button type="button" data-id="{{ $paciente->id }}"
-                                    class="btn-show btn btn-xs btn-square btn-neutral">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button type="button" data-id="{{ $paciente->id }}"
-                                    class="btn-edit btn btn-xs btn-square btn-neutral">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <a href="{{ route('paciente.destroy', $paciente->id) }}"
-                                    class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover"
-                                    data-confirm-delete="true">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
 
-
-
+    <!-- Modal Editar Paciente (sin cambios estructurales) -->
     <div class="modal fade" id="modalEditarPaciente" tabindex="-1" aria-labelledby="modalEditarPacienteLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -255,271 +204,283 @@
         </div>
     </div>
 
+    @include('layouts.footer')
+@endsection
 
-    <script>
-        document.addEventListener('click', async function(event) {
-            const btn = event.target.closest('.btn-edit');
-            const btnShow = event.target.closest('.btn-show');
+@push('scripts')
+<link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
+<script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
 
-            if (btn) {
-                const pacienteId = btn.getAttribute('data-id');
-                var inputNombre = document.getElementById('editarNombrePaciente');
-                var inputApellido = document.getElementById('editarApellidoPaciente');
-                var inputCedula = document.getElementById('editarCedulaPaciente');
-                var inputFechaNacimiento = document.getElementById('editarFechaNacimientoPaciente');
-                var inputTelefono = document.getElementById('editarTelefonoPaciente');
-                var inputDireccion = document.getElementById('editarDireccionPaciente');
+<script>
+$(document).ready(function() {
+    $('#tablaPacientes').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: '{{ route("paciente.index") }}',
+        columns: [
+            { data: 0, name: 'nombre' },
+            { data: 1, name: 'apellido' },
+            { data: 2, name: 'cedula' },
+            { data: 3, name: 'direccion' },
+            { data: 4, name: 'action', orderable: false, searchable: false, className: 'text-end' }
+        ],
+        language: { url: "{{ asset('vendor/datatables/es-ES.json') }}" },
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todas"]],
+        order: [[0, 'asc']]
+    });
+});
+</script>
 
-               
-                var selectEstado = document.getElementById('select-estado-edit');
-                var selectMunicipio = document.getElementById('select-municipio-edit');
-                var selectParroquia = document.getElementById('select-parroquia-edit');
+<!-- Mantener todo el JavaScript original para modales, edición, visualización y búsqueda de cédula -->
+<script>
+document.addEventListener('click', async function(event) {
+    const btn = event.target.closest('.btn-edit');
+    const btnShow = event.target.closest('.btn-show');
 
-                try {
-                    const modalElement = document.getElementById('modalEditarPaciente');
-                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (!modalInstance) {
-                        modalInstance = new bootstrap.Modal(modalElement);
-                    }
+    if (btn) {
+        const pacienteId = btn.getAttribute('data-id');
+        var inputNombre = document.getElementById('editarNombrePaciente');
+        var inputApellido = document.getElementById('editarApellidoPaciente');
+        var inputCedula = document.getElementById('editarCedulaPaciente');
+        var inputFechaNacimiento = document.getElementById('editarFechaNacimientoPaciente');
+        var inputTelefono = document.getElementById('editarTelefonoPaciente');
+        var inputDireccion = document.getElementById('editarDireccionPaciente');
+       
+        var selectEstado = document.getElementById('select-estado-edit');
+        var selectMunicipio = document.getElementById('select-municipio-edit');
+        var selectParroquia = document.getElementById('select-parroquia-edit');
 
-                   
-                    inputNombre.disabled = true;
-                    inputNombre.value = "Cargando...";
-                    inputApellido.disabled = true;
-                    inputApellido.value = "Cargando...";
-                    inputCedula.disabled = true;
-                    inputCedula.value = "Cargando...";
-                    inputFechaNacimiento.disabled = true;
-                    inputFechaNacimiento.value = "Cargando...";
-                    inputTelefono.disabled = true;
-                    inputTelefono.value = "Cargando...";
-                    inputDireccion.disabled = true;
-                    inputDireccion.value = "Cargando...";
-
-                    
-                    selectEstado.disabled = true;
-                    selectEstado.innerHTML = '<option value="">Cargando Estados...</option>';
-                    selectMunicipio.disabled = true;
-                    selectMunicipio.innerHTML = '<option value="">Cargando...</option>';
-                    selectParroquia.disabled = true;
-                    selectParroquia.innerHTML = '<option value="">Cargando...</option>';
-
-                    modalInstance.show();
-
-                 
-                    try {
-                        const resEstados = await fetch('/api/estados');
-                        if (resEstados.ok) {
-                            const estados = await resEstados.json();
-                            selectEstado.innerHTML = '<option value="">Seleccione Estado</option>';
-                            estados.forEach(e => {
-                                selectEstado.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
-                            });
-                        }
-                    } catch (errEst) {
-                        console.error("Error al obtener el catálogo de estados:", errEst);
-                    }
-
-                    const response = await fetch(`/paciente/${pacienteId}/edit`, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    });
-
-                    if (!response.ok) throw new Error('Error al obtener datos');
-
-                    const data = await response.json();
-
-                    document.getElementById('id').value = data.id;
-                    inputNombre.value = data.nombre;
-                    inputNombre.disabled = false;
-                    inputApellido.disabled = false;
-                    inputApellido.value = data.apellido;
-                    inputCedula.disabled = false;
-                    inputCedula.value = data.cedula;
-                    inputFechaNacimiento.disabled = false;
-                    inputFechaNacimiento.value = data.fecha_nacimiento;
-                    inputTelefono.disabled = false;
-                    inputTelefono.value = data.telefono;
-                    inputDireccion.disabled = false;
-                    inputDireccion.value = data.direccion;
-
-                    
-                    selectEstado.disabled = false;
-
-                    
-                    if (data.parroquia && data.parroquia.municipio) {
-                        const parroquiaId = data.parroquia.id;
-                        const municipioId = data.parroquia.municipio.id;
-                        const estadoId = data.parroquia.municipio.estado_id || data.parroquia.municipio.estado?.id;
-
-                        
-                        selectEstado.value = estadoId;
-
-                        const resMunicipios = await fetch(`/api/municipios/${estadoId}`);
-                        if (resMunicipios.ok) {
-                            const municipios = await resMunicipios.json();
-                            selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
-                            municipios.forEach(m => {
-                                let selected = m.id == municipioId ? 'selected' : '';
-                                selectMunicipio.innerHTML +=
-                                    `<option value="${m.id}" ${selected}>${m.nombre}</option>`;
-                            });
-                            selectMunicipio.disabled = false;
-                        }
-
-                        const resParroquias = await fetch(`/api/parroquias/${municipioId}`);
-                        if (resParroquias.ok) {
-                            const parroquias = await resParroquias.json();
-                            selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
-                            parroquias.forEach(p => {
-                                let selected = p.id == parroquiaId ? 'selected' : '';
-                                selectParroquia.innerHTML +=
-                                    `<option value="${p.id}" ${selected}>${p.nombre}</option>`;
-                            });
-                            selectParroquia.disabled = false;
-                        }
-                    } else {
-                        selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
-                        selectMunicipio.disabled = false;
-                        selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
-                        selectParroquia.disabled = false;
-                    }
-
-                    const form = document.querySelector('#modalEditarPaciente form');
-                    form.action = `/paciente/${data.id}`;
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del paciente', 'error');
-                }
+        try {
+            const modalElement = document.getElementById('modalEditarPaciente');
+            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (!modalInstance) {
+                modalInstance = new bootstrap.Modal(modalElement);
             }
 
-            if (btnShow) {
-                const pacienteId = btnShow.getAttribute('data-id');
-                var inputNombre = document.getElementById('mostrarNombrePaciente');
-                var inputApellido = document.getElementById('mostrarApellidoPaciente');
-                var inputCedula = document.getElementById('mostrarCedulaPaciente');
-                var inputFechaNacimiento = document.getElementById('mostrarFechaNacimientoPaciente');
-                var inputTelefono = document.getElementById('mostrarTelefonoPaciente');
-                var inputDireccion = document.getElementById('mostrarDireccionPaciente');
-                var inputEstado = document.getElementById('mostrarEstadoPaciente');
-                var inputMunicipio = document.getElementById('mostrarMunicipioPaciente');
-                var inputParroquia = document.getElementById('mostrarParroquiaPaciente');
+            inputNombre.disabled = true;
+            inputNombre.value = "Cargando...";
+            inputApellido.disabled = true;
+            inputApellido.value = "Cargando...";
+            inputCedula.disabled = true;
+            inputCedula.value = "Cargando...";
+            inputFechaNacimiento.disabled = true;
+            inputFechaNacimiento.value = "Cargando...";
+            inputTelefono.disabled = true;
+            inputTelefono.value = "Cargando...";
+            inputDireccion.disabled = true;
+            inputDireccion.value = "Cargando...";
 
-                try {
-                    const modalElement = document.getElementById('modalShowPaciente');
-                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (!modalInstance) {
-                        modalInstance = new bootstrap.Modal(modalElement);
-                    }
-
-                    inputNombre.innerHTML = "Cargando...";
-                    inputApellido.innerHTML = "Cargando...";
-                    inputCedula.innerHTML = "Cargando...";
-                    inputFechaNacimiento.innerHTML = "Cargando...";
-                    inputTelefono.innerHTML = "Cargando...";
-                    inputDireccion.innerHTML = "Cargando...";
-                    inputEstado.innerHTML = "Cargando...";
-                    inputMunicipio.innerHTML = "Cargando...";
-                    inputParroquia.innerHTML = "Cargando...";
-
-                    modalInstance.show();
-                    const response = await fetch(`/paciente/${pacienteId}`, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    });
-
-                    if (!response.ok) throw new Error('Error al obtener datos');
-
-                    const data = await response.json();
-
-                    inputNombre.innerHTML = data.nombre;
-                    inputApellido.innerHTML = data.apellido;
-                    inputCedula.innerHTML = data.cedula;
-                    inputFechaNacimiento.innerHTML = data.fecha_nacimiento;
-                    inputTelefono.innerHTML = data.telefono;
-                    inputDireccion.innerHTML = data.direccion;
-
-                    inputParroquia.innerHTML = data.parroquia ? data.parroquia.nombre : 'N/A';
-                    inputMunicipio.innerHTML = data.parroquia?.municipio ? data.parroquia.municipio.nombre :
-                        'N/A';
-                    inputEstado.innerHTML = data.parroquia?.municipio?.estado ? data.parroquia.municipio.estado
-                        .nombre : 'N/A';
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del paciente', 'error');
-                }
-            }
-        });
-
-        document.getElementById('select-estado-edit').addEventListener('change', function() {
-            let estadoId = this.value;
-            let selectMunicipio = document.getElementById('select-municipio-edit');
-            let selectParroquia = document.getElementById('select-parroquia-edit');
-
+            selectEstado.disabled = true;
+            selectEstado.innerHTML = '<option value="">Cargando Estados...</option>';
+            selectMunicipio.disabled = true;
             selectMunicipio.innerHTML = '<option value="">Cargando...</option>';
-            selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
-
-            if (estadoId) {
-                fetch(`/api/municipios/${estadoId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
-                        data.forEach(m => {
-                            selectMunicipio.innerHTML += `<option value="${m.id}">${m.nombre}</option>`;
-                        });
-                    })
-                    .catch(err => console.error(err));
-            }
-        });
-
-        document.getElementById('select-municipio-edit').addEventListener('change', function() {
-            let municipioId = this.value;
-            let selectParroquia = document.getElementById('select-parroquia-edit');
-
+            selectParroquia.disabled = true;
             selectParroquia.innerHTML = '<option value="">Cargando...</option>';
 
-            if (municipioId) {
-                fetch(`/api/parroquias/${municipioId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
-                        data.forEach(p => {
-                            selectParroquia.innerHTML += `<option value="${p.id}">${p.nombre}</option>`;
-                        });
-                    })
-                    .catch(err => console.error(err));
+            modalInstance.show();
+
+            try {
+                const resEstados = await fetch('/api/estados');
+                if (resEstados.ok) {
+                    const estados = await resEstados.json();
+                    selectEstado.innerHTML = '<option value="">Seleccione Estado</option>';
+                    estados.forEach(e => {
+                        selectEstado.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
+                    });
+                }
+            } catch (errEst) {
+                console.error("Error al obtener el catálogo de estados:", errEst);
             }
-        });
-    </script>
 
-    @if ($errors->any())
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                let errorMessages = '';
-
-                @foreach ($errors->all() as $error)
-                    errorMessages += '• {{ $error }}\n';
-                @endforeach
-
-                Swal.fire({
-                    icon: 'error',
-                    title: '¡Ups! Algo salió mal en tu accion intentalo de nuevo',
-                    text: errorMessages,
-                    confirmButtonColor: '#3085d6',
-                    confirmButtonText: 'Entendido'
-                });
+            const response = await fetch(`/paciente/${pacienteId}/edit`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
             });
-        </script>
-    @endif
 
-    @include('layouts.footer')
+            if (!response.ok) throw new Error('Error al obtener datos');
 
-@endsection
+            const data = await response.json();
+
+            document.getElementById('id').value = data.id;
+            inputNombre.value = data.nombre;
+            inputNombre.disabled = false;
+            inputApellido.disabled = false;
+            inputApellido.value = data.apellido;
+            inputCedula.disabled = false;
+            inputCedula.value = data.cedula;
+            inputFechaNacimiento.disabled = false;
+            inputFechaNacimiento.value = data.fecha_nacimiento;
+            inputTelefono.disabled = false;
+            inputTelefono.value = data.telefono;
+            inputDireccion.disabled = false;
+            inputDireccion.value = data.direccion;
+
+            selectEstado.disabled = false;
+
+            if (data.parroquia && data.parroquia.municipio) {
+                const parroquiaId = data.parroquia.id;
+                const municipioId = data.parroquia.municipio.id;
+                const estadoId = data.parroquia.municipio.estado_id || data.parroquia.municipio.estado?.id;
+
+                selectEstado.value = estadoId;
+
+                const resMunicipios = await fetch(`/api/municipios/${estadoId}`);
+                if (resMunicipios.ok) {
+                    const municipios = await resMunicipios.json();
+                    selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
+                    municipios.forEach(m => {
+                        let selected = m.id == municipioId ? 'selected' : '';
+                        selectMunicipio.innerHTML += `<option value="${m.id}" ${selected}>${m.nombre}</option>`;
+                    });
+                    selectMunicipio.disabled = false;
+                }
+
+                const resParroquias = await fetch(`/api/parroquias/${municipioId}`);
+                if (resParroquias.ok) {
+                    const parroquias = await resParroquias.json();
+                    selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+                    parroquias.forEach(p => {
+                        let selected = p.id == parroquiaId ? 'selected' : '';
+                        selectParroquia.innerHTML += `<option value="${p.id}" ${selected}>${p.nombre}</option>`;
+                    });
+                    selectParroquia.disabled = false;
+                }
+            } else {
+                selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
+                selectMunicipio.disabled = false;
+                selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+                selectParroquia.disabled = false;
+            }
+
+            const form = document.querySelector('#modalEditarPaciente form');
+            form.action = `/paciente/${data.id}`;
+
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudieron cargar los datos del paciente', 'error');
+        }
+    }
+
+    if (btnShow) {
+        const pacienteId = btnShow.getAttribute('data-id');
+        var inputNombre = document.getElementById('mostrarNombrePaciente');
+        var inputApellido = document.getElementById('mostrarApellidoPaciente');
+        var inputCedula = document.getElementById('mostrarCedulaPaciente');
+        var inputFechaNacimiento = document.getElementById('mostrarFechaNacimientoPaciente');
+        var inputTelefono = document.getElementById('mostrarTelefonoPaciente');
+        var inputDireccion = document.getElementById('mostrarDireccionPaciente');
+        var inputEstado = document.getElementById('mostrarEstadoPaciente');
+        var inputMunicipio = document.getElementById('mostrarMunicipioPaciente');
+        var inputParroquia = document.getElementById('mostrarParroquiaPaciente');
+
+        try {
+            const modalElement = document.getElementById('modalShowPaciente');
+            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (!modalInstance) {
+                modalInstance = new bootstrap.Modal(modalElement);
+            }
+
+            inputNombre.innerHTML = "Cargando...";
+            inputApellido.innerHTML = "Cargando...";
+            inputCedula.innerHTML = "Cargando...";
+            inputFechaNacimiento.innerHTML = "Cargando...";
+            inputTelefono.innerHTML = "Cargando...";
+            inputDireccion.innerHTML = "Cargando...";
+            inputEstado.innerHTML = "Cargando...";
+            inputMunicipio.innerHTML = "Cargando...";
+            inputParroquia.innerHTML = "Cargando...";
+
+            modalInstance.show();
+            const response = await fetch(`/paciente/${pacienteId}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al obtener datos');
+
+            const data = await response.json();
+
+            inputNombre.innerHTML = data.nombre;
+            inputApellido.innerHTML = data.apellido;
+            inputCedula.innerHTML = data.cedula;
+            inputFechaNacimiento.innerHTML = data.fecha_nacimiento;
+            inputTelefono.innerHTML = data.telefono;
+            inputDireccion.innerHTML = data.direccion;
+
+            inputParroquia.innerHTML = data.parroquia ? data.parroquia.nombre : 'N/A';
+            inputMunicipio.innerHTML = data.parroquia?.municipio ? data.parroquia.municipio.nombre : 'N/A';
+            inputEstado.innerHTML = data.parroquia?.municipio?.estado ? data.parroquia.municipio.estado.nombre : 'N/A';
+
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudieron cargar los datos del paciente', 'error');
+        }
+    }
+});
+
+document.getElementById('select-estado-edit').addEventListener('change', function() {
+    let estadoId = this.value;
+    let selectMunicipio = document.getElementById('select-municipio-edit');
+    let selectParroquia = document.getElementById('select-parroquia-edit');
+
+    selectMunicipio.innerHTML = '<option value="">Cargando...</option>';
+    selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+
+    if (estadoId) {
+        fetch(`/api/municipios/${estadoId}`)
+            .then(res => res.json())
+            .then(data => {
+                selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
+                data.forEach(m => {
+                    selectMunicipio.innerHTML += `<option value="${m.id}">${m.nombre}</option>`;
+                });
+            })
+            .catch(err => console.error(err));
+    }
+});
+
+document.getElementById('select-municipio-edit').addEventListener('change', function() {
+    let municipioId = this.value;
+    let selectParroquia = document.getElementById('select-parroquia-edit');
+
+    selectParroquia.innerHTML = '<option value="">Cargando...</option>';
+
+    if (municipioId) {
+        fetch(`/api/parroquias/${municipioId}`)
+            .then(res => res.json())
+            .then(data => {
+                selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+                data.forEach(p => {
+                    selectParroquia.innerHTML += `<option value="${p.id}">${p.nombre}</option>`;
+                });
+            })
+            .catch(err => console.error(err));
+    }
+});
+</script>
+
+@if ($errors->any())
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let errorMessages = '';
+        @foreach ($errors->all() as $error)
+            errorMessages += '• {{ $error }}\n';
+        @endforeach
+        Swal.fire({
+            icon: 'error',
+            title: '¡Ups! Algo salió mal en tu acción, inténtalo de nuevo',
+            text: errorMessages,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Entendido'
+        });
+    });
+</script>
+@endif
+@endpush

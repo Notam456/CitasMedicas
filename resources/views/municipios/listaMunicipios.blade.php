@@ -14,39 +14,16 @@
             </button>
         </div>
 
-        <table class="table table-hover">
+        <table class="table table-hover" id="tablaMunicipios">
             <thead>
                 <tr>
                     <th>Nombre</th>
                     <th>Estado</th>
+                    <th>Distrito</th>
                     <th class="text-end">Acciones</th>
                 </tr>
             </thead>
-            <tbody>
-                @foreach ($municipios as $municipio)
-                    <tr>
-                        <td>{{ $municipio->nombre }}</td>
-                        <td>{{ $municipio->estado->nombre ?? 'N/A' }}</td>
-                        <td class="text-end">
-                            <div class="hstack gap-2 justify-content-end">
-                                <button type="button" data-id="{{ $municipio->id }}"
-                                    class=" btn-show btn btn-xs btn-square btn-neutral">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button type="button" data-id="{{ $municipio->id }}"
-                                    class=" btn-edit btn btn-xs btn-square btn-neutral">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <a href="{{ route('municipios.destroy', $municipio->id) }}"
-                                    class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover"
-                                    data-confirm-delete="true">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
 
@@ -93,7 +70,9 @@
                                 @endforeach
                             </select>
                             <label>Distrito (opcional)</label>
-                            @error('distrito_id') <small class="text-danger">{{ $message }}</small> @enderror
+                            @error('distrito_id')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -186,118 +165,136 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('click', async function(event) {
-            const btn = event.target.closest('.btn-edit');
-            const btnShow = event.target.closest('.btn-show');
-
-            if (btn) {
-                const municipioId = btn.getAttribute('data-id');
-                const inputNombre = document.getElementById('editarNombreMunicipio');
-                const inputEstado = document.getElementById('editarEstadoMunicipio');
-                const selectDistrito = document.getElementById('editarDistritoMunicipio');
-
-                try {
-                    const modalElement = document.getElementById('modalEditarMunicipio');
-                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (!modalInstance) {
-                        modalInstance = new bootstrap.Modal(modalElement);
-                    }
-                    inputNombre.disabled = true;
-                    inputNombre.value = "Cargando...";
-                    inputEstado.disabled = true;
-                    if (selectDistrito) selectDistrito.disabled = true;
-
-                    modalInstance.show();
-                    const response = await fetch(`/municipios/${municipioId}/edit`, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    });
-
-                    if (!response.ok) throw new Error('Error al obtener datos');
-
-                    const data = await response.json();
-
-                    document.getElementById('id').value = data.id;
-                    inputNombre.value = data.nombre;
-                    inputNombre.disabled = false;
-                    inputEstado.value = data.estado_id;
-                    inputEstado.disabled = false;
-                    if (selectDistrito) {
-                        selectDistrito.value = data.distrito_id || '';
-                        selectDistrito.disabled = false;
-                    }
-
-                    const form = document.querySelector('#modalEditarMunicipio form');
-                    form.action = `/municipios/${data.id}`;
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del municipio', 'error');
-                }
-            }
-
-            if (btnShow) {
-                const municipioId = btnShow.getAttribute('data-id');
-                const spanNombre = document.getElementById('mostrarMunicipioNombre');
-                const spanEstado = document.getElementById('mostrarMunicipioEstado');
-                const spanDistrito = document.getElementById('mostrarMunicipioDistrito');
-
-                try {
-                    const modalElement = document.getElementById('modalShowMunicipio');
-                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (!modalInstance) {
-                        modalInstance = new bootstrap.Modal(modalElement);
-                    }
-
-                    spanNombre.innerHTML = "Cargando...";
-                    spanEstado.innerHTML = "Cargando...";
-                    spanDistrito.innerHTML = "Cargando...";
-
-                    modalInstance.show();
-                    const response = await fetch(`/municipios/${municipioId}/show`, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    });
-
-                    if (!response.ok) throw new Error('Error al obtener datos');
-
-                    const data = await response.json();
-
-                    spanNombre.innerHTML = data.nombre;
-                    spanEstado.innerHTML = data.estado;
-                    spanDistrito.innerHTML = data.distrito || 'No asignado';
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del municipio', 'error');
-                }
-            }
-        });
-    </script>
-
-    @if ($errors->any())
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                let errorMessages = '';
-                @foreach ($errors->all() as $error)
-                    errorMessages += '• {{ $error }}\n';
-                @endforeach
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: errorMessages,
-                    confirmButtonColor: '#3085d6'
-                });
-            });
-        </script>
-    @endif
-
     @include('layouts.footer')
 @endsection
+
+@push('scripts')
+<link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
+<script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
+
+<script>
+$(document).ready(function() {
+    $('#tablaMunicipios').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: '{{ route("municipios.index") }}',
+        columns: [
+            { data: 0, name: 'nombre' },
+            { data: 1, name: 'estado' },
+            { data: 2, name: 'distrito' },
+            { data: 3, name: 'action', orderable: false, searchable: false, className: 'text-end' }
+        ],
+        language: { url: "{{ asset('vendor/datatables/es-ES.json') }}" },
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todas"]],
+        order: [[0, 'asc']]
+    });
+});
+
+document.addEventListener('click', async function(event) {
+    const btn = event.target.closest('.btn-edit');
+    const btnShow = event.target.closest('.btn-show');
+
+    if (btn) {
+        const municipioId = btn.getAttribute('data-id');
+        const inputNombre = document.getElementById('editarNombreMunicipio');
+        const inputEstado = document.getElementById('editarEstadoMunicipio');
+        const selectDistrito = document.getElementById('editarDistritoMunicipio');
+
+        try {
+            const modalElement = document.getElementById('modalEditarMunicipio');
+            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (!modalInstance) {
+                modalInstance = new bootstrap.Modal(modalElement);
+            }
+            inputNombre.disabled = true;
+            inputNombre.value = "Cargando...";
+            inputEstado.disabled = true;
+            if (selectDistrito) selectDistrito.disabled = true;
+
+            modalInstance.show();
+            const response = await fetch(`/municipios/${municipioId}/edit`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al obtener datos');
+
+            const data = await response.json();
+
+            document.getElementById('id').value = data.id;
+            inputNombre.value = data.nombre;
+            inputNombre.disabled = false;
+            inputEstado.value = data.estado_id;
+            inputEstado.disabled = false;
+            if (selectDistrito) {
+                selectDistrito.value = data.distrito_id || '';
+                selectDistrito.disabled = false;
+            }
+
+            const form = document.querySelector('#modalEditarMunicipio form');
+            form.action = `/municipios/${data.id}`;
+
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudieron cargar los datos del municipio', 'error');
+        }
+    }
+
+    if (btnShow) {
+        const municipioId = btnShow.getAttribute('data-id');
+        const spanNombre = document.getElementById('mostrarMunicipioNombre');
+        const spanEstado = document.getElementById('mostrarMunicipioEstado');
+        const spanDistrito = document.getElementById('mostrarMunicipioDistrito');
+
+        try {
+            const modalElement = document.getElementById('modalShowMunicipio');
+            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (!modalInstance) {
+                modalInstance = new bootstrap.Modal(modalElement);
+            }
+
+            spanNombre.innerHTML = "Cargando...";
+            spanEstado.innerHTML = "Cargando...";
+            spanDistrito.innerHTML = "Cargando...";
+
+            modalInstance.show();
+            const response = await fetch(`/municipios/${municipioId}/show`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al obtener datos');
+
+            const data = await response.json();
+
+            spanNombre.innerHTML = data.nombre;
+            spanEstado.innerHTML = data.estado;
+            spanDistrito.innerHTML = data.distrito || 'No asignado';
+
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudieron cargar los datos del municipio', 'error');
+        }
+    }
+});
+
+@if ($errors->any())
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let errorMessages = '';
+        @foreach ($errors->all() as $error)
+            errorMessages += '• {{ $error }}\n';
+        @endforeach
+        Swal.fire({ icon: 'error', title: 'Error', text: errorMessages, confirmButtonColor: '#3085d6' });
+    });
+</script>
+@endif
+</script>
+@endpush
