@@ -134,12 +134,11 @@ class DiagnosticoController extends Controller
         $request->validate([
             'patologia_id' => 'nullable|exists:patologias,id',
             'diagnostico_libre' => 'nullable|string',
-            'asistio' => 'boolean',
         ]);
         $diagnostico->update([
             'patologia_id' => $request->patologia_id,
             'diagnostico_libre' => $request->diagnostico_libre,
-            'asistio' => $request->has('asistio'),
+            'asistio' => true,
         ]);
         Alert::success('Diagnóstico actualizado correctamente.');
         return redirect()->route('diagnosticos.index');
@@ -178,7 +177,6 @@ class DiagnosticoController extends Controller
         $request->validate([
             'patologia_id' => 'nullable|exists:patologias,id',
             'diagnostico_libre' => 'nullable|string',
-            'asistio' => 'boolean',
         ]);
 
         if ($cita->diagnostico) {
@@ -190,7 +188,7 @@ class DiagnosticoController extends Controller
             'cita_id' => $cita->id,
             'patologia_id' => $request->patologia_id,
             'diagnostico_libre' => $request->diagnostico_libre,
-            'asistio' => $request->has('asistio'),
+            'asistio' => true, 
             'user_id' => Auth::id(),
         ]);
 

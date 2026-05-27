@@ -86,10 +86,10 @@
                         <label class="form-label">Diagnóstico libre</label>
                         <textarea name="diagnostico_libre" id="diagnostico_libre" class="form-control" rows="3"></textarea>
                     </div>
-                    <div class="form-check">
+                    <!-- <div class="form-check">
                         <input type="checkbox" name="asistio" value="1" class="form-check-input" id="asistio">
                         <label class="form-check-label" for="asistio">Paciente asistió</label>
-                    </div>
+                    </div> -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
