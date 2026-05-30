@@ -47,15 +47,21 @@
             @endcan
 
             @can('Citas')
-            <a href="{{ route('Citas.index') }}" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Citas</a>
+            <div class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-table me-2"></i>Citas</a>
+                <div class="dropdown-menu bg-transparent border-0">
+                    <a href="{{ route('Citas.index') }}" class="nav-item nav-link dropdown-item">Agendar Citas</a>
+                    <a href="{{ route('morbilidad.pendientes') }}" class="nav-item nav-link dropdown-item">Atender Citas</a>
+                    <a href="{{ route('diagnosticos.index') }}" class="nav-item nav-link dropdown-item">Gestion Citas Atendidas</a>
+                    @can('Morbilidad')
+                    <a href="{{ route('morbilidad.index') }}" class="nav-item nav-link dropdown-item">Reporte de Citas</a>
+                    @endcan
+                </div>
+            </div>
             @endcan
 
             @can('Reportes')
             <a href="{{route('reportes.index')}}" class="nav-link nav-item"><i class="far fa-file-alt me-2"></i>Reportes</a>
-            @endcan
-
-            @can('Morbilidad')
-            <a href="{{route('morbilidad.pendientes')}}" class="nav-link nav-item"><i class="fas fa-chart-line"></i>Morbilidad</a>
             @endcan
         </div>
     </nav>

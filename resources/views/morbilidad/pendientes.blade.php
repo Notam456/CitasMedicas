@@ -108,7 +108,7 @@
                                 <select name="patologias[]" class="form-select select-patologia">
                                     <option value="">Seleccione una patología</option>
                                 </select>
-                                <button type="button" class="btn btn-outline-danger btn-remove-patologia" style="display: none;"><i class="bi bi-trash"></i></button>
+                                <button type="button" class="btn btn-outline-danger btn-remove-patologia"><i class="bi bi-trash"></i></button>
                             </div>
                         </div>
                         <button type="button" id="add-patologia" class="btn btn-sm btn-secondary mt-1"><i class="bi bi-plus-circle"></i> Agregar otra patología</button>
@@ -157,8 +157,6 @@ $(document).ready(function() {
             type: 'GET',
             data: function(d) {
                 d.especialidad_id = $('#especialidad_filtro').val();
-                d.fecha_desde = $('#fecha_desde').val();
-                d.fecha_hasta = $('#fecha_hasta').val();
             }
         },
         columns: [
@@ -177,14 +175,39 @@ $(document).ready(function() {
     $('#btnFiltrar').on('click', function() { table.ajax.reload(); });
     $('#btnLimpiar').on('click', function() {
         $('#especialidad_filtro').val('');
-        $('#fecha_desde').val('');
-        $('#fecha_hasta').val('');
         table.ajax.reload();
     });
 
     // Contadores para índices únicos
     let medicamentoCounter = 0;
     let referenciaCounter = 0;
+
+    // === Funciones para patologías ===
+    function populatePatologiaSelects() {
+        $('.select-patologia').each(function() {
+            let $select = $(this);
+            let currentVal = $select.val();
+            $select.empty().append('<option value="">Seleccione una patología</option>');
+            if (window.patologiasList) {
+                $.each(window.patologiasList, function(i, pat) {
+                    $select.append('<option value="'+pat.id+'">'+pat.nombre+'</option>');
+                });
+            }
+            if (currentVal) $select.val(currentVal);
+        });
+    }
+
+    // Agregar nueva patología (clona la primera fila y limpia valores)
+    function addPatologiaRow() {
+        const original = $('.patologia-item:first');
+        const newRow = original.clone();
+        newRow.find('select').val('');
+        newRow.find('.btn-remove-patologia').show();
+        $('#patologias-container').append(newRow);
+        populatePatologiaSelects(); // Asegurar que el nuevo select tenga las opciones
+        // Mostrar el botón de eliminar en la primera fila también (por si estaba oculto)
+        $('.patologia-item .btn-remove-patologia').show();
+    }
 
     // === Funciones para medicamentos ===
     function updateMedicamentoRequired(container) {
@@ -235,7 +258,6 @@ $(document).ready(function() {
                 </div>
             </div>
         `);
-        // Llenar el select de medicamentos si existen opciones
         if (window.medicamentosList) {
             const select = row.find('.select-medicamento');
             select.empty().append('<option value="">Seleccione un medicamento</option>');
@@ -292,13 +314,16 @@ $(document).ready(function() {
                 </div>
             </div>
         `);
-        // Si hay especialidades predefinidas (en el DOM ya están), se conservan.
         bindReferenciaEvents(row);
         updateReferenciaRequired(row);
         return row;
     }
 
     // === Agregar elementos dinámicamente ===
+    $('#add-patologia').on('click', function() {
+        addPatologiaRow();
+    });
+
     $('#add-medicamento').on('click', function() {
         const newRow = createMedicamentoRow();
         $('#medicamentos-container').append(newRow);
@@ -310,6 +335,14 @@ $(document).ready(function() {
     });
 
     // Eliminar elementos
+    $(document).on('click', '.btn-remove-patologia', function() {
+        if ($('.patologia-item').length > 1) {
+            $(this).closest('.patologia-item').remove();
+        } else {
+            Swal.fire('Advertencia', 'Debe haber al menos una patología seleccionable', 'warning');
+        }
+    });
+
     $(document).on('click', '.btn-remove-medicamento', function() {
         if ($('.medicamento-item').length > 1) {
             $(this).closest('.medicamento-item').remove();
@@ -326,14 +359,6 @@ $(document).ready(function() {
         }
     });
 
-    $(document).on('click', '.btn-remove-patologia', function() {
-        if ($('.patologia-item').length > 1) {
-            $(this).closest('.patologia-item').remove();
-        } else {
-            Swal.fire('Advertencia', 'Debe haber al menos una patología seleccionable', 'warning');
-        }
-    });
-
     // === Cargar datos de la cita al abrir modal ===
     $('#tablaPendientes').on('click', '.btn-atender', function() {
         var citaId = $(this).data('id');
@@ -347,13 +372,13 @@ $(document).ready(function() {
         $('#referencias-container').empty();
         $('#patologias-container').empty();
 
-        // Agregar una fila base de patología
+        // Agregar una fila base de patología con botón visible
         $('#patologias-container').append(`
             <div class="input-group mb-2 patologia-item">
                 <select name="patologias[]" class="form-select select-patologia">
                     <option value="">Seleccione una patología</option>
                 </select>
-                <button type="button" class="btn btn-outline-danger btn-remove-patologia" style="display: none;"><i class="bi bi-trash"></i></button>
+                <button type="button" class="btn btn-outline-danger btn-remove-patologia"><i class="bi bi-trash"></i></button>
             </div>
         `);
 
@@ -361,20 +386,13 @@ $(document).ready(function() {
             url: '/diagnosticos/' + citaId + '/edit',
             method: 'GET',
             success: function(data) {
-                // Guardar listas globales para usar en createMedicamentoRow
                 window.medicamentosList = data.medicamentos || [];
                 window.patologiasList = data.patologias_disponibles || [];
 
-                // Llenar selects de patologías
-                $('.select-patologia').each(function() {
-                    let $select = $(this);
-                    $select.empty().append('<option value="">Seleccione una patología</option>');
-                    $.each(window.patologiasList, function(i, pat) {
-                        $select.append('<option value="'+pat.id+'">'+pat.nombre+'</option>');
-                    });
-                });
+                // Poblar selects de patologías
+                populatePatologiaSelects();
 
-                // Cargar patologías existentes
+                // Cargar patologías existentes (si las hay)
                 if (data.cita.patologias && data.cita.patologias.length) {
                     $('#patologias-container').empty();
                     $.each(data.cita.patologias, function(i, pat) {
@@ -386,11 +404,14 @@ $(document).ready(function() {
                                 <button type="button" class="btn btn-outline-danger btn-remove-patologia"><i class="bi bi-trash"></i></button>
                             </div>
                         `);
-                        let $select = $('#patologias-container .patologia-item:last select');
-                        $select.empty().append('<option value="">Seleccione una patología</option>');
-                        $.each(window.patologiasList, function(i, patItem) {
-                            $select.append(`<option value="${patItem.id}" ${patItem.id == pat.id ? 'selected' : ''}>${patItem.nombre}</option>`);
-                        });
+                    });
+                    populatePatologiaSelects();
+                    // Seleccionar los valores correspondientes
+                    $('.patologia-item').each(function(idx) {
+                        let $select = $(this).find('select');
+                        if (data.cita.patologias[idx]) {
+                            $select.val(data.cita.patologias[idx].id);
+                        }
                     });
                 }
 
@@ -441,6 +462,9 @@ $(document).ready(function() {
         $('#formDiagnostico')[0].reset();
         medicamentoCounter = 0;
         referenciaCounter = 0;
+        $('#medicamentos-container').empty();
+        $('#referencias-container').empty();
+        $('#patologias-container').empty();
     });
 });
 </script>
