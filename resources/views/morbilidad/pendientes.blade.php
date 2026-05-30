@@ -34,14 +34,6 @@
                     </div>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label fw-bold small text-uppercase text-muted">Fecha desde</label>
-                    <input type="date" id="fecha_desde" class="form-control">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold small text-uppercase text-muted">Fecha hasta</label>
-                    <input type="date" id="fecha_hasta" class="form-control">
-                </div>
-                <div class="col-md-2">
                     <button type="button" id="btnFiltrar" class="btn btn-primary w-100 shadow-sm">
                         <i class="fas fa-filter me-1"></i> Filtrar
                     </button>
