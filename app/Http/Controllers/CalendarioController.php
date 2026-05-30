@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Calendario;
-use App\Models\Medico;
 use App\Models\Especialidad;
+use App\Models\Medico;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use RealRashid\SweetAlert\Facades\Alert;
 
 class CalendarioController extends Controller
 {
@@ -17,10 +17,19 @@ class CalendarioController extends Controller
         $especialidadId = $request->especialidad_id;
         $medicoId = $request->medico_id;
 
-
         $query = Calendario::whereYear('fecha', $anio)
             ->whereMonth('fecha', $mes)
-            ->with('medico');
+            ->with('medico')
+            
+            ->withCount(['citas as citas_primera_vez_count' => function ($q) {
+                $q->whereIn('estado', ['Agendada', 'Atendida'])
+                    ->where('tipo_paciente', 'primera_vez');
+            }])
+            
+            ->withCount(['citas as citas_sucesivas_count' => function ($q) {
+                $q->whereIn('estado', ['Agendada', 'Atendida'])
+                    ->where('tipo_paciente', 'control');
+            }]);
 
         if ($medicoId) {
             $query->where('medico_id', $medicoId);
@@ -31,23 +40,26 @@ class CalendarioController extends Controller
         }
 
         $disponibilidad = $query->get();
+
         return response()->json($disponibilidad);
     }
 
     public function getMedicos($especialidad_id)
     {
         $medicos = Medico::where('especialidad_id', $especialidad_id)->get();
+
         return response()->json($medicos);
     }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         $especialidades = Especialidad::where('estado', true)->get();
+
         return view('calendario.index', compact('especialidades'));
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -108,7 +120,7 @@ class CalendarioController extends Controller
         $request->validate([
             'medico_id' => 'required',
             'fecha_inicio' => 'required|date',
-            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+            'duracion_rango' => 'required|in:1_week,1_month,3_months,6_months',
             'dias_semana' => 'required|array',
             'hora_inicio' => 'required',
             'hora_fin' => 'required',
@@ -126,24 +138,42 @@ class CalendarioController extends Controller
             'cupos_sucesivos' => 'required|integer|min:0',
         ]);
 
-        $fechaInicio = new \DateTime($request->fecha_inicio);
-        $fechaFin = new \DateTime($request->fecha_fin);
+        $fechaInicio = Carbon::parse($request->fecha_inicio);
+        $fechaFin = $fechaInicio->copy();
+
+        switch ($request->duracion_rango) {
+            case '1_week':
+                $fechaFin->addWeek();
+                break;
+            case '1_month':
+                $fechaFin->addMonth();
+                break;
+            case '3_months':
+                $fechaFin->addMonths(3);
+                break;
+            case '6_months':
+                $fechaFin->addMonths(6);
+                break;
+        }
+
+        $dateTimeInicio = new \DateTime($fechaInicio->toDateString());
+        $dateTimeFin = new \DateTime($fechaFin->toDateString());
         $interval = new \DateInterval('P1D');
-        $period = new \DatePeriod($fechaInicio, $interval, $fechaFin->modify('+1 day'));
+        $period = new \DatePeriod($dateTimeInicio, $interval, $dateTimeFin->modify('+1 day'));
 
         $count = 0;
         $overwritten = 0;
 
         foreach ($period as $date) {
-            $dayOfWeek = $date->format('N'); // 1 (Mon) to 7 (Sun)
-            // Adjust to match whatever format we use in frontend if needed, but 1-7 is standard.
+            $dayOfWeek = $date->format('N');
+
             if (in_array($dayOfWeek, $request->dias_semana)) {
                 $fechaStr = $date->format('Y-m-d');
-                
+
                 $exists = Calendario::where('medico_id', $request->medico_id)
                     ->where('fecha', $fechaStr)
                     ->exists();
-                
+
                 if ($exists) {
                     $overwritten++;
                 }
