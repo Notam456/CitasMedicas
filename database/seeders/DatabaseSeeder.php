@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
             CalendarioSeeder::class,
             UserSeeder::class,
             CitaSeeder::class,
-            MorbilidadSeeder::class,
+            MedicamentoSeeder::class,
             PatologiaDiagnosticoSeeder::class,
         ]);
     }

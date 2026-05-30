@@ -20,7 +20,6 @@ class CitaSeeder extends Seeder
         $tipos_paciente = ['primera_vez', 'control'];
 
         foreach ($calendarios as $calendario) {
-            // Máximo 3 citas por calendario según cupos
             $numCitas = rand(0, min(3, $calendario->cupos_primera_vez));
             for ($i = 0; $i < $numCitas; $i++) {
                 $paciente = $pacientes->random();
@@ -35,11 +34,11 @@ class CitaSeeder extends Seeder
                     'estado' => $estado,
                     'tipo_paciente' => $tipo_paciente,
                     'observacion' => 'Observación de la cita',
+                    'diagnostico_libre' => null,   // inicialmente null
+                    'atendido_por' => null,        // inicialmente null
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-                // Reducir cupos disponibles en el calendario
-                // $calendario->decrement('cupos_disponibles'); LA QUITÉ PORQUE ASÍ NO SE VAN A LLEVAR LOS CUPOS, POR AHORA NO VA A HACER FALTA
             }
         }
     }

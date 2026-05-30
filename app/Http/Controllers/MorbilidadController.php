@@ -58,14 +58,13 @@ class MorbilidadController extends Controller
 
     private function buildBaseQuery(Request $request)
     {
-        
         $query = Cita::query()
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
             ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
             ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
-            ->leftJoin('diagnosticos', 'citas.id', '=', 'diagnosticos.cita_id')
-            ->leftJoin('patologias', 'diagnosticos.patologia_id', '=', 'patologias.id')
+            ->leftJoin('cita_patologias', 'citas.id', '=', 'cita_patologias.cita_id')
+            ->leftJoin('patologias', 'cita_patologias.patologia_id', '=', 'patologias.id')
             ->select(
                 'citas.id',
                 'pacientes.nombre as paciente_nombre',
@@ -76,12 +75,11 @@ class MorbilidadController extends Controller
                 'medicos.nombre as medico_nombre',
                 'medicos.apellido as medico_apellido',
                 'especialidades.nombre as especialidad_nombre',
-                'patologias.nombre as patologia_nombre',
-                'diagnosticos.diagnostico_libre',
-                'diagnosticos.asistio'
+                'citas.diagnostico_libre',
+                'citas.estado'
             )
             ->where('citas.estado', 'Atendida')
-            ->whereNotNull('diagnosticos.id'); // solo citas con diagnóstico
+            ->whereNotNull('citas.diagnostico_libre'); // al menos un diagnóstico libre o patologías
 
         if ($request->filled('especialidad_id')) {
             $query->where('especialidades.id', $request->especialidad_id);
@@ -107,8 +105,7 @@ class MorbilidadController extends Controller
                   ->orWhere('medicos.nombre', 'ILIKE', "%{$search}%")
                   ->orWhere('medicos.apellido', 'ILIKE', "%{$search}%")
                   ->orWhere('especialidades.nombre', 'ILIKE', "%{$search}%")
-                  ->orWhere('patologias.nombre', 'ILIKE', "%{$search}%")
-                  ->orWhere('diagnosticos.diagnostico_libre', 'ILIKE', "%{$search}%");
+                  ->orWhere('citas.diagnostico_libre', 'ILIKE', "%{$search}%");
             });
         }
         $filteredRecords = $query->count();
@@ -120,8 +117,7 @@ class MorbilidadController extends Controller
             2 => 'citas.fecha_cita',
             3 => 'especialidades.nombre',
             4 => 'medicos.nombre',
-            5 => 'patologias.nombre',
-            6 => 'diagnosticos.diagnostico_libre'
+            5 => 'citas.diagnostico_libre'
         ];
         if (isset($columns[$orderColumn])) {
             $query->orderBy($columns[$orderColumn], $orderDir);
@@ -133,17 +129,26 @@ class MorbilidadController extends Controller
         $data = $query->skip($start)->take($length)->get();
         $dataFormatted = [];
         foreach ($data as $row) {
-            $diagnostico = $row->patologia_nombre
-                ? $row->patologia_nombre . ($row->diagnostico_libre ? ' - ' . $row->diagnostico_libre : '')
-                : $row->diagnostico_libre;
-            $observacion = $row->cita_observacion ?: ($row->asistio ? 'Asistió' : 'No asistió');
+            // Obtener patologías asociadas
+            $cita = Cita::find($row->id);
+            $patologiasNombres = $cita->patologias->pluck('nombre')->toArray();
+            $diagnostico = '';
+            if (!empty($patologiasNombres)) {
+                $diagnostico = implode(', ', $patologiasNombres);
+                if ($row->diagnostico_libre) {
+                    $diagnostico .= ' - ' . $row->diagnostico_libre;
+                }
+            } else {
+                $diagnostico = $row->diagnostico_libre ?: 'Sin diagnóstico';
+            }
+            $observacion = $row->cita_observacion ?: 'Asistió';
             $dataFormatted[] = [
                 $row->paciente_nombre . ' ' . $row->paciente_apellido,
                 $row->paciente_cedula,
                 Carbon::parse($row->fecha_cita)->format('d/m/Y'),
                 $row->especialidad_nombre,
                 'Dr. ' . $row->medico_nombre . ' ' . $row->medico_apellido,
-                $diagnostico ?: 'Sin diagnóstico',
+                $diagnostico,
                 $observacion,
             ];
         }
@@ -162,7 +167,6 @@ class MorbilidadController extends Controller
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
             ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
             ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
-            ->leftJoin('diagnosticos', 'citas.id', '=', 'diagnosticos.cita_id')
             ->select(
                 'citas.id',
                 'pacientes.nombre as paciente_nombre',
@@ -174,7 +178,6 @@ class MorbilidadController extends Controller
                 'especialidades.nombre as especialidad_nombre'
             )
             ->where('citas.estado', 'Agendada')
-            ->whereNull('diagnosticos.id')
             ->whereDate('citas.fecha_cita', Carbon::today());
 
         if ($request->filled('especialidad_id')) {
@@ -217,7 +220,7 @@ class MorbilidadController extends Controller
         $data = $query->skip($start)->take($length)->get();
         $dataFormatted = [];
         foreach ($data as $row) {
-            $btnAtender = '<button type="button" data-id="'.$row->id.'" class="btn-atender btn btn-xs btn-square btn-primary"><i class="bi bi-clipboard-plus"></i></button>';
+            $btnAtender = '<button type="button" data-id="'.$row->id.'" class="btn-atender btn btn-xs btn-square btn-primary" data-bs-toggle="modal" data-bs-target="#modalAtender"><i class="bi bi-clipboard-plus"></i></button>';
             $dataFormatted[] = [
                 $row->paciente_nombre . ' ' . $row->paciente_apellido,
                 $row->paciente_cedula,

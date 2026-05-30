@@ -8,7 +8,7 @@ class Cita extends Model
 {
     protected $table = 'citas';
     
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'user_id',
@@ -19,11 +19,18 @@ class Cita extends Model
         'estado',
         'tipo_paciente',
         'observacion',
+        'diagnostico_libre',
+        'atendido_por',
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_user');
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function atendidoPor()
+    {
+        return $this->belongsTo(User::class, 'atendido_por');
     }
 
     public function paciente()
@@ -46,8 +53,26 @@ class Cita extends Model
         return $this->medico()->especialidad();
     }
 
-    public function diagnostico() {
-        
-        return $this->hasOne(Diagnostico::class);
+    // Nuevas relaciones
+    public function patologias()
+    {
+        return $this->belongsToMany(Patologia::class, 'cita_patologias')->withTimestamps();
+    }
+
+    public function referencias()
+    {
+        return $this->hasMany(CitaReferencia::class);
+    }
+
+    public function tratamientos()
+    {
+        return $this->hasMany(CitaTratamiento::class);
+    }
+
+    public function medicamentos()
+    {
+        return $this->belongsToMany(Medicamento::class, 'cita_tratamiento')
+                    ->withPivot('dosis', 'duracion', 'indicaciones')
+                    ->withTimestamps();
     }
 }
