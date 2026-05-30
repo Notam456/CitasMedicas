@@ -6,7 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Especialidad;
 use App\Models\Patologia;
 use App\Models\Cita;
-use App\Models\Diagnostico;
+use App\Models\Medicamento;
 use App\Models\User;
 use Faker\Factory as Faker;
 
@@ -15,11 +15,13 @@ class PatologiaDiagnosticoSeeder extends Seeder
     public function run()
     {
         $faker = Faker::create('es_ES');
-        $userAdmin = User::first(); // asumimos que existe un usuario administrador
+        $userAdmin = User::first();
+        $medicamentos = Medicamento::all();
 
         $especialidades = Especialidad::all();
         $patologiasPorEspecialidad = [];
 
+        // Crear patologías para cada especialidad
         foreach ($especialidades as $especialidad) {
             for ($i = 1; $i <= 2; $i++) {
                 $patologia = Patologia::create([
@@ -33,24 +35,54 @@ class PatologiaDiagnosticoSeeder extends Seeder
             }
         }
 
+        // Obtener citas atendidas
         $citasAtendidas = Cita::where('estado', 'Atendida')->get();
 
         foreach ($citasAtendidas as $cita) {
             $especialidadId = $cita->medico->especialidad_id ?? null;
             if (!$especialidadId) continue;
 
-            $patologiaIds = $patologiasPorEspecialidad[$especialidadId] ?? [];
-            $patologiaId = !empty($patologiaIds) ? $faker->randomElement($patologiaIds) : null;
+            // Diagnóstico libre
+            if ($faker->boolean(60)) {
+                $cita->diagnostico_libre = $faker->sentence(6);
+            }
 
-            Diagnostico::create([
-                'cita_id' => $cita->id,
-                'patologia_id' => $patologiaId,
-                'diagnostico_libre' => $patologiaId ? null : $faker->sentence(6),
-                'asistio' => $faker->boolean(90), 
-                'user_id' => $userAdmin->id ?? 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            // Patologías
+            $patologiaIds = $patologiasPorEspecialidad[$especialidadId] ?? [];
+            if (!empty($patologiaIds)) {
+                $numPatologias = $faker->numberBetween(1, min(3, count($patologiaIds)));
+                $selectedPatologias = (array) $faker->randomElements($patologiaIds, $numPatologias);
+                $cita->patologias()->sync($selectedPatologias);
+            }
+
+            // Medicamentos (dosis y duración numéricas)
+            $numMedicamentos = $faker->numberBetween(0, 2);
+            for ($i = 0; $i < $numMedicamentos; $i++) {
+                $medicamento = $medicamentos->random();
+                $cita->tratamientos()->create([
+                    'medicamento_id' => $medicamento->id,
+                    'dosis' => $faker->randomElement(['250', '500', '750', '1000']),
+                    'duracion' => $faker->randomElement(['5', '7', '10', '14', '30']),
+                    'indicaciones' => $faker->sentence(5),
+                ]);
+            }
+
+            // Referencias
+            $numReferencias = $faker->numberBetween(0, 2);
+            $especialidadesDisponibles = Especialidad::where('id', '!=', $especialidadId)->get();
+            if ($especialidadesDisponibles->count() > 0) {
+                for ($i = 0; $i < $numReferencias; $i++) {
+                    $especialidadRef = $especialidadesDisponibles->random();
+                    $cita->referencias()->create([
+                        'especialidad_id' => $especialidadRef->id,
+                        'observaciones' => $faker->sentence(8),
+                        'fecha_referencia' => $faker->optional()->dateTimeBetween('+1 week', '+1 month'),
+                    ]);
+                }
+            }
+
+            $cita->atendido_por = $userAdmin->id ?? 1;
+            $cita->save();
         }
     }
 
@@ -72,7 +104,6 @@ class PatologiaDiagnosticoSeeder extends Seeder
             }
         }
 
-        // Patologías genéricas
         $genericas = ['Trastorno funcional', 'Síndrome inespecífico', 'Proceso inflamatorio', 'Dolor crónico'];
         return $genericas[($numero - 1) % count($genericas)];
     }

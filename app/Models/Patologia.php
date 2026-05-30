@@ -13,8 +13,9 @@ class Patologia extends Model
         return $this->belongsTo(Especialidad::class);
     }
 
-    public function diagnosticos()
+    // Relación con citas a través de cita_patologias
+    public function citas()
     {
-        return $this->hasMany(Diagnostico::class);
+        return $this->belongsToMany(Cita::class, 'cita_patologias')->withTimestamps();
     }
 }

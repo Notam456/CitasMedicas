@@ -100,6 +100,9 @@ Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'g
 
 // Route::get('/', [DashboardController::class, 'index'])->name('inicio'); // yajure: no me borren este bypass por favor!
 
+Route::get('/api/medicamentos', function() {
+    return App\Models\Medicamento::all();
+})->middleware('auth');
 
 Route::middleware('auth')->group(function () {
     Route::get('/citas/{cita}/atender', [DiagnosticoController::class, 'atender'])->name('citas.atender');

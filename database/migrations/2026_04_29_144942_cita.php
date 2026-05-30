@@ -21,6 +21,9 @@ return new class extends Migration
     $table->string('estado');
     $table->string('tipo_paciente');
     $table->text('observacion')->nullable();
+    $table->text('diagnostico_libre')->nullable();
+    $table->unsignedBigInteger('atendido_por')->nullable()->after('user_id');
+    $table->foreign('atendido_por')->references('id')->on('users')->onDelete('set null');
     $table->timestamps();
     });
     }
