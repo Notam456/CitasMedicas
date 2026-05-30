@@ -10,6 +10,10 @@ class Calendario extends Model
     {
         return $this->belongsTo(Medico::class, 'medico_id');
     }
+    public function citas()
+    {
+        return $this->hasMany(Cita::class, 'calendario_id');
+    }
 
     public $fillable = ['medico_id', 'hora_inicio', 'hora_fin', 'fecha', 'cupos_primera_vez', 'cupos_sucesivos'];
 }

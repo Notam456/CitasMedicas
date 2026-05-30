@@ -26,7 +26,8 @@
                             <label class="form-label text-muted fw-bold small">Especialidad *</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-stethoscope"></i></span>
-                                <select id="select-especialidad-masivo" class="form-select border-secondary-subtle" required>
+                                <select id="select-especialidad-masivo" class="form-select border-secondary-subtle"
+                                    required>
                                     <option value="">Seleccione Especialidad</option>
                                     @foreach ($especialidades as $e)
                                         <option value="{{ $e->id }}">{{ $e->nombre }}</option>
@@ -38,7 +39,8 @@
                             <label class="form-label text-muted fw-bold small">Médico *</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-user-md"></i></span>
-                                <select id="select-medico-masivo" name="medico_id" class="form-select border-secondary-subtle" required>
+                                <select id="select-medico-masivo" name="medico_id"
+                                    class="form-select border-secondary-subtle" required>
                                     <option value="">Seleccione Médico</option>
                                 </select>
                             </div>
@@ -47,13 +49,24 @@
                         <!-- Rango de Fechas -->
                         <div class="col-md-6">
                             <label class="form-label text-muted fw-bold small">Fecha Inicio *</label>
-                            <input type="date" name="fecha_inicio" class="form-control" value="{{ date('Y-m-d') }}" required>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-calendar-day"></i></span>
+                                <input type="date" name="fecha_inicio" class="form-control border-secondary-subtle"
+                                    value="{{ date('Y-m-d') }}" required>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-muted fw-bold small">Fecha Límite *</label>
-                            <input type="date" name="fecha_fin" class="form-control" value="{{ date('Y-m-d', strtotime('+3 months')) }}" required>
+                            <label class="form-label text-muted fw-bold small">Duración de la Disponibilidad *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-history"></i></span>
+                                <select name="duracion_rango" class="form-select border-secondary-subtle" required>
+                                    <option value="1_week">Una Semana (7 días)</option>
+                                    <option value="1_month" selected>Un Mes (30 días)</option>
+                                    <option value="3_months">Trimestral (3 meses)</option>
+                                    <option value="6_months">Semestral (6 meses)</option>
+                                </select>
+                            </div>
                         </div>
-
                         <!-- Días de la Semana -->
                         <div class="col-12">
                             <label class="form-label text-muted fw-bold small d-block">Días de la semana *</label>
@@ -66,13 +79,15 @@
                                         4 => 'Jueves',
                                         5 => 'Viernes',
                                         6 => 'Sábado',
-                                        7 => 'Domingo'
+                                        7 => 'Domingo',
                                     ];
                                 @endphp
-                                @foreach($dias as $value => $label)
+                                @foreach ($dias as $value => $label)
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="checkbox" name="dias_semana[]" value="{{ $value }}" id="dia_{{ $value }}">
-                                        <label class="form-check-label" for="dia_{{ $value }}">{{ $label }}</label>
+                                        <input class="form-check-input" type="checkbox" name="dias_semana[]"
+                                            value="{{ $value }}" id="dia_{{ $value }}">
+                                        <label class="form-check-label"
+                                            for="dia_{{ $value }}">{{ $label }}</label>
                                     </div>
                                 @endforeach
                             </div>
@@ -89,11 +104,13 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label text-muted fw-bold small">Cupos 1ra Vez *</label>
-                            <input type="number" name="cupos_primera_vez" class="form-control" min="0" value="10" required>
+                            <input type="number" name="cupos_primera_vez" class="form-control" min="0"
+                                value="10" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label text-muted fw-bold small">Cupos Sucesivos *</label>
-                            <input type="number" name="cupos_sucesivos" class="form-control" min="0" value="10" required>
+                            <input type="number" name="cupos_sucesivos" class="form-control" min="0" value="10"
+                                required>
                         </div>
 
                         <div class="col-12 mt-4 text-end">
@@ -135,15 +152,19 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="btn-group shadow-sm">
-                                <button class="btn btn-outline-primary" onclick="cambiarMes(-1)"><i class="fas fa-chevron-left"></i></button>
-                                <button class="btn btn-white fw-bold text-capitalize" id="mes-actual" style="min-width: 140px;" disabled></button>
-                                <button class="btn btn-outline-primary" onclick="cambiarMes(1)"><i class="fas fa-chevron-right"></i></button>
+                                <button class="btn btn-outline-primary" onclick="cambiarMes(-1)"><i
+                                        class="fas fa-chevron-left"></i></button>
+                                <button class="btn btn-white fw-bold text-capitalize" id="mes-actual"
+                                    style="min-width: 140px;" disabled></button>
+                                <button class="btn btn-outline-primary" onclick="cambiarMes(1)"><i
+                                        class="fas fa-chevron-right"></i></button>
                             </div>
                         </div>
                     </div>
 
                     <div class="table-responsive rounded shadow-sm border">
-                        <div class="row g-0 bg-white border-bottom text-center fw-bold py-2 text-muted small text-uppercase">
+                        <div
+                            class="row g-0 bg-white border-bottom text-center fw-bold py-2 text-muted small text-uppercase">
                             <div class="col" style="width: 14.28%;">Dom</div>
                             <div class="col" style="width: 14.28%;">Lun</div>
                             <div class="col" style="width: 14.28%;">Mar</div>
@@ -179,7 +200,8 @@
                             <input type="hidden" name="fecha" id="input-fecha">
                             <div class="col-md-6">
                                 <label class="form-label text-muted fw-bold small">Hora Inicio *</label>
-                                <input type="time" name="hora_inicio" id="input-inicio" class="form-control" required>
+                                <input type="time" name="hora_inicio" id="input-inicio" class="form-control"
+                                    required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-muted fw-bold small">Hora Fin *</label>
@@ -187,11 +209,13 @@
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label text-muted fw-bold small">Cupos primera vez *</label>
-                                <input type="number" name="cupos_primera_vez" id="input-cupos-p" class="form-control" required min="0">
+                                <input type="number" name="cupos_primera_vez" id="input-cupos-p" class="form-control"
+                                    required min="0">
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label text-muted fw-bold small">Cupos sucesivos *</label>
-                                <input type="number" name="cupos_sucesivos" id="input-cupos-s" class="form-control" required min="0">
+                                <input type="number" name="cupos_sucesivos" id="input-cupos-s" class="form-control"
+                                    required min="0">
                             </div>
                         </div>
                     </div>
@@ -215,7 +239,7 @@
             // Sincronizar selectores si se desea (opcional)
             const espMasivo = document.getElementById('select-especialidad-masivo');
             const espManual = document.getElementById('select-especialidad');
-            
+
             espMasivo.addEventListener('change', function() {
                 espManual.value = this.value;
                 actualizarMedicos(this.value, 'select-medico-masivo');
@@ -285,11 +309,13 @@
             const ultimoDia = new Date(fechaNavegacion.getFullYear(), fechaNavegacion.getMonth() + 1, 0).getDate();
 
             for (let i = 0; i < primerDia; i++) {
-                grid.innerHTML += `<div class="col p-2 border-end border-bottom bg-light" style="flex: 0 0 14.28%; height: 110px;"></div>`;
+                grid.innerHTML +=
+                    `<div class="col p-2 border-end border-bottom bg-light" style="flex: 0 0 14.28%; height: 110px;"></div>`;
             }
 
             for (let dia = 1; dia <= ultimoDia; dia++) {
-                const fechaStr = `${fechaNavegacion.getFullYear()}-${String(fechaNavegacion.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+                const fechaStr =
+                    `${fechaNavegacion.getFullYear()}-${String(fechaNavegacion.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
                 const ev = eventos.find(e => e.fecha === fechaStr);
 
                 const div = document.createElement('div');
@@ -306,7 +332,8 @@
                             <span class="small fw-bold text-muted">${ev.cupos_primera_vez + ev.cupos_sucesivos} Cupos</span>
                         </div>`;
                 } else {
-                    div.innerHTML += `<div class="mt-3 text-center text-light"><i class="fas fa-plus-circle fa-2x"></i></div>`;
+                    div.innerHTML +=
+                        `<div class="mt-3 text-center text-light"><i class="fas fa-plus-circle fa-2x"></i></div>`;
                 }
 
                 div.onclick = () => abrirConfigurador(fechaStr, ev);
@@ -316,7 +343,8 @@
 
         function abrirConfigurador(fecha, evento) {
             const medId = document.getElementById('select-medico').value;
-            const medNombre = document.getElementById('select-medico').options[document.getElementById('select-medico').selectedIndex].text;
+            const medNombre = document.getElementById('select-medico').options[document.getElementById('select-medico')
+                .selectedIndex].text;
 
             if (!medId) {
                 Swal.fire({
@@ -379,6 +407,7 @@
             background: #f0f7ff !important;
             box-shadow: inset 0 0 0 2px #0d6efd;
         }
+
         .modal-xl {
             max-width: 90%;
         }

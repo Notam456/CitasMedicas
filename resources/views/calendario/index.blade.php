@@ -131,7 +131,8 @@
                 .then(data => {
                     selectMed.innerHTML = '<option value="">Todos los médicos</option>';
                     data.forEach(m => {
-                        selectMed.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
+                        selectMed.innerHTML +=
+                            `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
                     });
 
                     if (data.length === 1) {
@@ -187,7 +188,29 @@
                 const fechaStr =
                     `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
                 const eventosDia = eventos.filter(e => e.fecha === fechaStr);
-                const totalCupos = eventosDia.reduce((sum, e) => sum + e.cupos_primera_vez + e.cupos_sucesivos, 0);
+
+
+                const totalCuposConfigurados = eventosDia.reduce((sum, e) => sum + e.cupos_primera_vez + e.cupos_sucesivos,
+                    0);
+
+                const totalCuposAsignados = eventosDia.reduce((sum, e) => sum + e.citas_primera_vez_count + e
+                    .citas_sucesivas_count, 0);
+
+                const cuposDisponibles = totalCuposConfigurados - totalCuposAsignados;
+
+
+                let porcentajeOcupacion = 0;
+                if (totalCuposConfigurados > 0) {
+                    porcentajeOcupacion = (cuposDisponibles / totalCuposConfigurados) * 100;
+                }
+
+
+                let colorClase = 'text-danger';
+                let bgBarra = 'bg-danger';
+                if (totalCuposConfigurados > 0) {
+                    colorClase = cuposDisponibles > 0 ? 'text-success' : 'text-warning';
+                    bgBarra = cuposDisponibles > 0 ? 'bg-success' : 'bg-warning';
+                }
 
                 const divDia = document.createElement('div');
                 divDia.className = 'col p-2 border-end border-bottom calendar-day bg-white text-dark';
@@ -201,21 +224,22 @@
 
                 divDia.onclick = () => abrirResumen(fechaStr, eventosDia);
 
-                divDia.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-start">
-                        <span class="fw-bold">${dia}</span>
-                        ${totalCupos > 0 ? '<span class="badge rounded-pill bg-success p-1"><i class="fas fa-check"></i></span>' : ''}
-                    </div>
-                    <div class="text-center mt-3">
-                        <div class="small fw-bold ${totalCupos > 0 ? 'text-success' : 'text-danger'}">
-                            ${totalCupos} Cupos
-                        </div>
-                        <div class="progress mt-1" style="height: 4px;">
-                            <div class="progress-bar ${totalCupos > 0 ? 'bg-success' : 'bg-danger'}" style="width: ${totalCupos > 0 ? '100%' : '0%'}"></div>
-                        </div>
-                    </div>
-                `;
                 grid.appendChild(divDia);
+
+                divDia.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="fw-bold">${dia}</span>
+                ${totalCuposConfigurados > 0 ? `<span class="badge rounded-pill ${cuposDisponibles > 0 ? 'bg-success' : 'bg-warning'} p-1"><i class="fas ${cuposDisponibles > 0 ? 'fa-check' : 'fa-exclamation'}"></i></span>` : ''}
+            </div>
+            <div class="text-center mt-2">
+                <div class="small fw-bold ${colorClase}">
+                    ${totalCuposConfigurados > 0 ? `${cuposDisponibles} disp. de ${totalCuposConfigurados}` : '0 Cupos'}
+                </div>
+                <div class="progress mt-1" style="height: 6px; background-color: #e9ecef;">
+                    <div class="progress-bar ${bgBarra}" style="width: ${totalCuposConfigurados > 0 ? porcentajeOcupacion : 0}%"></div>
+                </div>
+            </div>
+        `;
             }
         }
 
@@ -232,25 +256,49 @@
 
             if (eventos.length === 0) {
                 lista.innerHTML = `
-                    <div class="     alert-warning border-0 shadow-sm d-flex align-items-center">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        No hay médicos programados para este día.
-                    </div>`;
+            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                No hay médicos programados para este día.
+            </div>`;
             } else {
                 eventos.forEach(ev => {
+
+                    const totalMed = ev.cupos_primera_vez + ev.cupos_sucesivos;
+                    const asignadosMed = ev.citas_primera_vez_count + ev.citas_sucesivas_count;
+                    const dispMed = totalMed - asignadosMed;
+
                     lista.innerHTML += `
-                        <div class="card mb-3 border-start border-4 border-primary shadow-sm">
-                            <div class="card-body py-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0 fw-bold text-primary">Dr. ${ev.medico.nombre} ${ev.medico.apellido}</h6>
-                                    <span class="badge bg-primary rounded-pill">${ev.cupos_primera_vez} cupos de primera vez</span>
-                                    <span class="badge bg-primary rounded-pill">${ev.cupos_sucesivos} cupos sucesivos</span>
-                                </div>
-                                <div class="small text-muted mt-1">
-                                    <i class="far fa-clock me-1 text-secondary"></i> Jornada: ${ev.hora_inicio.substring(0,5)} - ${ev.hora_fin.substring(0,5)}
+                <div class="card mb-3 border-start border-4 ${dispMed > 0 ? 'border-primary' : 'border-warning'} shadow-sm">
+                    <div class="card-body py-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0 fw-bold text-primary">Dr. ${ev.medico.nombre} ${ev.medico.apellido}</h6>
+                            <span class="badge ${dispMed > 0 ? 'bg-info' : 'bg-warning'} text-dark fw-bold">
+                                ${dispMed} / ${totalMed} Disponibles
+                            </span>
+                        </div>
+                        
+                        <div class="row g-2 text-center my-2">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded border">
+                                    <small class="text-muted d-block">Primera Vez</small>
+                                    <span class="fw-bold text-dark">${ev.citas_primera_vez_count}</span> 
+                                    <span class="text-muted">/ ${ev.cupos_primera_vez}</span>
                                 </div>
                             </div>
-                        </div>`;
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded border">
+                                    <small class="text-muted d-block">Control (Sucesivos)</small>
+                                    <span class="fw-bold text-dark">${ev.citas_sucesivas_count}</span> 
+                                    <span class="text-muted">/ ${ev.cupos_sucesivos}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="small text-muted mt-2 pt-2 border-top">
+                            <i class="far fa-clock me-1 text-secondary"></i> Jornada: ${ev.hora_inicio.substring(0,5)} - ${ev.hora_fin.substring(0,5)}
+                        </div>
+                    </div>
+                </div>`;
                 });
             }
 
