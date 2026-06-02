@@ -148,13 +148,13 @@
             <div class="row g-3">
                 <div class="col-md-4 text-center">
                     <div class="btn-group shadow-sm" role="group">
-                        <button class="btn btn-outline-secondary px-3" onclick="cambiarMes(-1)">
+                        <button type="button" class="btn btn-outline-secondary px-3" onclick="cambiarMes(-1)">
                             <i class="fas fa-chevron-left"></i>
                         </button>
                         <button class="btn btn-light fw-bold text-capitalize" style="min-width: 150px;" id="mes-actual"
                             disabled>
                         </button>
-                        <button class="btn btn-outline-secondary px-3" onclick="cambiarMes(1)">
+                        <button type="button" class="btn btn-outline-secondary px-3" onclick="cambiarMes(1)">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
