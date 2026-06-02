@@ -181,7 +181,10 @@
             <div class="row g-3">
                 <div class="col-md-4 fw-bold small text-uppercase text-muted">
                     <label class="form-label">Fecha de Cita</label>
-                    <input type="date" name="fecha_cita" id="input_fecha_cita" class="form-control" required readonly>
+                    <input type="date" name="fecha_cita" id="input_fecha_cita" class="form-control @error('fecha_cita') is-invalid @enderror" required readonly>
+                    @error('fecha_cita')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
                     <input type="hidden" name="calendario_id" id="input_calendario_id" required>
                 </div>
                 <div class="col-md-8 fw-bold small text-uppercase text-muted">
@@ -418,11 +421,15 @@
             grid.innerHTML += `<div class="col border-end border-bottom bg-light" style="flex: 0 0 14.28%; height: 90px;"></div>`;
         }
 
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
         // Renderizar los días
         for (let dia = 1; dia <= ultimoDia; dia++) {
             const mesStr = String(fechaNavegacion.getMonth() + 1).padStart(2, '0');
             const diaStr = String(dia).padStart(2, '0');
             const fechaStr = `${fechaNavegacion.getFullYear()}-${mesStr}-${diaStr}`;
+            const fechaCelda = new Date(fechaNavegacion.getFullYear(), fechaNavegacion.getMonth(), dia);
             
             // Buscar si hay evento planificado para esta fecha
             const ev = eventos.find(e => e.fecha === fechaStr);
@@ -434,7 +441,7 @@
             
             div.innerHTML = `<span class="fw-bold d-block text-start">${dia}</span>`;
 
-            if (ev) {
+            if (ev && fechaCelda >= hoy) {
                 if (ev.disponibles > 0) {
                     div.style.cursor = 'pointer';
                     div.classList.add('bg-white');

@@ -178,6 +178,7 @@ class CitaController extends Controller
             $calendarios = Calendario::where('medico_id', $medico_id)
                 ->whereYear('fecha', $anio)
                 ->whereMonth('fecha', $mes)
+                ->whereDate('fecha', '>=', now()->toDateString())
                 ->get();
 
             // 2. Mapear y calcular cupos libres
@@ -233,7 +234,7 @@ class CitaController extends Controller
             'direccion' => 'nullable|string|max:255',
             // Datos de la cita
             'calendario_id' => 'required|numeric',
-            'fecha_cita' => 'required|date',
+            'fecha_cita' => 'required|date|after_or_equal:today',
             'observacion' => 'nullable|string',
             'especialidad_id' => 'required|exists:especialidades,id',
             'tipo_paciente' => 'required|string|in:primera_vez,control',
