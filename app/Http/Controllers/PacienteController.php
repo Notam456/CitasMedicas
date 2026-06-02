@@ -39,6 +39,7 @@ class PacienteController extends Controller
                 $q->where('nombre', 'ILIKE', "%{$search}%")
                   ->orWhere('apellido', 'ILIKE', "%{$search}%")
                   ->orWhere('cedula', 'ILIKE', "%{$search}%")
+                  ->orWhere('rif', 'ILIKE', "%{$search}%")
                   ->orWhere('direccion', 'ILIKE', "%{$search}%");
             });
         }
@@ -47,7 +48,7 @@ class PacienteController extends Controller
 
         $orderColumn = $request->get('order')[0]['column'] ?? 0;
         $orderDir = $request->get('order')[0]['dir'] ?? 'asc';
-        $columns = ['nombre', 'apellido', 'cedula', 'direccion'];
+        $columns = ['nombre', 'apellido', 'cedula', 'rif', 'direccion'];
         if (isset($columns[$orderColumn])) {
             $query->orderBy($columns[$orderColumn], $orderDir);
         } else {
@@ -69,6 +70,7 @@ class PacienteController extends Controller
                 $row->nombre,
                 $row->apellido,
                 $row->cedula,
+                $row->rif ?? '',
                 $row->direccion ?? '',
                 $acciones,
             ];
@@ -110,6 +112,7 @@ class PacienteController extends Controller
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
             'cedula' => 'required|string|min:8|max:20|unique:pacientes,cedula',
+            'rif' => 'required|string|max:20',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'required|string|min:7|max:15',
             'parroquia_id' => 'required|exists:parroquias,id',
@@ -117,6 +120,7 @@ class PacienteController extends Controller
         ]);
 
         Paciente::create([
+            'rif' => $request->rif,
             'nombre' => $request->nombre,
             'apellido' => $request->apellido,
             'cedula' => $request->cedula,
@@ -158,6 +162,7 @@ class PacienteController extends Controller
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
             'cedula' => 'required|string|min:8|max:20|unique:pacientes,cedula,' . $id,
+            'rif' => 'required|string|max:20',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'required|string|min:7|max:15',
             'parroquia_id' => 'required|exists:parroquias,id',
@@ -166,6 +171,7 @@ class PacienteController extends Controller
 
         $paciente = Paciente::findOrFail($id);
         $paciente->update([
+            'rif' => $request->rif,
             'nombre' => $request->nombre,
             'apellido' => $request->apellido,
             'cedula' => $request->cedula,

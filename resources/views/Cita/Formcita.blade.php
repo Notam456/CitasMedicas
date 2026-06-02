@@ -211,6 +211,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.encontrado) {
+                    document.getElementById('input_rif').value = data.datos.rif || '';
                     document.getElementById('input_nombre').value = data.datos.nombre;
                     document.getElementById('input_apellido').value = data.datos.apellido;
                     document.getElementById('input_fecha').value = data.datos.fecha_nacimiento;
@@ -243,11 +244,12 @@
                         document.getElementById('hidden_parroquia').value = p.id;
                     }
                     
-                    document.querySelectorAll('#input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion').forEach(el => el.readOnly = true);
+                    document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion').forEach(el => el.readOnly = true);
                     
                     mensaje.innerHTML = 'Paciente encontrado. Datos autocompletados.';
                     mensaje.className = 'form-text mt-1 text-success fw-bold';
                 } else {
+                    document.getElementById('input_rif').value = '';
                     document.getElementById('input_nombre').value = '';
                     document.getElementById('input_apellido').value = '';
                     document.getElementById('input_fecha').value = '';
@@ -264,7 +266,7 @@
                     let hiddenP = document.getElementById('hidden_parroquia');
                     if(hiddenP) hiddenP.remove();
                     
-                    document.querySelectorAll('#input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion').forEach(el => el.readOnly = false);
+                    document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion').forEach(el => el.readOnly = false);
                     
                     mensaje.innerHTML = 'Paciente nuevo. Por favor llene todos los campos.';
                     mensaje.className = 'form-text mt-1 text-primary fw-bold';

@@ -21,12 +21,12 @@ class CitaController extends Controller
      */
     public function index(Request $request)
     {
-      
+
         if ($request->ajax() && $request->has('draw')) {
             return $this->dataTableResponse($request);
         }
 
-       
+
         $title = '¿Estas seguro de que deseas eliminar esta cita?';
         $texrt = 'Esta acción no se puede deshacer.';
         confirmDelete($title, $texrt);
@@ -34,7 +34,7 @@ class CitaController extends Controller
         return view('Cita.index');
     }
 
-    
+
     private function buildBaseQuery(Request $request)
     {
         return Cita::query()
@@ -57,15 +57,15 @@ class CitaController extends Controller
             );
     }
 
-    
+
     private function dataTableResponse(Request $request)
     {
         $query = $this->buildBaseQuery($request);
 
-       
+
         $totalRecords = $query->count();
 
-      
+
         if ($search = $request->get('search')['value']) {
             $query->where(function ($q) use ($search) {
                 $q->where('pacientes.nombre', 'ILIKE', "%{$search}%")
@@ -79,10 +79,10 @@ class CitaController extends Controller
             });
         }
 
-      
+
         $filteredRecords = $query->count();
 
-      
+
         $orderColumn = $request->get('order')[0]['column'] ?? 4;
         $orderDir = $request->get('order')[0]['dir'] ?? 'desc';
 
@@ -103,12 +103,12 @@ class CitaController extends Controller
             $query->orderBy('citas.fecha_cita', 'desc');
         }
 
-       
+
         $start = $request->get('start', 0);
         $length = $request->get('length', 10);
         $data = $query->skip($start)->take($length)->get();
 
-       
+
         $dataFormatted = [];
         foreach ($data as $row) {
 
@@ -117,7 +117,7 @@ class CitaController extends Controller
                 ? '<span class="badge bg-info">Primera vez</span>'
                 : '<span class="badge bg-warning">Control</span>';
 
-        
+
             if ($row->estado == 'Agendada') {
                 $estadoBadge = '<span class="badge bg-success">Agendada</span>';
             } elseif ($row->estado == 'Atendida') {
@@ -126,7 +126,7 @@ class CitaController extends Controller
                 $estadoBadge = '<span class="badge bg-secondary">'.e($row->estado).'</span>';
             }
 
-           
+
             $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
             $btnDelete = '<a href="'.route('Citas.destroy', $row->id).'" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
             $accionesHtml = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnDelete.'</div>';
@@ -224,6 +224,7 @@ class CitaController extends Controller
         $request->validate([
             // Datos del paciente
             'cedula' => 'required|string|min:8|max:20',
+            'rif' => 'required|string|max:20',
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
             'fecha_nacimiento' => 'required|date',
@@ -244,6 +245,7 @@ class CitaController extends Controller
             $paciente = Paciente::firstOrCreate(
                 ['cedula' => $request->cedula],
                 [
+                    'rif' => $request->rif,
                     'nombre' => $request->nombre,
                     'apellido' => $request->apellido,
                     'fecha_nacimiento' => $request->fecha_nacimiento,
