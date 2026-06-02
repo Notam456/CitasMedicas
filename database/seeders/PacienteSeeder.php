@@ -19,7 +19,7 @@ class PacienteSeeder extends Seeder
                 'parroquia_id' => $faker->randomElement($parroquias),
                 'nombre' => $faker->firstName(),
                 'apellido' => $faker->lastName(),
-                'cedula' => (string) rand(5000000, 28000000),
+                'cedula' => (rand(0, 1) ? 'V-' : 'E-') . rand(5000000, 28000000),
                 'rif' => 'J-' . rand(10000000, 99999999) . '-' . rand(0, 9),
                 'fecha_nacimiento' => $faker->dateTimeBetween('-80 years', '-18 years')->format('Y-m-d'),
                 'telefono' => '0412' . rand(100000, 999999),

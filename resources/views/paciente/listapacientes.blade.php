@@ -41,26 +41,29 @@
                     <div class="modal-body">
                         <input type="hidden" id="id">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editarCedulaPaciente" name="cedula"
-                                        placeholder="Cédula del paciente" required>
-                                    <label for="editarCedulaPaciente">Cédula</label>
-                                </div>
-                                @error('cedula')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small fw-bold">Cédula</label>
+                            <div class="input-group">
+                                <select name="cedula_tipo" id="editarCedulaTipoPaciente" class="form-select" style="max-width: 60px;">
+                                    <option value="V">V</option>
+                                    <option value="E">E</option>
+                                </select>
+                                <input type="text" class="form-control" id="editarCedulaPaciente" name="cedula" placeholder="12345678" required>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editarRifPaciente" name="rif"
-                                        placeholder="RIF del paciente">
-                                    <label for="editarRifPaciente">RIF</label>
-                                </div>
-                                @error('rif')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
+                            @error('cedula')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small fw-bold">RIF</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light fw-bold">J</span>
+                                <input type="text" class="form-control" id="editarRifPaciente" name="rif" placeholder="123456789">
                             </div>
+                            @error('rif')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
 
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
@@ -257,6 +260,7 @@ document.addEventListener('click', async function(event) {
         var inputRif = document.getElementById('editarRifPaciente');
         var inputNombre = document.getElementById('editarNombrePaciente');
         var inputApellido = document.getElementById('editarApellidoPaciente');
+        var inputCedulaTipo = document.getElementById('editarCedulaTipoPaciente');
         var inputCedula = document.getElementById('editarCedulaPaciente');
         var inputFechaNacimiento = document.getElementById('editarFechaNacimientoPaciente');
         var inputTelefono = document.getElementById('editarTelefonoPaciente');
@@ -279,6 +283,7 @@ document.addEventListener('click', async function(event) {
             inputNombre.value = "Cargando...";
             inputApellido.disabled = true;
             inputApellido.value = "Cargando...";
+            inputCedulaTipo.disabled = true;
             inputCedula.disabled = true;
             inputCedula.value = "Cargando...";
             inputFechaNacimiento.disabled = true;
@@ -324,13 +329,17 @@ document.addEventListener('click', async function(event) {
 
             document.getElementById('id').value = data.id;
             inputRif.disabled = false;
-            inputRif.value = data.rif || '';
+            const rifParts = data.rif ? data.rif.split('-') : [];
+            inputRif.value = rifParts.length > 1 ? rifParts.slice(1).join('-') : '';
             inputNombre.value = data.nombre;
             inputNombre.disabled = false;
             inputApellido.disabled = false;
             inputApellido.value = data.apellido;
+            inputCedulaTipo.disabled = false;
+            const cedulaParts = data.cedula ? data.cedula.split('-') : ['V', ''];
+            inputCedulaTipo.value = cedulaParts[0] || 'V';
             inputCedula.disabled = false;
-            inputCedula.value = data.cedula;
+            inputCedula.value = cedulaParts.slice(1).join('-') || '';
             inputFechaNacimiento.disabled = false;
             inputFechaNacimiento.value = data.fecha_nacimiento;
             inputTelefono.disabled = false;

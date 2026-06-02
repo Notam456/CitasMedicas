@@ -24,7 +24,11 @@
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Cédula del Paciente *</label>
                     <div class="input-group">
-                        <input type="text" name="cedula" id="input_cedula" class="form-control" placeholder="V-12345678" required>
+                        <select name="cedula_tipo" id="input_cedula_tipo" class="form-select" style="max-width: 60px;">
+                            <option value="V">V</option>
+                            <option value="E">E</option>
+                        </select>
+                        <input type="text" name="cedula" id="input_cedula" class="form-control" placeholder="12345678" required>
                         <button type="button" class="btn btn-secondary" id="btn_buscar_cedula">Buscar</button>
                     </div>
                     <small id="mensaje_cedula" class="form-text mt-1 text-primary">Ingrese cédula para buscar.</small>
@@ -48,7 +52,10 @@
 
                 <div class="col-md-4">
                     <label class="form-label">Rif</label>
-                    <input type="text" name="rif" id="input_rif" class="form-control @error('rif') is-invalid @enderror" value="{{ old('rif') }}">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light fw-bold">J</span>
+                        <input type="text" name="rif" id="input_rif" class="form-control @error('rif') is-invalid @enderror" value="{{ old('rif') }}" placeholder="123456789">
+                    </div>
                     @error('rif')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -202,19 +209,28 @@
 
 <script>
     document.getElementById('btn_buscar_cedula').addEventListener('click', function() {
-        let cedula = document.getElementById('input_cedula').value;
+        let cedulaTipo = document.getElementById('input_cedula_tipo').value;
+        let cedulaNum = document.getElementById('input_cedula').value;
+        let cedulaCompleta = cedulaTipo + '-' + cedulaNum;
         let mensaje = document.getElementById('mensaje_cedula');
         
-        if(cedula.length < 5) return;
+        if(cedulaNum.length < 5) return;
 
         mensaje.innerHTML = 'Buscando...';
         mensaje.className = 'form-text mt-1 text-warning';
 
-        fetch(`/api/paciente/buscar/${cedula}`)
+        fetch(`/api/paciente/buscar/${cedulaCompleta}`)
             .then(response => response.json())
             .then(data => {
                 if (data.encontrado) {
-                    document.getElementById('input_rif').value = data.datos.rif || '';
+                    const cedulaParts = data.datos.cedula ? data.datos.cedula.split('-') : ['V', ''];
+                    document.getElementById('input_cedula_tipo').value = cedulaParts[0] || 'V';
+                    document.getElementById('input_cedula').value = cedulaParts.slice(1).join('-') || '';
+                    document.getElementById('input_cedula_tipo').disabled = true;
+                    document.getElementById('input_cedula').readOnly = true;
+
+                    const rifParts = data.datos.rif ? data.datos.rif.split('-') : [];
+                    document.getElementById('input_rif').value = rifParts.length > 1 ? rifParts.slice(1).join('-') : '';
                     document.getElementById('input_nombre').value = data.datos.nombre;
                     document.getElementById('input_apellido').value = data.datos.apellido;
                     document.getElementById('input_fecha').value = data.datos.fecha_nacimiento;
@@ -247,11 +263,15 @@
                         document.getElementById('hidden_parroquia').value = p.id;
                     }
                     
-                    document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion').forEach(el => el.readOnly = true);
+                    document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = true);
                     
                     mensaje.innerHTML = 'Paciente encontrado. Datos autocompletados.';
                     mensaje.className = 'form-text mt-1 text-success fw-bold';
                 } else {
+                    document.getElementById('input_cedula_tipo').value = 'V';
+                    document.getElementById('input_cedula_tipo').disabled = false;
+                    document.getElementById('input_cedula').readOnly = false;
+                    document.getElementById('input_cedula').value = '';
                     document.getElementById('input_rif').value = '';
                     document.getElementById('input_nombre').value = '';
                     document.getElementById('input_apellido').value = '';
@@ -269,7 +289,7 @@
                     let hiddenP = document.getElementById('hidden_parroquia');
                     if(hiddenP) hiddenP.remove();
                     
-                    document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion').forEach(el => el.readOnly = false);
+                    document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = false);
                     
                     mensaje.innerHTML = 'Paciente nuevo. Por favor llene todos los campos.';
                     mensaje.className = 'form-text mt-1 text-primary fw-bold';

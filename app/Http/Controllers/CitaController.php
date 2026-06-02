@@ -224,7 +224,8 @@ class CitaController extends Controller
     {
         $request->validate([
             // Datos del paciente
-            'cedula' => 'required|string|min:8|max:20',
+            'cedula_tipo' => 'required|in:V,E',
+            'cedula' => 'required|string|min:7|max:20',
             'rif' => 'required|string|max:20',
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
@@ -243,10 +244,13 @@ class CitaController extends Controller
         try {
             DB::beginTransaction();
 
+            $cedulaCompleta = $request->cedula_tipo . '-' . $request->cedula;
+            $rifCompleto = 'J-' . $request->rif;
+
             $paciente = Paciente::firstOrCreate(
-                ['cedula' => $request->cedula],
+                ['cedula' => $cedulaCompleta],
                 [
-                    'rif' => $request->rif,
+                    'rif' => $rifCompleto,
                     'nombre' => $request->nombre,
                     'apellido' => $request->apellido,
                     'fecha_nacimiento' => $request->fecha_nacimiento,

@@ -111,7 +111,8 @@ class PacienteController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
-            'cedula' => 'required|string|min:8|max:20|unique:pacientes,cedula',
+            'cedula_tipo' => 'required|in:V,E',
+            'cedula' => 'required|string|min:7|max:20|unique:pacientes,cedula',
             'rif' => 'required|string|max:20',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'required|string|min:7|max:15',
@@ -120,10 +121,10 @@ class PacienteController extends Controller
         ]);
 
         Paciente::create([
-            'rif' => $request->rif,
+            'cedula' => $request->cedula_tipo . '-' . $request->cedula,
+            'rif' => 'J-' . $request->rif,
             'nombre' => $request->nombre,
             'apellido' => $request->apellido,
-            'cedula' => $request->cedula,
             'fecha_nacimiento' => $request->fecha_nacimiento,
             'telefono' => $request->telefono,
             'parroquia_id' => $request->parroquia_id,
@@ -161,7 +162,8 @@ class PacienteController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
-            'cedula' => 'required|string|min:8|max:20|unique:pacientes,cedula,' . $id,
+            'cedula_tipo' => 'required|in:V,E',
+            'cedula' => 'required|string|min:7|max:20|unique:pacientes,cedula,' . $id,
             'rif' => 'required|string|max:20',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'required|string|min:7|max:15',
@@ -171,10 +173,10 @@ class PacienteController extends Controller
 
         $paciente = Paciente::findOrFail($id);
         $paciente->update([
-            'rif' => $request->rif,
+            'cedula' => $request->cedula_tipo . '-' . $request->cedula,
+            'rif' => 'J-' . $request->rif,
             'nombre' => $request->nombre,
             'apellido' => $request->apellido,
-            'cedula' => $request->cedula,
             'fecha_nacimiento' => $request->fecha_nacimiento,
             'telefono' => $request->telefono,
             'parroquia_id' => $request->parroquia_id,
