@@ -326,6 +326,7 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         actualizarTextoMes();
+        renderizarGrid();
         
         const selectEspecialidad = document.getElementById('select-especialidad');
         const selectMedico = document.getElementById('select-medico');
@@ -377,7 +378,7 @@
     }
 
     function limpiarCalendario() {
-        document.getElementById('calendario-grid').innerHTML = '<div class="col-12 py-5 text-center text-muted">Seleccione un médico y el tipo de atención para ver disponibilidad.</div>';
+        renderizarGrid();
         document.getElementById('input_fecha_cita').value = '';
         document.getElementById('input_calendario_id').value = '';
     }
@@ -389,7 +390,9 @@
         const grid = document.getElementById('calendario-grid');
 
         if (!medicoId || !tipoPaciente) {
-            limpiarCalendario();
+            renderizarGrid();
+            document.getElementById('input_fecha_cita').value = '';
+            document.getElementById('input_calendario_id').value = '';
             return;
         }
 
@@ -409,7 +412,7 @@
     }
 
     // 4. Dibujar el calendario interactivo
-    function renderizarGrid(eventos) {
+    function renderizarGrid(eventos = null) {
         const grid = document.getElementById('calendario-grid');
         grid.innerHTML = '';
 
@@ -432,7 +435,7 @@
             const fechaCelda = new Date(fechaNavegacion.getFullYear(), fechaNavegacion.getMonth(), dia);
             
             // Buscar si hay evento planificado para esta fecha
-            const ev = eventos.find(e => e.fecha === fechaStr);
+            const ev = eventos?.find(e => e.fecha === fechaStr);
 
             const div = document.createElement('div');
             div.className = 'col p-2 border-end border-bottom position-relative calendar-day';
@@ -446,11 +449,9 @@
                     div.style.cursor = 'pointer';
                     div.classList.add('bg-white');
                     div.innerHTML += `
-                        <div class="text-center mt-1">
-                            <span class="badge bg-success-subtle text-success border border-success-subtle d-block mb-1 shadow-sm">
-                                ${ev.disponibles} Cupos
-                            </span>
-                            <small class="text-muted" style="font-size:0.65rem;">${ev.hora_inicio.substring(0,5)}</small>
+                        <div class="text-center mt-1 px-1 py-1 rounded border border-success border-opacity-25">
+                            <div class="fw-bold text-success" style="font-size:0.75rem; line-height:1.2;">${ev.disponibles} Cupo${ev.disponibles !== 1 ? 's' : ''}</div>
+                            <div class="text-muted" style="font-size:0.6rem; line-height:1.1;">${ev.hora_inicio.substring(0,5)} - ${ev.hora_fin.substring(0,5)}</div>
                         </div>`;
                     
                     // Función al hacer CLIC
