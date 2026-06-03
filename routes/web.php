@@ -132,8 +132,12 @@ Route::middleware(['auth', 'can:Patologia'])->group(function () {
 
 Route::middleware(['auth', 'can:Reportes'])->group(function () {
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
-    Route::get('/reportes/medicos-por-especialidad', [ReporteController::class, 'medicosPorEspecialidad'])->name('reportes.medicos_especialidad');
-    Route::get('/reportes/medicos/excel', [ReporteController::class, 'exportarMedicosExcel'])->name('reportes.medicos_excel');
+    Route::get('/reportes/pdf/medicos-por-especialidad', [ReporteController::class, 'medicosPorEspecialidad'])->name('reportes.medicos_especialidad');
+    Route::get('/reportes/excel/medicos/excel', [ReporteController::class, 'exportarMedicosExcel'])->name('reportes.medicos_excel');
+    Route::get('/reportes/excel/medicos-por-especialidad/excel', [ReporteController::class, 'exportarMedicosPorEspecialidadExcel'])->name('reportes.medicos_especialidad_excel');
+
+    Route::get('/reportes/pdf/procedencia-pacientes', [ReporteController::class, 'procedenciaPacientes'])->name('reportes.procedencia_pacientes_pdf');
+    Route::get('/reportes/excel/procedencia-pacientes/excel', [ReporteController::class, 'exportarProcedenciaExcel'])->name('reportes.procedencia_pacientes_excel');
 });
 
 Route::middleware(['auth', 'can:Usuarios'])->group(function () {
