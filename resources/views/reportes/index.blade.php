@@ -11,19 +11,14 @@
         <div class="col-md-4">
             @component('reportes.card')
             @slot('card_title','Médicos')
-
             @slot('card_desc')
-            Listado de médicos con opcion de filtro por especialidad.
+            Listado de médicos con opción de filtro por especialidad.
             @endslot
-
             @slot('reporte_bs_target','#modalMedicosEspecialidad')
-            
-            @slot('reporte_excel')
-            {{route('reportes.medicos_excel')}}
-            @endslot
-            
+            @slot('reporte_excel', route('reportes.medicos_excel')) {{-- se mantiene pero no se usará --}}
+            @slot('excel_modal', true)
             @endcomponent
-        </div>    
+        </div>
 
         {{-- 2 --}}
         <div class="col-md-4">
@@ -55,8 +50,9 @@
             @slot('reporte_bs_target','#modalProcedenciaPacientes')
             
             @slot('reporte_excel')
-            {{route('reportes.medicos_excel')}}
+            {{route('reportes.procedencia_pacientes_excel')}}
             @endslot
+            @slot('excel_modal', true)
             @endcomponent
         </div>
     </div>

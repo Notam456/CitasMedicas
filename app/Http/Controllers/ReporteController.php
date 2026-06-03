@@ -12,7 +12,8 @@ use App\Models\Distrito;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Exports\MedicosExport;
+use App\Exports\MedicosPorEspecialidadExport;
+use App\Exports\ProcedenciaPacientesExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
@@ -25,69 +26,73 @@ class ReporteController extends Controller
     }
 
     public function medicosPorEspecialidad(Request $request)
+{
+    $request->validate([
+        'especialidad_id' => 'nullable|exists:especialidades,id'
+    ]);
+
+    $especialidadId = $request->especialidad_id;
+
+    $medicos = Medico::with('especialidad')
+        ->when($especialidadId, function ($query) use ($especialidadId) {
+            return $query->where('especialidad_id', $especialidadId);
+        })
+        ->get();
+
+    $especialidad = $especialidadId ? Especialidad::find($especialidadId) : null;
+
+    $membrete = $this->getMembreteBase64();
+    $pdf = Pdf::loadView('reportes.pdf.medicos_por_especialidad_pdf', compact('especialidad', 'medicos', 'membrete'));
+    $nombreArchivo = $especialidad ? 'medicos_' . $especialidad->nombre : 'todos_los_medicos';
+    return $pdf->stream($nombreArchivo . '.pdf');
+}
+
+public function exportarMedicosPorEspecialidadExcel(Request $request)
+{
+    $request->validate([
+        'especialidad_id' => 'nullable|exists:especialidades,id'
+    ]);
+
+    $especialidadId = $request->especialidad_id;
+
+    $medicos = Medico::with('especialidad')
+        ->when($especialidadId, function ($query) use ($especialidadId) {
+            return $query->where('especialidad_id', $especialidadId);
+        })
+        ->get();
+
+    $especialidad = $especialidadId ? Especialidad::find($especialidadId) : null;
+    $titulo = $especialidad ? 'Médicos de ' . $especialidad->nombre : 'Todos los médicos';
+
+    return Excel::download(new MedicosPorEspecialidadExport($medicos, $especialidad, $titulo), 'medicos.xlsx');
+}
+    // Método privado para obtener los datos del reporte (reutilizado para PDF y Excel)
+    private function getProcedenciaData(Request $request)
     {
-        $request->validate([
-            'especialidad_id' => 'nullable|exists:especialidades,id'
-        ]);
-
-        $especialidadId = $request->especialidad_id;
-
-        $medicos = Medico::with('especialidad')
-            ->when($especialidadId, function ($query) use ($especialidadId) {
-                return $query->where('especialidad_id', $especialidadId);
-            })
-            ->get();
-
-        $especialidad = $especialidadId ? Especialidad::find($especialidadId) : null;
-
-        $membrete = $this->getMembreteBase64();
-
-        $pdf = Pdf::loadView('reportes.medicos_por_especialidad_pdf', compact('especialidad', 'medicos', 'membrete'));
-
-        $nombreArchivo = $especialidad ? 'medicos_' . $especialidad->nombre : 'todos_los_medicos';
-        return $pdf->stream($nombreArchivo . '.pdf');
-    }
-
-    public function exportarMedicosExcel()
-    {
-        return Excel::download(new MedicosExport, 'medicos_hospital.xlsx');
-    }
-
-    public function procedenciaPacientes(Request $request)
-    {
-        $request->validate([
-            'tipo_rango' => 'required|in:mes,rango',
-            'mes' => 'required_if:tipo_rango,mes|nullable|date_format:Y-m',
-            'fecha_desde' => 'required_if:tipo_rango,rango|nullable|date',
-            'fecha_hasta' => 'required_if:tipo_rango,rango|nullable|date|after_or_equal:fecha_desde',
-        ]);
-
         if ($request->tipo_rango == 'mes') {
             $fecha = Carbon::createFromFormat('Y-m', $request->mes);
             $fecha_desde = $fecha->copy()->startOfMonth()->toDateString();
             $fecha_hasta = $fecha->copy()->endOfMonth()->toDateString();
-            $titulo = 'Procedencia de Pacientes - ' . $fecha->translatedFormat('F Y'); // mes en ingles
+            Carbon::setLocale('es');
+            $titulo = 'Procedencia de Pacientes - ' . $fecha->translatedFormat('F Y');
         } else {
             $fecha_desde = $request->fecha_desde;
             $fecha_hasta = $request->fecha_hasta;
             $titulo = 'Procedencia de Pacientes - ' . Carbon::parse($fecha_desde)->format('d/m/Y') . ' al ' . Carbon::parse($fecha_hasta)->format('d/m/Y');
         }
 
-        // Obtener todos los distritos (excepto 'Otros Estados' que se manejará aparte, pero lo incluimos como id=6)
-        $distritos = Distrito::orderBy('id')->get();
-        
-        // Obtener todos los municipios con su distrito
-        $municipios = Municipio::with('distrito')->orderBy('nombre')->get();
-        
-        // Estructura de datos: agrupar por distrito y luego municipio
-        // Primero, crear un array con todos los distritos (incluyendo dos especiales: 'Otros Estados' e 'Ignorado')
+        // select de distritos orderby id
+        $distritosReales = Distrito::orderBy('id')->get();
+
         $distritosEspeciales = [
-            (object)['id' => 6, 'nombre' => 'Otros Estados'],
-            (object)['id' => null, 'nombre' => 'Ignorado']
+            (object)['id' => 999, 'nombre' => 'Otros Estados'],
+            (object)['id' => 1000, 'nombre' => 'Ignorado']
         ];
-        $todosLosDistritos = $distritos->concat($distritosEspeciales);
-        
-        // Inicializar el reporte con ceros para cada distrito y sus municipios
+
+        // Unir todos los distritos (reales + especiales)
+        $todosLosDistritos = $distritosReales->concat($distritosEspeciales);
+
+        // Estructura inicial del reporte (ceros)
         $reporte = [];
         foreach ($todosLosDistritos as $distrito) {
             $distritoNombre = $distrito->nombre;
@@ -97,8 +102,8 @@ class ReporteController extends Controller
                 'municipios' => [],
                 'subtotal' => ['agendadas' => 0, 'atendidas' => 0, 'total' => 0]
             ];
-            // Obtener municipios reales de este distrito (solo para distritos que existen en la tabla)
-            if ($distritoId && $distritoId != 6) { // Evitar incluir municipios en 'Otros Estados'
+            // Para distritos reales (no especiales), obtener todos sus municipios desde la tabla
+            if ($distritoId <= 5) { 
                 $municipiosDelDistrito = Municipio::where('distrito_id', $distritoId)->orderBy('nombre')->get();
                 foreach ($municipiosDelDistrito as $mun) {
                     $reporte[$distritoNombre]['municipios'][$mun->nombre] = [
@@ -110,8 +115,8 @@ class ReporteController extends Controller
             }
         }
         $reporte['Ignorado']['municipios']['Sin municipio'] = ['agendadas' => 0, 'atendidas' => 0, 'total' => 0];
-        
-        // Ahora consultar los conteos reales de citas en el rango
+
+        // 3. Consultar conteos reales de citas en el rango
         $conteos = Cita::select(
                 'distritos.id as distrito_id',
                 'distritos.nombre as distrito_nombre',
@@ -128,9 +133,9 @@ class ReporteController extends Controller
             ->groupBy('distritos.id', 'distritos.nombre', 'municipios.nombre')
             ->get();
 
-        // Procesar los conteos y actualizar el reporte
+        // 4. Procesar conteos y actualizar el reporte
         foreach ($conteos as $row) {
-            // Determinar el distrito
+            // Determinar a qué distrito pertenece esta fila
             if (is_null($row->distrito_id)) {
                 $distritoNombre = 'Ignorado';
             } elseif ($row->distrito_id == 6) {
@@ -140,9 +145,8 @@ class ReporteController extends Controller
             }
             $municipioNombre = $row->municipio_nombre ?? 'Sin municipio';
             
-            // Si el distrito existe en el reporte (debería)
             if (isset($reporte[$distritoNombre])) {
-                // Si el municipio no está en la estructura predefinida (ej: municipio nuevo que no estaba en la base de municipios), agregarlo
+                // Si el municipio no existe en la estructura predefinida, lo agregamos (escalable)
                 if (!isset($reporte[$distritoNombre]['municipios'][$municipioNombre])) {
                     $reporte[$distritoNombre]['municipios'][$municipioNombre] = ['agendadas' => 0, 'atendidas' => 0, 'total' => 0];
                 }
@@ -150,17 +154,25 @@ class ReporteController extends Controller
                 $reporte[$distritoNombre]['municipios'][$municipioNombre]['atendidas'] = $row->atendidas;
                 $reporte[$distritoNombre]['municipios'][$municipioNombre]['total'] = $row->total_pacientes;
                 
-                // Actualizar subtotales
                 $reporte[$distritoNombre]['subtotal']['agendadas'] += $row->agendadas;
                 $reporte[$distritoNombre]['subtotal']['atendidas'] += $row->atendidas;
                 $reporte[$distritoNombre]['subtotal']['total'] += $row->total_pacientes;
             }
         }
         
-        $orden = ['Distrito I', 'Distrito II', 'Distrito III', 'Distrito IV', 'Distrito V', 'Otros Estados', 'Ignorado'];
+        // 5. Ordenar distritos: primero los reales por id, luego Otros Estados, luego Ignorado
+        $ordenDistritos = [];
+        foreach ($distritosReales as $d) {
+            $ordenDistritos[] = $d->nombre;
+        }
+        $ordenDistritos[] = 'Otros Estados';
+        $ordenDistritos[] = 'Ignorado';
+        
+        // Construir array final ordenado
         $reporteFinal = [];
-        foreach ($orden as $nombreDistrito) {
+        foreach ($ordenDistritos as $nombreDistrito) {
             if (isset($reporte[$nombreDistrito])) {
+                // Ordenar municipios alfabéticamente
                 $municipiosArray = [];
                 foreach ($reporte[$nombreDistrito]['municipios'] as $munNombre => $datos) {
                     $municipiosArray[] = [
@@ -170,9 +182,7 @@ class ReporteController extends Controller
                         'total' => $datos['total']
                     ];
                 }
-                usort($municipiosArray, function($a, $b) {
-                    return strcmp($a['nombre'], $b['nombre']);
-                });
+                usort($municipiosArray, fn($a, $b) => strcmp($a['nombre'], $b['nombre']));
                 $reporteFinal[] = [
                     'distrito' => $nombreDistrito,
                     'municipios' => $municipiosArray,
@@ -181,30 +191,7 @@ class ReporteController extends Controller
             }
         }
         
-        // Agregar cualquier otro distrito que no esté en el orden (por si hay nuevos)
-        foreach ($reporte as $nombreDistrito => $data) {
-            if (!in_array($nombreDistrito, $orden)) {
-                $municipiosArray = [];
-                foreach ($data['municipios'] as $munNombre => $datos) {
-                    $municipiosArray[] = [
-                        'nombre' => $munNombre,
-                        'agendadas' => $datos['agendadas'],
-                        'atendidas' => $datos['atendidas'],
-                        'total' => $datos['total']
-                    ];
-                }
-                usort($municipiosArray, function($a, $b) {
-                    return strcmp($a['nombre'], $b['nombre']);
-                });
-                $reporteFinal[] = [
-                    'distrito' => $nombreDistrito,
-                    'municipios' => $municipiosArray,
-                    'subtotal' => $data['subtotal']
-                ];
-            }
-        }
-        
-        // Calcular totales globales
+        // Totales globales
         $totalesGlobales = ['agendadas' => 0, 'atendidas' => 0, 'todos' => 0];
         foreach ($reporteFinal as $item) {
             $totalesGlobales['agendadas'] += $item['subtotal']['agendadas'];
@@ -212,9 +199,42 @@ class ReporteController extends Controller
             $totalesGlobales['todos'] += $item['subtotal']['total'];
         }
         
+        return compact('reporteFinal', 'totalesGlobales', 'titulo', 'fecha_desde', 'fecha_hasta');
+    }
+
+    public function procedenciaPacientes(Request $request)
+    {
+        $request->validate([
+            'tipo_rango' => 'required|in:mes,rango',
+            'mes' => 'required_if:tipo_rango,mes|nullable|date_format:Y-m',
+            'fecha_desde' => 'required_if:tipo_rango,rango|nullable|date',
+            'fecha_hasta' => 'required_if:tipo_rango,rango|nullable|date|after_or_equal:fecha_desde',
+        ]);
+
+        $data = $this->getProcedenciaData($request);
         $membrete = $this->getMembreteBase64();
-        $pdf = Pdf::loadView('reportes.procedencia_pacientes_pdf', compact('reporteFinal', 'totalesGlobales', 'titulo', 'membrete', 'fecha_desde', 'fecha_hasta'));
+        
+        $pdf = Pdf::loadView('reportes.pdf.procedencia_pacientes_pdf', array_merge($data, ['membrete' => $membrete]));
         return $pdf->stream('procedencia_pacientes.pdf');
+    }
+
+    public function exportarProcedenciaExcel(Request $request)
+    {
+        $request->validate([
+            'tipo_rango' => 'required|in:mes,rango',
+            'mes' => 'required_if:tipo_rango,mes|nullable|date_format:Y-m',
+            'fecha_desde' => 'required_if:tipo_rango,rango|nullable|date',
+            'fecha_hasta' => 'required_if:tipo_rango,rango|nullable|date|after_or_equal:fecha_desde',
+        ]);
+
+        $data = $this->getProcedenciaData($request);
+        return Excel::download(new ProcedenciaPacientesExport(
+            $data['reporteFinal'],
+            $data['totalesGlobales'],
+            $data['titulo'],
+            $data['fecha_desde'],
+            $data['fecha_hasta']
+        ), 'procedencia_pacientes.xlsx');
     }
 
     private function getMembreteBase64()

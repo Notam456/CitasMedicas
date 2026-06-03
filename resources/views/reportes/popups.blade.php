@@ -3,13 +3,14 @@
     @slot('modal_id', 'modalMedicosEspecialidad')
     @slot('modal_title', 'Filtro por Especialidad')
     @slot('form_action', route('reportes.medicos_especialidad'))
+    @slot('excel_action', route('reportes.medicos_especialidad_excel'))
 
     <div class="mb-3">
         <label for="especialidad_id" class="form-label">Especialidad</label>
         <select name="especialidad_id" id="especialidad_id" class="form-select">
             <option value="">Todos</option>
             @foreach($especialidades as $e)
-                <option value="{{ $e->id_especialidad }}">{{ $e->nombre }}</option>
+                <option value="{{ $e->id }}">{{ $e->nombre }}</option>
             @endforeach
         </select>
     </div>
@@ -27,11 +28,12 @@
                 </div>
     @endcomponent
     
-    {{-- 3 --}}
-        @component('reportes.modal')
-        @slot('modal_id', 'modalProcedenciaPacientes')
+     {{-- 3 --}}
+    @component('reportes.modal')
+       @slot('modal_id', 'modalProcedenciaPacientes')
         @slot('modal_title', 'Reporte de Procedencia de Pacientes')
         @slot('form_action', route('reportes.procedencia_pacientes_pdf'))
+        @slot('excel_action', route('reportes.procedencia_pacientes_excel'))
 
         <div class="mb-3">
             <label class="form-label">Tipo de rango</label>
@@ -49,45 +51,69 @@
 
         <div class="mb-3" id="div_mes">
             <label for="mes" class="form-label">Seleccione el Mes</label>
-            <input type="month" name="mes" id="mes" class="form-control">
+            <input type="month" name="mes" id="mes" class="form-control" required>
         </div>
 
         <div class="mb-3 d-none" id="div_rango_fechas">
             <div class="row">
                 <div class="col-md-6">
                     <label for="fecha_desde" class="form-label">Fecha desde</label>
-                    <input type="date" name="fecha_desde" id="fecha_desde" class="form-control">
+                    <input type="date" name="fecha_desde" id="fecha_desde" class="form-control" required>
                 </div>
                 <div class="col-md-6">
                     <label for="fecha_hasta" class="form-label">Fecha hasta</label>
-                    <input type="date" name="fecha_hasta" id="fecha_hasta" class="form-control">
+                    <input type="date" name="fecha_hasta" id="fecha_hasta" class="form-control" required>
                 </div>
             </div>
         </div>
 
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const tipoMes = document.getElementById('tipo_mes');
-                const tipoRango = document.getElementById('tipo_rango_fechas');
-                const divMes = document.getElementById('div_mes');
-                const divRango = document.getElementById('div_rango_fechas');
+            (function() {
+                // Esperar a que el DOM esté listo
+                document.addEventListener('DOMContentLoaded', function() {
+                    const tipoMes = document.getElementById('tipo_mes');
+                    const tipoRango = document.getElementById('tipo_rango_fechas');
+                    const divMes = document.getElementById('div_mes');
+                    const divRango = document.getElementById('div_rango_fechas');
+                    const mesInput = document.getElementById('mes');
+                    const fechaDesde = document.getElementById('fecha_desde');
+                    const fechaHasta = document.getElementById('fecha_hasta');
 
-                tipoMes.addEventListener('change', function() {
-                    if (this.checked) {
-                        divMes.classList.remove('d-none');
-                        divRango.classList.add('d-none');
+                    // Función para habilitar/deshabilitar los atributos required según el tipo
+                    function actualizarRequired() {
+                        if (tipoMes.checked) {
+                            mesInput.setAttribute('required', 'required');
+                            fechaDesde.removeAttribute('required');
+                            fechaHasta.removeAttribute('required');
+                        } else {
+                            mesInput.removeAttribute('required');
+                            fechaDesde.setAttribute('required', 'required');
+                            fechaHasta.setAttribute('required', 'required');
+                        }
                     }
+
+                    // Mostrar/ocultar campos y actualizar required al cambiar
+                    tipoMes.addEventListener('change', function() {
+                        if (this.checked) {
+                            divMes.classList.remove('d-none');
+                            divRango.classList.add('d-none');
+                            actualizarRequired();
+                        }
+                    });
+                    tipoRango.addEventListener('change', function() {
+                        if (this.checked) {
+                            divMes.classList.add('d-none');
+                            divRango.classList.remove('d-none');
+                            actualizarRequired();
+                        }
+                    });
+
+                    // Inicializar estado (al cargar la página, el radio "mes" está checked)
+                    actualizarRequired();
                 });
-                tipoRango.addEventListener('change', function() {
-                    if (this.checked) {
-                        divMes.classList.add('d-none');
-                        divRango.classList.remove('d-none');
-                    }
-                });
-            });
+            })();
         </script>
         @endcomponent
-
     {{--4--}}
     @component('reportes.modal')
             @slot('modal_id', 'modal25CausasPrincipales')

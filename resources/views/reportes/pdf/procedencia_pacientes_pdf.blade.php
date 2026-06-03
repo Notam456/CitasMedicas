@@ -6,7 +6,8 @@
     <style>
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 12px;
+            font-size: 11px;
+            margin: 20px;
         }
         .header {
             text-align: center;
@@ -26,13 +27,19 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
             margin-top: 15px;
+        }
+        /* Evitar que se repita el encabezado en cada página */
+        thead {
+            display: table-row-group;
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 6px;
+            padding: 6px 4px;
             text-align: center;
             vertical-align: top;
+            word-wrap: break-word;
         }
         th {
             background-color: #f2f2f2;
@@ -45,13 +52,26 @@
         .subtotal-row {
             background-color: #d1ecf1;
             font-weight: bold;
+            page-break-inside: avoid;
         }
         .total-row {
             background-color: #c3e6cb;
             font-weight: bold;
+            page-break-inside: avoid;
         }
         .text-left {
             text-align: left;
+        }
+        /* Anchos de columna */
+        th:first-child, td:first-child { width: 18%; }
+        th:nth-child(2), td:nth-child(2) { width: 32%; }
+        th:nth-child(3), td:nth-child(3) { width: 15%; }
+        th:nth-child(4), td:nth-child(4) { width: 15%; }
+        th:nth-child(5), td:nth-child(5) { width: 20%; }
+        /* Evitar que las filas se partan en dos páginas */
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
         }
     </style>
 </head>
@@ -70,8 +90,8 @@
             <tr>
                 <th>Distrito</th>
                 <th>Municipio</th>
-                <th>Citas Agendadas<br>(Pacientes únicos)</th>
-                <th>Citas Atendidas<br>(Pacientes únicos)</th>
+                <th>Citas Agendadas</th>
+                <th>Citas Atendidas</th>
                 <th>Total Pacientes*</th>
             </tr>
         </thead>
@@ -80,28 +100,22 @@
                 $grandTotal = ['agendadas' => 0, 'atendidas' => 0, 'todos' => 0];
             @endphp
             @foreach($reporteFinal as $distritoInfo)
-                @php
-                    $firstMunicipio = true;
-                @endphp
                 @foreach($distritoInfo['municipios'] as $municipio)
                     <tr>
-                        @if($firstMunicipio)
-                            <td rowspan="{{ count($distritoInfo['municipios']) }}" class="distrito-row">{{ $distritoInfo['distrito'] }}</td>
-                        @endif
+                        <td class="distrito-row">{{ $distritoInfo['distrito'] }}</td>
                         <td class="text-left">{{ $municipio['nombre'] }}</td>
                         <td>{{ $municipio['agendadas'] }}</td>
                         <td>{{ $municipio['atendidas'] }}</td>
                         <td>{{ $municipio['total'] }}</td>
                     </tr>
-                    @php $firstMunicipio = false; @endphp
                 @endforeach
                 @if(count($distritoInfo['municipios']) > 0)
-                <tr class="subtotal-row">
-                    <td colspan="2"><strong>Subtotal {{ $distritoInfo['distrito'] }}</strong></td>
-                    <td><strong>{{ $distritoInfo['subtotal']['agendadas'] }}</strong></td>
-                    <td><strong>{{ $distritoInfo['subtotal']['atendidas'] }}</strong></td>
-                    <td><strong>{{ $distritoInfo['subtotal']['total'] }}</strong></td>
-                </tr>
+                    <tr class="subtotal-row">
+                        <td colspan="2"><strong>Subtotal {{ $distritoInfo['distrito'] }}</strong></td>
+                        <td><strong>{{ $distritoInfo['subtotal']['agendadas'] }}</strong></td>
+                        <td><strong>{{ $distritoInfo['subtotal']['atendidas'] }}</strong></td>
+                        <td><strong>{{ $distritoInfo['subtotal']['total'] }}</strong></td>
+                    </tr>
                 @endif
                 @php
                     $grandTotal['agendadas'] += $distritoInfo['subtotal']['agendadas'];
