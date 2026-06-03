@@ -138,6 +138,9 @@ Route::middleware(['auth', 'can:Reportes'])->group(function () {
 
     Route::get('/reportes/pdf/procedencia-pacientes', [ReporteController::class, 'procedenciaPacientes'])->name('reportes.procedencia_pacientes_pdf');
     Route::get('/reportes/excel/procedencia-pacientes/excel', [ReporteController::class, 'exportarProcedenciaExcel'])->name('reportes.procedencia_pacientes_excel');
+
+    Route::get('/reportes/pdf/movimiento-consultas/pdf', [ReporteController::class, 'movimientoConsultasPdf'])->name('reportes.movimiento_consultas_pdf');
+    Route::get('/reportes/excel/movimiento-consultas/excel', [ReporteController::class, 'movimientoConsultasExcel'])->name('reportes.movimiento_consultas_excel');
 });
 
 Route::middleware(['auth', 'can:Usuarios'])->group(function () {
