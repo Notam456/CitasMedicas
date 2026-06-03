@@ -51,6 +51,65 @@
         </script>
     @endif
 
+    <!-- Modal Mostrar Cita -->
+    <div class="modal fade" id="modalShowCita" tabindex="-1" aria-labelledby="modalShowCitaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalShowCitaLabel">Detalles de la Cita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Paciente</label>
+                            <p class="form-control-plaintext" id="mostrarPacienteCita"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Cédula</label>
+                            <p class="form-control-plaintext" id="mostrarCedulaCita"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Médico</label>
+                            <p class="form-control-plaintext" id="mostrarMedicoCita"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Especialidad</label>
+                            <p class="form-control-plaintext" id="mostrarEspecialidadCita"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Fecha de la Cita</label>
+                            <p class="form-control-plaintext" id="mostrarFechaCita"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Tipo de Paciente</label>
+                            <p class="form-control-plaintext" id="mostrarTipoCita"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Estado</label>
+                            <p class="form-control-plaintext" id="mostrarEstadoCita"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Fecha de Registro</label>
+                            <p class="form-control-plaintext" id="mostrarFechaRegistroCita"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Reagendada</label>
+                            <p class="form-control-plaintext" id="mostrarReagendadaCita"></p>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">Observación</label>
+                            <p class="form-control-plaintext" id="mostrarObservacionCita"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @include('layouts.footer')
 @endsection
 
@@ -93,6 +152,72 @@ $(document).ready(function() {
     $('#filtro-fecha').on('change', function() {
         table.ajax.reload();
     });
+});
+
+document.addEventListener('click', async function(event) {
+    const btnShow = event.target.closest('.btn-show');
+
+    if (btnShow) {
+        const citaId = btnShow.getAttribute('data-id');
+        const spanPaciente = document.getElementById('mostrarPacienteCita');
+        const spanCedula = document.getElementById('mostrarCedulaCita');
+        const spanMedico = document.getElementById('mostrarMedicoCita');
+        const spanEspecialidad = document.getElementById('mostrarEspecialidadCita');
+        const spanFecha = document.getElementById('mostrarFechaCita');
+        const spanTipo = document.getElementById('mostrarTipoCita');
+        const spanEstado = document.getElementById('mostrarEstadoCita');
+        const spanFechaRegistro = document.getElementById('mostrarFechaRegistroCita');
+        const spanReagendada = document.getElementById('mostrarReagendadaCita');
+        const spanObservacion = document.getElementById('mostrarObservacionCita');
+
+        try {
+            const modalElement = document.getElementById('modalShowCita');
+            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (!modalInstance) {
+                modalInstance = new bootstrap.Modal(modalElement);
+            }
+
+            spanPaciente.innerHTML = "Cargando...";
+            spanCedula.innerHTML = "Cargando...";
+            spanMedico.innerHTML = "Cargando...";
+            spanEspecialidad.innerHTML = "Cargando...";
+            spanFecha.innerHTML = "Cargando...";
+            spanTipo.innerHTML = "Cargando...";
+            spanEstado.innerHTML = "Cargando...";
+            spanFechaRegistro.innerHTML = "Cargando...";
+            spanReagendada.innerHTML = "Cargando...";
+            spanObservacion.innerHTML = "Cargando...";
+
+            modalInstance.show();
+
+            const response = await fetch(`/Citas/${citaId}/show`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al obtener datos');
+
+            const data = await response.json();
+
+            spanPaciente.innerHTML = data.paciente.nombre + ' ' + data.paciente.apellido;
+            spanCedula.innerHTML = data.paciente.cedula;
+            spanMedico.innerHTML = 'Dr. ' + data.calendario.medico.nombre + ' ' + data.calendario.medico.apellido;
+            spanEspecialidad.innerHTML = data.calendario.medico.especialidad.nombre;
+            spanFecha.innerHTML = new Date(data.fecha_cita).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            spanTipo.innerHTML = data.tipo_paciente == 'primera_vez' ? 'Primera vez' : 'Control';
+            spanEstado.innerHTML = data.estado;
+            spanFechaRegistro.innerHTML = data.fecha_registro ? new Date(data.fecha_registro).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
+            spanReagendada.innerHTML = data.reagendada_contador + ' / 2';
+            spanObservacion.innerHTML = data.observacion ? data.observacion : 'Sin observación';
+
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudieron cargar los datos de la cita', 'error');
+        }
+    }
 });
 </script>
 @endpush

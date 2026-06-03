@@ -86,6 +86,7 @@ Route::get('/api/municipios/{estado_id}', function($estado_id) {return App\Model
 Route::get('/api/parroquias/{municipio_id}', function($municipio_id) {return App\Models\Parroquia::where('municipio_id', $municipio_id)->get();});
 //Rutas resource
 Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita'])->middleware(['auth', 'can:Citas']);
+Route::get('/Citas/{id}/show', [CitaController::class, 'show'])->middleware(['auth', 'can:Citas']);
 
 
 Route::get('/calendario/medicos/{especialidad}', [CalendarioController::class, 'getMedicos']);

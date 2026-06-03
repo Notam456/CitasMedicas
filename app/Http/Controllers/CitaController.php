@@ -299,9 +299,10 @@ class CitaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Cita $cita)
+    public function show(int $id)
     {
-        //
+        $cita = Cita::with('paciente', 'calendario.medico.especialidad')->findOrFail($id);
+        return response()->json($cita);
     }
 
     /**
