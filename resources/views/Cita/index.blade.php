@@ -9,9 +9,10 @@
     <div class="table-responsive bg-light rounded h-100 p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="mb-0">Citas Agendadas</h3>
-            <a href="{{ route('Citas.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus me-1"></i> Nueva Cita
-            </a>
+            <div class="d-flex align-items-center gap-2">
+                <label for="filtro-fecha" class="mb-0">Filtrar por fecha:</label>
+                <input type="date" id="filtro-fecha" class="form-control form-control-sm" style="width:150px">
+            </div>
         </div>
         <table class="table table-hover" id="tablaCitas" >
             <thead>
@@ -21,14 +22,13 @@
                     <th>Médico</th>
                     <th>Especialidad</th>
                     <th>Fecha Cita</th>
-                    <th>Registro</th>
                     <th>Tipo</th>
                     <th>Estado</th>
                     <th class="text-end">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-            
+
             </tbody>
         </table>
     </div>
@@ -61,13 +61,16 @@
 
 <script>
 $(document).ready(function() {
-    
-    $('#tablaCitas').DataTable({
+
+    const table = $('#tablaCitas').DataTable({
         processing: true,
         serverSide: true,
         ajax: {
-            url: "{{ route('Citas.index') }}", 
-            type: 'GET'
+            url: "{{ route('Citas.index') }}",
+            type: 'GET',
+            data: function(d) {
+                d.fecha_filtro = $('#filtro-fecha').val();
+            }
         },
         columns: [
             { data: '0', name: 'paciente' },
@@ -75,10 +78,9 @@ $(document).ready(function() {
             { data: '2', name: 'medico' },
             { data: '3', name: 'especialidad' },
             { data: '4', name: 'fecha_cita' },
-            { data: '5', name: 'fecha_registro' },
-            { data: '6', name: 'tipo_paciente', orderable: false, searchable: false },
-            { data: '7', name: 'estado' },
-            { data: '8', name: 'acciones', orderable: false, searchable: false, className: 'text-end' }
+            { data: '5', name: 'tipo_paciente', orderable: false, searchable: false },
+            { data: '6', name: 'estado' },
+            { data: '7', name: 'acciones', orderable: false, searchable: false, className: 'text-end' }
         ],
         language: {
             url: "{{ asset('vendor/datatables/es-ES.json') }}"
@@ -86,6 +88,10 @@ $(document).ready(function() {
         pageLength: 10,
         lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todas"]],
         order: [[4, 'desc']]
+    });
+
+    $('#filtro-fecha').on('change', function() {
+        table.ajax.reload();
     });
 });
 </script>
