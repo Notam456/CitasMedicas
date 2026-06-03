@@ -268,10 +268,8 @@
                     mensaje.innerHTML = 'Paciente encontrado. Datos autocompletados.';
                     mensaje.className = 'form-text mt-1 text-success fw-bold';
                 } else {
-                    document.getElementById('input_cedula_tipo').value = 'V';
                     document.getElementById('input_cedula_tipo').disabled = false;
                     document.getElementById('input_cedula').readOnly = false;
-                    document.getElementById('input_cedula').value = '';
                     document.getElementById('input_rif').value = '';
                     document.getElementById('input_nombre').value = '';
                     document.getElementById('input_apellido').value = '';
