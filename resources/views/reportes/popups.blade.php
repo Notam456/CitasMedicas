@@ -28,92 +28,120 @@
                 </div>
     @endcomponent
     
-     {{-- 3 --}}
+    {{--3--}}
     @component('reportes.modal')
-       @slot('modal_id', 'modalProcedenciaPacientes')
-        @slot('modal_title', 'Reporte de Procedencia de Pacientes')
-        @slot('form_action', route('reportes.procedencia_pacientes_pdf'))
-        @slot('excel_action', route('reportes.procedencia_pacientes_excel'))
-
-        <div class="mb-3">
-            <label class="form-label">Tipo de rango</label>
-            <div class="d-flex gap-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="tipo_rango" id="tipo_mes" value="mes" checked>
-                    <label class="form-check-label" for="tipo_mes">Mes específico</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="tipo_rango" id="tipo_rango_fechas" value="rango">
-                    <label class="form-check-label" for="tipo_rango_fechas">Rango de fechas</label>
-                </div>
+    @slot('modal_id', 'modalProcedenciaPacientes')
+    @slot('modal_title', 'Reporte de Procedencia de Pacientes')
+    @slot('form_action', route('reportes.procedencia_pacientes_pdf'))
+    @slot('excel_action', route('reportes.procedencia_pacientes_excel'))
+    
+    <div class="mb-3">
+        <label class="form-label">Tipo de rango</label>
+        <div class="d-flex gap-3">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipo_rango" id="proc_tipo_mes" value="mes" checked>
+                <label class="form-check-label" for="proc_tipo_mes">Mes específico</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipo_rango" id="proc_tipo_rango" value="rango">
+                <label class="form-check-label" for="proc_tipo_rango">Rango de fechas</label>
             </div>
         </div>
-
-        <div class="mb-3" id="div_mes">
-            <label for="mes" class="form-label">Seleccione el Mes</label>
-            <input type="month" name="mes" id="mes" class="form-control" required>
-        </div>
-
-        <div class="mb-3 d-none" id="div_rango_fechas">
-            <div class="row">
-                <div class="col-md-6">
-                    <label for="fecha_desde" class="form-label">Fecha desde</label>
-                    <input type="date" name="fecha_desde" id="fecha_desde" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="fecha_hasta" class="form-label">Fecha hasta</label>
-                    <input type="date" name="fecha_hasta" id="fecha_hasta" class="form-control" required>
-                </div>
+    </div>
+    
+    <div class="mb-3" id="proc_div_mes">
+        <label class="form-label">Seleccione el Mes</label>
+        <div class="row">
+            <div class="col-md-6">
+                <select id="proc_mes" class="form-select" required>
+                    <option value="">Mes</option>
+                    @for($i = 1; $i <= 12; $i++)
+                        <option value="{{ $i }}" {{ $i == date('n') ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::create()->month($i)->locale('es')->translatedFormat('F') }}</option>
+                    @endfor
+                </select>
+            </div>
+            <div class="col-md-6">
+                <select id="proc_anio" class="form-select" required>
+                    <option value="">Año</option>
+                    @php
+                        $anioActual = date('Y');
+                        $anioInicio = date('Y') - 5;
+                    @endphp
+                    @for($i = $anioInicio; $i <= $anioActual + 5; $i++)
+                        <option value="{{ $i }}" {{ $i == $anioActual ? 'selected' : '' }}>{{ $i }}</option>
+                    @endfor
+                </select>
             </div>
         </div>
-
-        <script>
-            (function() {
-                // Esperar a que el DOM esté listo
-                document.addEventListener('DOMContentLoaded', function() {
-                    const tipoMes = document.getElementById('tipo_mes');
-                    const tipoRango = document.getElementById('tipo_rango_fechas');
-                    const divMes = document.getElementById('div_mes');
-                    const divRango = document.getElementById('div_rango_fechas');
-                    const mesInput = document.getElementById('mes');
-                    const fechaDesde = document.getElementById('fecha_desde');
-                    const fechaHasta = document.getElementById('fecha_hasta');
-
-                    // Función para habilitar/deshabilitar los atributos required según el tipo
-                    function actualizarRequired() {
-                        if (tipoMes.checked) {
-                            mesInput.setAttribute('required', 'required');
-                            fechaDesde.removeAttribute('required');
-                            fechaHasta.removeAttribute('required');
-                        } else {
-                            mesInput.removeAttribute('required');
-                            fechaDesde.setAttribute('required', 'required');
-                            fechaHasta.setAttribute('required', 'required');
-                        }
+        <input type="hidden" name="mes" id="proc_mes_hidden">
+    </div>
+    
+    <div class="mb-3 d-none" id="proc_div_rango">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="proc_fecha_desde" class="form-label">Fecha desde</label>
+                <input type="date" name="fecha_desde" id="proc_fecha_desde" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label for="proc_fecha_hasta" class="form-label">Fecha hasta</label>
+                <input type="date" name="fecha_hasta" id="proc_fecha_hasta" class="form-control">
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        (function() {
+            document.addEventListener('DOMContentLoaded', function() {
+                const tipoMes = document.getElementById('proc_tipo_mes');
+                const tipoRango = document.getElementById('proc_tipo_rango');
+                const divMes = document.getElementById('proc_div_mes');
+                const divRango = document.getElementById('proc_div_rango');
+                const mesSelect = document.getElementById('proc_mes');
+                const anioSelect = document.getElementById('proc_anio');
+                const mesHidden = document.getElementById('proc_mes_hidden');
+                const fechaDesde = document.getElementById('proc_fecha_desde');
+                const fechaHasta = document.getElementById('proc_fecha_hasta');
+    
+                function actualizarHidden() {
+                    if (mesSelect.value && anioSelect.value) {
+                        mesHidden.value = anioSelect.value + '-' + String(mesSelect.value).padStart(2, '0');
+                    } else {
+                        mesHidden.value = '';
                     }
-
-                    // Mostrar/ocultar campos y actualizar required al cambiar
-                    tipoMes.addEventListener('change', function() {
-                        if (this.checked) {
-                            divMes.classList.remove('d-none');
-                            divRango.classList.add('d-none');
-                            actualizarRequired();
-                        }
-                    });
-                    tipoRango.addEventListener('change', function() {
-                        if (this.checked) {
-                            divMes.classList.add('d-none');
-                            divRango.classList.remove('d-none');
-                            actualizarRequired();
-                        }
-                    });
-
-                    // Inicializar estado (al cargar la página, el radio "mes" está checked)
-                    actualizarRequired();
-                });
-            })();
-        </script>
-        @endcomponent
+                }
+    
+                mesSelect.addEventListener('change', actualizarHidden);
+                anioSelect.addEventListener('change', actualizarHidden);
+    
+                function actualizarRequired() {
+                    if (tipoMes.checked) {
+                        divMes.classList.remove('d-none');
+                        divRango.classList.add('d-none');
+                        mesSelect.setAttribute('required', 'required');
+                        anioSelect.setAttribute('required', 'required');
+                        fechaDesde.removeAttribute('required');
+                        fechaHasta.removeAttribute('required');
+                        actualizarHidden();
+                    } else {
+                        divMes.classList.add('d-none');
+                        divRango.classList.remove('d-none');
+                        mesSelect.removeAttribute('required');
+                        anioSelect.removeAttribute('required');
+                        fechaDesde.setAttribute('required', 'required');
+                        fechaHasta.setAttribute('required', 'required');
+                    }
+                }
+    
+                tipoMes.addEventListener('change', actualizarRequired);
+                tipoRango.addEventListener('change', actualizarRequired);
+    
+                actualizarRequired();
+                actualizarHidden();
+            });
+        })();
+    </script>
+    @endcomponent
     {{--4--}}
     @component('reportes.modal')
             @slot('modal_id', 'modal25CausasPrincipales')
