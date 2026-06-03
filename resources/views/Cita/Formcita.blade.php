@@ -24,7 +24,11 @@
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Cédula del Paciente *</label>
                     <div class="input-group">
-                        <input type="text" name="cedula" id="input_cedula" class="form-control" placeholder="V-12345678" required>
+                        <select name="cedula_tipo" id="input_cedula_tipo" class="form-select" style="max-width: 60px;">
+                            <option value="V">V</option>
+                            <option value="E">E</option>
+                        </select>
+                        <input type="text" name="cedula" id="input_cedula" class="form-control" placeholder="12345678" required>
                         <button type="button" class="btn btn-secondary" id="btn_buscar_cedula">Buscar</button>
                     </div>
                     <small id="mensaje_cedula" class="form-text mt-1 text-primary">Ingrese cédula para buscar.</small>
@@ -48,7 +52,10 @@
 
                 <div class="col-md-4">
                     <label class="form-label">Rif</label>
-                    <input type="text" name="rif" id="input_rif" class="form-control @error('rif') is-invalid @enderror" value="{{ old('rif') }}">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light fw-bold">J</span>
+                        <input type="text" name="rif" id="input_rif" class="form-control @error('rif') is-invalid @enderror" value="{{ old('rif') }}" placeholder="123456789">
+                    </div>
                     @error('rif')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -148,13 +155,13 @@
             <div class="row g-3">
                 <div class="col-md-4 text-center">
                     <div class="btn-group shadow-sm" role="group">
-                        <button class="btn btn-outline-secondary px-3" onclick="cambiarMes(-1)">
+                        <button type="button" class="btn btn-outline-secondary px-3" onclick="cambiarMes(-1)">
                             <i class="fas fa-chevron-left"></i>
                         </button>
                         <button class="btn btn-light fw-bold text-capitalize" style="min-width: 150px;" id="mes-actual"
                             disabled>
                         </button>
-                        <button class="btn btn-outline-secondary px-3" onclick="cambiarMes(1)">
+                        <button type="button" class="btn btn-outline-secondary px-3" onclick="cambiarMes(1)">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
@@ -181,7 +188,10 @@
             <div class="row g-3">
                 <div class="col-md-4 fw-bold small text-uppercase text-muted">
                     <label class="form-label">Fecha de Cita</label>
-                    <input type="date" name="fecha_cita" id="input_fecha_cita" class="form-control" required readonly>
+                    <input type="date" name="fecha_cita" id="input_fecha_cita" class="form-control @error('fecha_cita') is-invalid @enderror" required readonly>
+                    @error('fecha_cita')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
                     <input type="hidden" name="calendario_id" id="input_calendario_id" required>
                 </div>
                 <div class="col-md-8 fw-bold small text-uppercase text-muted">
@@ -199,18 +209,28 @@
 
 <script>
     document.getElementById('btn_buscar_cedula').addEventListener('click', function() {
-        let cedula = document.getElementById('input_cedula').value;
+        let cedulaTipo = document.getElementById('input_cedula_tipo').value;
+        let cedulaNum = document.getElementById('input_cedula').value;
+        let cedulaCompleta = cedulaTipo + '-' + cedulaNum;
         let mensaje = document.getElementById('mensaje_cedula');
         
-        if(cedula.length < 5) return;
+        if(cedulaNum.length < 5) return;
 
         mensaje.innerHTML = 'Buscando...';
         mensaje.className = 'form-text mt-1 text-warning';
 
-        fetch(`/api/paciente/buscar/${cedula}`)
+        fetch(`/api/paciente/buscar/${cedulaCompleta}`)
             .then(response => response.json())
             .then(data => {
                 if (data.encontrado) {
+                    const cedulaParts = data.datos.cedula ? data.datos.cedula.split('-') : ['V', ''];
+                    document.getElementById('input_cedula_tipo').value = cedulaParts[0] || 'V';
+                    document.getElementById('input_cedula').value = cedulaParts.slice(1).join('-') || '';
+                    document.getElementById('input_cedula_tipo').disabled = true;
+                    document.getElementById('input_cedula').readOnly = true;
+
+                    const rifParts = data.datos.rif ? data.datos.rif.split('-') : [];
+                    document.getElementById('input_rif').value = rifParts.length > 1 ? rifParts.slice(1).join('-') : '';
                     document.getElementById('input_nombre').value = data.datos.nombre;
                     document.getElementById('input_apellido').value = data.datos.apellido;
                     document.getElementById('input_fecha').value = data.datos.fecha_nacimiento;
@@ -243,11 +263,16 @@
                         document.getElementById('hidden_parroquia').value = p.id;
                     }
                     
-                    document.querySelectorAll('#input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion').forEach(el => el.readOnly = true);
+                    document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = true);
                     
                     mensaje.innerHTML = 'Paciente encontrado. Datos autocompletados.';
                     mensaje.className = 'form-text mt-1 text-success fw-bold';
                 } else {
+                    document.getElementById('input_cedula_tipo').value = 'V';
+                    document.getElementById('input_cedula_tipo').disabled = false;
+                    document.getElementById('input_cedula').readOnly = false;
+                    document.getElementById('input_cedula').value = '';
+                    document.getElementById('input_rif').value = '';
                     document.getElementById('input_nombre').value = '';
                     document.getElementById('input_apellido').value = '';
                     document.getElementById('input_fecha').value = '';
@@ -264,7 +289,7 @@
                     let hiddenP = document.getElementById('hidden_parroquia');
                     if(hiddenP) hiddenP.remove();
                     
-                    document.querySelectorAll('#input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion').forEach(el => el.readOnly = false);
+                    document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = false);
                     
                     mensaje.innerHTML = 'Paciente nuevo. Por favor llene todos los campos.';
                     mensaje.className = 'form-text mt-1 text-primary fw-bold';
@@ -321,6 +346,7 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         actualizarTextoMes();
+        renderizarGrid();
         
         const selectEspecialidad = document.getElementById('select-especialidad');
         const selectMedico = document.getElementById('select-medico');
@@ -372,7 +398,7 @@
     }
 
     function limpiarCalendario() {
-        document.getElementById('calendario-grid').innerHTML = '<div class="col-12 py-5 text-center text-muted">Seleccione un médico y el tipo de atención para ver disponibilidad.</div>';
+        renderizarGrid();
         document.getElementById('input_fecha_cita').value = '';
         document.getElementById('input_calendario_id').value = '';
     }
@@ -384,7 +410,9 @@
         const grid = document.getElementById('calendario-grid');
 
         if (!medicoId || !tipoPaciente) {
-            limpiarCalendario();
+            renderizarGrid();
+            document.getElementById('input_fecha_cita').value = '';
+            document.getElementById('input_calendario_id').value = '';
             return;
         }
 
@@ -404,7 +432,7 @@
     }
 
     // 4. Dibujar el calendario interactivo
-    function renderizarGrid(eventos) {
+    function renderizarGrid(eventos = null) {
         const grid = document.getElementById('calendario-grid');
         grid.innerHTML = '';
 
@@ -416,14 +444,18 @@
             grid.innerHTML += `<div class="col border-end border-bottom bg-light" style="flex: 0 0 14.28%; height: 90px;"></div>`;
         }
 
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
         // Renderizar los días
         for (let dia = 1; dia <= ultimoDia; dia++) {
             const mesStr = String(fechaNavegacion.getMonth() + 1).padStart(2, '0');
             const diaStr = String(dia).padStart(2, '0');
             const fechaStr = `${fechaNavegacion.getFullYear()}-${mesStr}-${diaStr}`;
+            const fechaCelda = new Date(fechaNavegacion.getFullYear(), fechaNavegacion.getMonth(), dia);
             
             // Buscar si hay evento planificado para esta fecha
-            const ev = eventos.find(e => e.fecha === fechaStr);
+            const ev = eventos?.find(e => e.fecha === fechaStr);
 
             const div = document.createElement('div');
             div.className = 'col p-2 border-end border-bottom position-relative calendar-day';
@@ -432,16 +464,14 @@
             
             div.innerHTML = `<span class="fw-bold d-block text-start">${dia}</span>`;
 
-            if (ev) {
+            if (ev && fechaCelda >= hoy) {
                 if (ev.disponibles > 0) {
                     div.style.cursor = 'pointer';
                     div.classList.add('bg-white');
                     div.innerHTML += `
-                        <div class="text-center mt-1">
-                            <span class="badge bg-success-subtle text-success border border-success-subtle d-block mb-1 shadow-sm">
-                                ${ev.disponibles} Cupos
-                            </span>
-                            <small class="text-muted" style="font-size:0.65rem;">${ev.hora_inicio.substring(0,5)}</small>
+                        <div class="text-center mt-1 px-1 py-1 rounded border border-success border-opacity-25">
+                            <div class="fw-bold text-success" style="font-size:0.75rem; line-height:1.2;">${ev.disponibles} Cupo${ev.disponibles !== 1 ? 's' : ''}</div>
+                            <div class="text-muted" style="font-size:0.6rem; line-height:1.1;">${ev.hora_inicio.substring(0,5)} - ${ev.hora_fin.substring(0,5)}</div>
                         </div>`;
                     
                     // Función al hacer CLIC
