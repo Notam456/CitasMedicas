@@ -136,8 +136,11 @@ class CitaController extends Controller
                 $accionesHtml = '<div class="hstack gap-2 justify-content-end"><span class="text-muted small">—</span></div>';
             } else {
                 $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
+                $btnReagendar = $row->estado == 'Agendada'
+                    ? '<a href="'.route('Citas.edit', $row->id).'" class="btn btn-xs btn-square btn-neutral text-info-hover border-info-hover" title="Reagendar"><i class="bi bi-calendar2-week"></i></a>'
+                    : '';
                 $btnDelete = '<a href="'.route('Citas.destroy', $row->id).'" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
-                $accionesHtml = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnDelete.'</div>';
+                $accionesHtml = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnReagendar.$btnDelete.'</div>';
             }
 
             $dataFormatted[] = [
@@ -306,7 +309,20 @@ class CitaController extends Controller
      */
     public function edit(Cita $cita)
     {
-        //
+        if (trim($cita->estado) !== 'Agendada') {
+            Alert::error('Error', 'Solo se pueden reagendar citas con estado "Agendada".');
+            return redirect()->route('Citas.index');
+        }
+
+        if ($cita->reagendada_contador >= 2) {
+            Alert::error('Límite alcanzado', 'Esta cita ya ha sido reagendada el máximo de 2 veces.');
+            return redirect()->route('Citas.index');
+        }
+
+        $cita->load('paciente', 'calendario.medico.especialidad');
+        $especialidades = Especialidad::all();
+
+        return view('Cita.Editcita', compact('cita', 'especialidades'));
     }
 
     /**
@@ -314,7 +330,31 @@ class CitaController extends Controller
      */
     public function update(Request $request, Cita $cita)
     {
-        //
+        if (trim($cita->estado) !== 'Agendada') {
+            Alert::error('Error', 'Solo se pueden reagendar citas agendadas.');
+            return redirect()->route('Citas.index');
+        }
+
+        if ($cita->reagendada_contador >= 2) {
+            Alert::error('Límite alcanzado', 'Esta cita ya ha sido reagendada el máximo de 2 veces.');
+            return redirect()->route('Citas.index');
+        }
+
+        $request->validate([
+            'calendario_id' => 'required|numeric|exists:calendarios,id',
+            'fecha_cita' => 'required|date|after_or_equal:today',
+            'observacion' => 'nullable|string',
+        ]);
+
+        $cita->update([
+            'calendario_id' => $request->calendario_id,
+            'fecha_cita' => $request->fecha_cita,
+            'observacion' => $request->observacion,
+            'reagendada_contador' => $cita->reagendada_contador + 1,
+        ]);
+
+        Alert::success('¡Éxito!', 'Cita reagendada correctamente.');
+        return redirect()->route('Citas.index');
     }
 
     /**
