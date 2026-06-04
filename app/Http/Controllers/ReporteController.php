@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Exports\MedicosPorEspecialidadExport;
 use App\Exports\ProcedenciaPacientesExport;
+use App\Exports\MovimientoConsultasExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
@@ -245,5 +246,77 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
             return 'data:image/png;base64,' . $logoData;
         }
         return '';
+    }
+
+    public function movimientoConsultas(Request $request)
+    {
+        $request->validate([
+            'tipo_paciente' => 'required|in:adulto,pediatria',
+            'tipo_rango' => 'required|in:mes,rango',
+            'mes' => 'required_if:tipo_rango,mes|nullable|date_format:Y-m',
+            'fecha_desde' => 'required_if:tipo_rango,rango|nullable|date',
+            'fecha_hasta' => 'required_if:tipo_rango,rango|nullable|date|after_or_equal:fecha_desde',
+        ]);
+
+        if ($request->tipo_rango == 'mes') {
+            $fecha = Carbon::createFromFormat('Y-m', $request->mes);
+            $fecha_desde = $fecha->copy()->startOfMonth()->toDateString();
+            $fecha_hasta = $fecha->copy()->endOfMonth()->toDateString();
+            $fechaTexto = $fecha->locale('es')->translatedFormat('F Y');
+        } else {
+            $fecha_desde = $request->fecha_desde;
+            $fecha_hasta = $request->fecha_hasta;
+            $fechaTexto = Carbon::parse($fecha_desde)->format('d/m/Y') . ' al ' . Carbon::parse($fecha_hasta)->format('d/m/Y');
+        }
+
+        $tipoPaciente = $request->tipo_paciente;
+        $edadCondicion = $tipoPaciente == 'adulto' ? '>= 18' : '< 18';
+
+        $data = Cita::select(
+                'especialidades.nombre as especialidad',
+                DB::raw("COUNT(CASE WHEN citas.tipo_paciente = 'primera_vez' THEN 1 END) as primera_vez"),
+                DB::raw("COUNT(CASE WHEN citas.tipo_paciente = 'control' THEN 1 END) as sucesivas"),
+                DB::raw("COUNT(*) as total")
+            )
+            ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
+            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
+            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
+            ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
+            ->whereRaw("EXTRACT(YEAR FROM AGE(pacientes.fecha_nacimiento)) {$edadCondicion}")
+            ->whereIn('citas.estado', ['Atendida', 'Agendada'])
+            ->groupBy('especialidades.id', 'especialidades.nombre')
+            ->orderBy('especialidades.nombre')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'especialidad' => $item->especialidad,
+                    'primera_vez' => (int) $item->primera_vez,
+                    'sucesivas' => (int) $item->sucesivas,
+                    'total' => (int) $item->total,
+                ];
+            })
+            ->toArray();
+
+        $titulo = 'Movimiento de Consulta Externa - ' . ($tipoPaciente == 'adulto' ? 'Adultos' : 'Pediatría');
+
+        if ($request->has('excel')) {
+            return Excel::download(new MovimientoConsultasExport($data, $titulo, $tipoPaciente, $fechaTexto), 'movimiento_consultas.xlsx');
+        }
+
+        $membrete = $this->getMembreteBase64();
+        $pdf = Pdf::loadView('reportes.pdf.movimiento_consultas_pdf', compact('data', 'titulo', 'tipoPaciente', 'fechaTexto', 'membrete'));
+        return $pdf->stream('movimiento_consultas.pdf');
+    }
+
+    public function movimientoConsultasPdf(Request $request)
+    {
+        return $this->movimientoConsultas($request);
+    }
+
+    public function movimientoConsultasExcel(Request $request)
+    {
+        $request->merge(['excel' => true]);
+        return $this->movimientoConsultas($request);
     }
 }

@@ -81,21 +81,16 @@
             @endcomponent
         </div>
 
-        {{-- 2 --}}
+        {{-- Movimiento de Consultas --}}
         <div class="col-md-4">
             @component('reportes.card')
             @slot('card_title','Movimiento de Consultas')
-
             @slot('card_desc')
-            Reporte con Pacientes de Primera Consulta o Consulta Sucesiva por Mes.
+            Reporte con Pacientes de Primera Consulta o Consulta Sucesiva por rango de fechas.
             @endslot
-
             @slot('reporte_bs_target','#modalMovimientoConsultas')
-            
-            @slot('reporte_excel')
-            {{route('reportes.medicos_excel')}}
-            @endslot
-            
+            @slot('reporte_excel', '#')
+            @slot('excel_modal', true)
             @endcomponent
         </div>
 
@@ -162,6 +157,5 @@
 </div>
 
 @include('reportes.popups')
-
 @include('layouts.footer')
 @endsection

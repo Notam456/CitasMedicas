@@ -1,10 +1,9 @@
-    {{--1--}}
+    {{--1 Médicos y filtro de Especialidad--}}
     @component('reportes.modal')
     @slot('modal_id', 'modalMedicosEspecialidad')
     @slot('modal_title', 'Filtro por Especialidad')
     @slot('form_action', route('reportes.medicos_especialidad'))
     @slot('excel_action', route('reportes.medicos_especialidad_excel'))
-
     <div class="mb-3">
         <label for="especialidad_id" class="form-label">Especialidad</label>
         <select name="especialidad_id" id="especialidad_id" class="form-select">
@@ -16,25 +15,24 @@
     </div>
     @endcomponent
 
-    {{--2--}}
+    {{--2 Morbilidad (pendiente) --}}
     @component('reportes.modal')
-            @slot('modal_id', 'modalMorbilidad')
-            @slot('modal_title', 'Reporte de Morbilidad Mensual')
-            @slot('form_action', '#' /*route('reportes.morbilidad')*/)
-
-                <div class="mb-3">
-                    <label for="mes" class="form-label">Seleccione el Mes</label>
-                    <input type="month" name="mes" id="mes" class="form-control" required>
-                </div>
+        @slot('modal_id', 'modalMorbilidad')
+        @slot('modal_title', 'Reporte de Morbilidad Mensual')
+        @slot('form_action', '#')
+        <div class="mb-3">
+            <label for="mes" class="form-label">Seleccione el Mes</label>
+            <input type="month" name="mes" id="mes" class="form-control" required>
+        </div>
     @endcomponent
-    
-    {{--3--}}
+
+    {{--3 Procedencia de Pacientes --}}
     @component('reportes.modal')
     @slot('modal_id', 'modalProcedenciaPacientes')
     @slot('modal_title', 'Reporte de Procedencia de Pacientes')
     @slot('form_action', route('reportes.procedencia_pacientes_pdf'))
     @slot('excel_action', route('reportes.procedencia_pacientes_excel'))
-    
+
     <div class="mb-3">
         <label class="form-label">Tipo de rango</label>
         <div class="d-flex gap-3">
@@ -48,7 +46,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="mb-3" id="proc_div_mes">
         <label class="form-label">Seleccione el Mes</label>
         <div class="row">
@@ -57,7 +55,8 @@
                     <option value="">Mes</option>
                     @for($i = 1; $i <= 12; $i++)
                         <option value="{{ $i }}" {{ $i == date('n') ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::create()->month($i)->locale('es')->translatedFormat('F') }}</option>
+                            {{ \Carbon\Carbon::create()->month($i)->locale('es')->translatedFormat('F') }}
+                        </option>
                     @endfor
                 </select>
             </div>
@@ -66,7 +65,7 @@
                     <option value="">Año</option>
                     @php
                         $anioActual = date('Y');
-                        $anioInicio = date('Y') - 5;
+                        $anioInicio = $anioActual - 5;
                     @endphp
                     @for($i = $anioInicio; $i <= $anioActual + 5; $i++)
                         <option value="{{ $i }}" {{ $i == $anioActual ? 'selected' : '' }}>{{ $i }}</option>
@@ -76,7 +75,7 @@
         </div>
         <input type="hidden" name="mes" id="proc_mes_hidden">
     </div>
-    
+
     <div class="mb-3 d-none" id="proc_div_rango">
         <div class="row">
             <div class="col-md-6">
@@ -89,113 +88,208 @@
             </div>
         </div>
     </div>
-    
-    <script>
-        (function() {
-            document.addEventListener('DOMContentLoaded', function() {
-                const tipoMes = document.getElementById('proc_tipo_mes');
-                const tipoRango = document.getElementById('proc_tipo_rango');
-                const divMes = document.getElementById('proc_div_mes');
-                const divRango = document.getElementById('proc_div_rango');
-                const mesSelect = document.getElementById('proc_mes');
-                const anioSelect = document.getElementById('proc_anio');
-                const mesHidden = document.getElementById('proc_mes_hidden');
-                const fechaDesde = document.getElementById('proc_fecha_desde');
-                const fechaHasta = document.getElementById('proc_fecha_hasta');
-    
-                function actualizarHidden() {
-                    if (mesSelect.value && anioSelect.value) {
-                        mesHidden.value = anioSelect.value + '-' + String(mesSelect.value).padStart(2, '0');
-                    } else {
-                        mesHidden.value = '';
-                    }
-                }
-    
-                mesSelect.addEventListener('change', actualizarHidden);
-                anioSelect.addEventListener('change', actualizarHidden);
-    
-                function actualizarRequired() {
-                    if (tipoMes.checked) {
-                        divMes.classList.remove('d-none');
-                        divRango.classList.add('d-none');
-                        mesSelect.setAttribute('required', 'required');
-                        anioSelect.setAttribute('required', 'required');
-                        fechaDesde.removeAttribute('required');
-                        fechaHasta.removeAttribute('required');
-                        actualizarHidden();
-                    } else {
-                        divMes.classList.add('d-none');
-                        divRango.classList.remove('d-none');
-                        mesSelect.removeAttribute('required');
-                        anioSelect.removeAttribute('required');
-                        fechaDesde.setAttribute('required', 'required');
-                        fechaHasta.setAttribute('required', 'required');
-                    }
-                }
-    
-                tipoMes.addEventListener('change', actualizarRequired);
-                tipoRango.addEventListener('change', actualizarRequired);
-    
-                actualizarRequired();
+    @endcomponent
+
+    {{--4 25 Causas Principales (pendiente) --}}
+    @component('reportes.modal')
+        @slot('modal_id', 'modal25CausasPrincipales')
+        @slot('modal_title', 'Mes')
+        @slot('form_action', '#')
+        <div class="mb-3">
+            <label class="form-label">En proceso</label>
+        </div>
+    @endcomponent
+
+    {{--5 Movimiento de Consultas --}}
+    @component('reportes.modal')
+    @slot('modal_id', 'modalMovimientoConsultas')
+    @slot('modal_title', 'Movimiento de Consulta Externa por Mes')
+    @slot('form_action', route('reportes.movimiento_consultas_pdf'))
+    @slot('excel_action', route('reportes.movimiento_consultas_excel'))
+
+    <div class="mb-3">
+        <label class="form-label">Tipo de paciente</label>
+        <div class="d-flex gap-3">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipo_paciente" id="mov_tipo_adulto" value="adulto" checked>
+                <label class="form-check-label" for="mov_tipo_adulto">Adultos (≥18 años)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipo_paciente" id="mov_tipo_pediatria" value="pediatria">
+                <label class="form-check-label" for="mov_tipo_pediatria">Pediatría (<18 años)</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Tipo de rango</label>
+        <div class="d-flex gap-3">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipo_rango" id="mov_tipo_mes" value="mes" checked>
+                <label class="form-check-label" for="mov_tipo_mes">Mes específico</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipo_rango" id="mov_tipo_rango" value="rango">
+                <label class="form-check-label" for="mov_tipo_rango">Rango de fechas</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3" id="mov_div_mes">
+        <label class="form-label">Seleccione el Mes</label>
+        <div class="row">
+            <div class="col-md-6">
+                <select id="mov_mes" class="form-select" required>
+                    <option value="">Mes</option>
+                    @for($i = 1; $i <= 12; $i++)
+                        <option value="{{ $i }}" {{ $i == date('n') ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::create()->month($i)->locale('es')->translatedFormat('F') }}
+                        </option>
+                    @endfor
+                </select>
+            </div>
+            <div class="col-md-6">
+                <select id="mov_anio" class="form-select" required>
+                    <option value="">Año</option>
+                    @php
+                        $anioActual = date('Y');
+                        $anioInicio = $anioActual - 5;
+                    @endphp
+                    @for($i = $anioInicio; $i <= $anioActual + 5; $i++)
+                        <option value="{{ $i }}" {{ $i == $anioActual ? 'selected' : '' }}>{{ $i }}</option>
+                    @endfor
+                </select>
+            </div>
+        </div>
+        <input type="hidden" name="mes" id="mov_mes_hidden">
+    </div>
+
+    <div class="mb-3 d-none" id="mov_div_rango">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="mov_fecha_desde" class="form-label">Fecha desde</label>
+                <input type="date" name="fecha_desde" id="mov_fecha_desde" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label for="mov_fecha_hasta" class="form-label">Fecha hasta</label>
+                <input type="date" name="fecha_hasta" id="mov_fecha_hasta" class="form-control">
+            </div>
+        </div>
+    </div>
+    @endcomponent
+
+    {{--6 Movimiento Consulta Aro (pendiente) --}}
+    @component('reportes.modal')
+        @slot('modal_id', 'modalMovimientoConsultaAro')
+        @slot('modal_title', 'Rango de Fecha Consultas Aro')
+        @slot('form_action', '#')
+        <div class="mb-3">
+            <label for="mes" class="form-label">Seleccione el Mes</label>
+            <input type="month" name="mes" id="mes" class="form-control" required>
+        </div>
+    @endcomponent
+
+    {{--7 Inasistencia Pacientes (pendiente) --}}
+    @component('reportes.modal')
+        @slot('modal_id', 'modalPacienteInasistencia')
+        @slot('modal_title', 'Mes')
+        @slot('form_action', '#')
+        <div class="mb-3">
+            <label class="form-label">En proceso</label>
+        </div>
+    @endcomponent
+
+    {{--8 Inasistencia Médicos (pendiente) --}}
+    @component('reportes.modal')
+        @slot('modal_id', 'modalMedicoInasistencia')
+        @slot('modal_title', 'Mes')
+        @slot('form_action', '#')
+        <div class="mb-3">
+            <label for="mes" class="form-label">Seleccione el Mes</label>
+            <input type="month" name="mes" id="mes" class="form-control" required>
+        </div>
+    @endcomponent
+
+<script>
+    function initRangoFechas(config) {
+        const tipoMes = document.getElementById(config.tipoMesId);
+        const tipoRango = document.getElementById(config.tipoRangoId);
+        const divMes = document.getElementById(config.divMesId);
+        const divRango = document.getElementById(config.divRangoId);
+        const mesSelect = document.getElementById(config.mesSelectId);
+        const anioSelect = document.getElementById(config.anioSelectId);
+        const mesHidden = document.getElementById(config.mesHiddenId);
+        const fechaDesde = document.getElementById(config.fechaDesdeId);
+        const fechaHasta = document.getElementById(config.fechaHastaId);
+
+        function actualizarHidden() {
+            if (mesSelect && anioSelect && mesSelect.value && anioSelect.value) {
+                mesHidden.value = anioSelect.value + '-' + String(mesSelect.value).padStart(2, '0');
+            } else if (mesHidden) {
+                mesHidden.value = '';
+            }
+        }
+
+        if (mesSelect && anioSelect) {
+            mesSelect.addEventListener('change', actualizarHidden);
+            anioSelect.addEventListener('change', actualizarHidden);
+        }
+
+        function actualizarRequired() {
+            if (tipoMes.checked) {
+                divMes.classList.remove('d-none');
+                divRango.classList.add('d-none');
+                if (mesSelect) mesSelect.setAttribute('required', 'required');
+                if (anioSelect) anioSelect.setAttribute('required', 'required');
+                if (fechaDesde) fechaDesde.removeAttribute('required');
+                if (fechaHasta) fechaHasta.removeAttribute('required');
                 actualizarHidden();
+            } else {
+                divMes.classList.add('d-none');
+                divRango.classList.remove('d-none');
+                if (mesSelect) mesSelect.removeAttribute('required');
+                if (anioSelect) anioSelect.removeAttribute('required');
+                if (fechaDesde) fechaDesde.setAttribute('required', 'required');
+                if (fechaHasta) fechaHasta.setAttribute('required', 'required');
+            }
+        }
+
+        tipoMes.addEventListener('change', actualizarRequired);
+        tipoRango.addEventListener('change', actualizarRequired);
+
+        actualizarRequired();
+        actualizarHidden();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Procedencia de Pacientes
+        if (document.getElementById('proc_tipo_mes')) {
+            initRangoFechas({
+                tipoMesId: 'proc_tipo_mes',
+                tipoRangoId: 'proc_tipo_rango',
+                divMesId: 'proc_div_mes',
+                divRangoId: 'proc_div_rango',
+                mesSelectId: 'proc_mes',
+                anioSelectId: 'proc_anio',
+                mesHiddenId: 'proc_mes_hidden',
+                fechaDesdeId: 'proc_fecha_desde',
+                fechaHastaId: 'proc_fecha_hasta'
             });
-        })();
-    </script>
-    @endcomponent
-    {{--4--}}
-    @component('reportes.modal')
-            @slot('modal_id', 'modal25CausasPrincipales')
-            @slot('modal_title', 'Mes')
-            @slot('form_action',/* route('reportes.medicos_especialidad')*/)
+        }
 
-            <div class="mb-3">
-                <label for="especialidad_id" class="form-label">En proceso</label>
-            </div>
-    @endcomponent
-
-    {{--5--}}
-    @component('reportes.modal')
-            @slot('modal_id', 'modalMovimientoConsultas')
-            @slot('modal_title', 'Movimiento Mensual de Consultas')
-            @slot('form_action', '#' /*route('reportes.morbilidad')*/)
-
-                <div class="mb-3">
-                    <label for="mes" class="form-label">Seleccione el Mes</label>
-                    <input type="month" name="mes" id="mes" class="form-control" required>
-                </div>
-    @endcomponent
-
-    {{--6--}}
-    @component('reportes.modal')
-            @slot('modal_id', 'modalMovimientoConsultaAro')
-            @slot('modal_title', 'Rango de Fecha Consultas Aro')
-            @slot('form_action', '#' /*route('reportes.morbilidad')*/)
-
-                <div class="mb-3">
-                    <label for="mes" class="form-label">Seleccione el Mes</label>
-                    <input type="month" name="mes" id="mes" class="form-control" required>
-                </div>
-    @endcomponent
-
-    {{--7--}}
-    @component('reportes.modal')
-            @slot('modal_id', 'modalPacienteInasistencia')
-            @slot('modal_title', 'Mes')
-            @slot('form_action',/* route('reportes.medicos_especialidad')*/)
-
-            <div class="mb-3">
-                <label for="especialidad_id" class="form-label">En proceso</label>
-            </div>
-    @endcomponent
-
-    {{--8--}}
-    @component('reportes.modal')
-            @slot('modal_id', 'modalMedicoInasistencia')
-            @slot('modal_title', 'Mes')
-            @slot('form_action', '#' /*route('reportes.morbilidad')*/)
-
-                <div class="mb-3">
-                    <label for="mes" class="form-label">Seleccione el Mes</label>
-                    <input type="month" name="mes" id="mes" class="form-control" required>
-                </div>
-    @endcomponent
+        // Movimiento de Consultas
+        if (document.getElementById('mov_tipo_mes')) {
+            initRangoFechas({
+                tipoMesId: 'mov_tipo_mes',
+                tipoRangoId: 'mov_tipo_rango',
+                divMesId: 'mov_div_mes',
+                divRangoId: 'mov_div_rango',
+                mesSelectId: 'mov_mes',
+                anioSelectId: 'mov_anio',
+                mesHiddenId: 'mov_mes_hidden',
+                fechaDesdeId: 'mov_fecha_desde',
+                fechaHastaId: 'mov_fecha_hasta'
+            });
+        }
+    });
+</script>
