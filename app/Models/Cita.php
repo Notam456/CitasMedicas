@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Cita extends Model
 {
     protected $table = 'citas';
-    
+
     public $timestamps = true;
 
     protected $fillable = [
@@ -48,10 +48,17 @@ class Cita extends Model
     {
         return $this->hasOneThrough(Medico::class, Calendario::class, 'id', 'id', 'calendario_id', 'medico_id');
     }
-    
+
     public function especialidad()
     {
-        return $this->medico()->especialidad();
+        return $this->hasOneThrough(
+            Especialidad::class,
+            Calendario::class,
+            'id',             
+            'id',             
+            'calendario_id',  
+            'medico_id'      
+        );
     }
 
     // Nuevas relaciones
@@ -72,8 +79,8 @@ class Cita extends Model
 
     public function medicamentos()
     {
-        return $this->belongsToMany(Medicamento::class, 'cita_tratamiento')
-                    ->withPivot('dosis', 'duracion', 'indicaciones')
-                    ->withTimestamps();
+        return $this->belongsToMany(Medicamento::class, 'cita_tratamientos')
+            ->withPivot('dosis', 'duracion', 'indicaciones')
+            ->withTimestamps();
     }
 }

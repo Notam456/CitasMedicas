@@ -36,7 +36,7 @@ return new class extends Migration
         });
 
         // 5. Crear tabla cita_tratamiento (cita - medicamentos)
-        Schema::create('cita_tratamiento', function (Blueprint $table) {
+        Schema::create('cita_tratamientos', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('cita_id');
             $table->unsignedBigInteger('medicamento_id');

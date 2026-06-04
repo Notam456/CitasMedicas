@@ -10,7 +10,7 @@ class Medicamento extends Model
 
     public function citas()
     {
-        return $this->belongsToMany(Cita::class, 'cita_tratamiento')
+        return $this->belongsToMany(Cita::class, 'cita_tratamientos')
                     ->withPivot('dosis', 'duracion', 'indicaciones')
                     ->withTimestamps();
     }
