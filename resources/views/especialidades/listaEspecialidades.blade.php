@@ -110,26 +110,41 @@
     </div>
 
     @include('layouts.footer')
-    @endsection
+@endsection
 
-    @push('scripts')
-        <link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
-        <script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
+@push('scripts')
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
+    <script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
 
-        <script>
+    <script>
         $(document).ready(function() {
             $('#tablaEspecialidades').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route("especialidades.index") }}',
-                columns: [
-                    { data: 0, name: 'nombre' },
-                    { data: 1, name: 'action', orderable: false, searchable: false, className: 'text-end' }
+                ajax: '{{ route('especialidades.index') }}',
+                columns: [{
+                        data: 0,
+                        name: 'nombre'
+                    },
+                    {
+                        data: 1,
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-end'
+                    }
                 ],
-                language: { url: "{{ asset('vendor/datatables/es-ES.json') }}" },
+                language: {
+                    url: "{{ asset('vendor/datatables/es-ES.json') }}"
+                },
                 pageLength: 10,
-                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todas"]],
-                order: [[0, 'asc']]
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, "Todas"]
+                ],
+                order: [
+                    [0, 'asc']
+                ]
             });
         });
 
@@ -139,39 +154,46 @@
             if (btnEdit) {
                 const id = btnEdit.dataset.id;
                 try {
-                    const res = await fetch(`/especialidades/${id}/edit`, { headers: { 'Accept': 'application/json' } });
+                    const res = await fetch(`/especialidades/${id}/edit`, {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
                     const data = await res.json();
                     document.getElementById('id').value = data.id;
                     document.getElementById('editarNombreEspecialidad').value = data.nombre;
-                    document.getElementById('modalEditarEspecialidad').querySelector('form').action = `/especialidades/${data.id}`;
+                    document.getElementById('modalEditarEspecialidad').querySelector('form').action =
+                        `/especialidades/${data.id}`;
                     new bootstrap.Modal(document.getElementById('modalEditarEspecialidad')).show();
-                } catch { Swal.fire('Error', 'No se pudo cargar', 'error'); }
+                } catch {
+                    Swal.fire('Error', 'No se pudo cargar', 'error');
+                }
             }
             if (btnShow) {
                 const id = btnShow.dataset.id;
                 try {
-                    const res = await fetch(`/especialidades/${id}/show`, { headers: { 'Accept': 'application/json' } });
+                    const res = await fetch(`/especialidades/${id}/show`, {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
                     const data = await res.json();
                     document.getElementById('mostrarEspecialidadNombre').innerText = data.nombre;
                     new bootstrap.Modal(document.getElementById('modalShowEspecialidad')).show();
-                } catch { Swal.fire('Error', 'No se pudo cargar', 'error'); }
+                } catch {
+                    Swal.fire('Error', 'No se pudo cargar', 'error');
+                }
             }
         });
 
         @if ($errors->any())
-        document.addEventListener('DOMContentLoaded', function() {
-            let errorMessages = '';
-            @foreach ($errors->all() as $error)
-                errorMessages += '• {{ $error }}\n';
-            @endforeach
-            Swal.fire({
-                icon: 'error',
-                title: '¡Ups! Algo salió mal',
-                text: errorMessages,
-                confirmButtonColor: '#3085d6',
-                confirmButtonText: 'Entendido'
-            });
-        });
+            const errorMessages = @json(implode("\n", $errors->all()));
+
+    Swal.fire({ 
+        icon: 'error', 
+        title: 'Error', 
+        text: errorMessages 
+    });
         @endif
-        </script>
-    @endpush
+    </script>
+@endpush
