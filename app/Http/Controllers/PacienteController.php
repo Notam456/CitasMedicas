@@ -108,11 +108,18 @@ class PacienteController extends Controller
      */
     public function store(Request $request)
     {
+
+        if ($request->has(['cedula_tipo', 'cedula'])) {
+            $request->merge([
+                'cedula_completa' => $request->cedula_tipo . '-' . $request->cedula
+            ]);
+        }
         $request->validate([
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
             'cedula_tipo' => 'required|in:V,E',
-            'cedula' => 'required|string|min:7|max:20|unique:pacientes,cedula',
+            'cedula' => 'required|string|min:7|max:20',
+            'cedula_completa'  => 'required|string|unique:pacientes,cedula',
             'rif' => 'required|string|max:20',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'required|string|min:7|max:15',
@@ -121,7 +128,7 @@ class PacienteController extends Controller
         ]);
 
         Paciente::create([
-            'cedula' => $request->cedula_tipo . '-' . $request->cedula,
+            'cedula' => $request->cedula_completa,
             'rif' => 'J-' . $request->rif,
             'nombre' => $request->nombre,
             'apellido' => $request->apellido,
@@ -159,11 +166,17 @@ class PacienteController extends Controller
      */
     public function update(Request $request, int $id)
     {
+        if ($request->has(['cedula_tipo', 'cedula'])) {
+            $request->merge([
+                'cedula_completa' => $request->cedula_tipo . '-' . $request->cedula
+            ]);
+        }
         $request->validate([
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
             'cedula_tipo' => 'required|in:V,E',
-            'cedula' => 'required|string|min:7|max:20|unique:pacientes,cedula,' . $id,
+            'cedula_completa'  => 'required|string|unique:pacientes,cedula,' . $id,
+            'cedula' => 'required|string|min:7|max:20',
             'rif' => 'required|string|max:20',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'required|string|min:7|max:15',
@@ -173,7 +186,7 @@ class PacienteController extends Controller
 
         $paciente = Paciente::findOrFail($id);
         $paciente->update([
-            'cedula' => $request->cedula_tipo . '-' . $request->cedula,
+            'cedula' => $request->cedula_completa,
             'rif' => 'J-' . $request->rif,
             'nombre' => $request->nombre,
             'apellido' => $request->apellido,

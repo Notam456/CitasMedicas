@@ -33,8 +33,8 @@
                         <label class="form-check-label" for="exampleCheck1">Recuérdame</label>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary py-3 w-100 mb-4">Iniciar Sesión</button>
-                <p class="text-center mb-0">¿No te has registrado? <a href="{{ route('signup') }}">Regístrate</a></p>
+                <!--<button type="submit" class="btn btn-primary py-3 w-100 mb-4">Iniciar Sesión</button>
+                <p class="text-center mb-0">¿No te has registrado? <a href="{{ route('signup') }}">Regístrate</a></p> -->
                 </form>
             </div>
         </div>

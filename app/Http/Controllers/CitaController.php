@@ -242,10 +242,10 @@ class CitaController extends Controller
             'apellido' => 'required|string|max:255',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'required|string|min:7|max:15',
-            'parroquia_id' => 'required|numeric',
+            'parroquia_id' => 'required|numeric|exists:parroquias,id',
             'direccion' => 'nullable|string|max:255',
             // Datos de la cita
-            'calendario_id' => 'required|numeric',
+            'calendario_id' => 'required|numeric|exists:calendarios,id',
             'fecha_cita' => 'required|date|after_or_equal:today',
             'observacion' => 'nullable|string',
             'especialidad_id' => 'required|exists:especialidades,id',
@@ -254,6 +254,28 @@ class CitaController extends Controller
 
         try {
             DB::beginTransaction();
+
+            $calendario = Calendario::lockForUpdate()->findOrFail($request->calendario_id);
+            if ($calendario->fecha !== $request->fecha_cita) {
+                DB::rollBack();
+                Alert::error('Error de Coherencia', 'La fecha seleccionada no coincide con la planificación del médico.');
+                return redirect()->back()->withInput();
+            }
+
+            $ocupados = Cita::where('calendario_id', $calendario->id)
+                ->where('tipo_paciente', $request->tipo_paciente)
+                ->whereIn('estado', ['Agendada', 'Atendida'])
+                ->count();
+
+            $capacidad_maxima = ($request->tipo_paciente === 'primera_vez')
+            ? $calendario->cupos_primera_vez
+            : $calendario->cupos_sucesivos;
+
+            if ($ocupados >= $capacidad_maxima) {
+                DB::rollBack();
+                Alert::error('Sin Cupos', 'Lo sentimos, los cupos para este día se acaban de agotar.');
+                return redirect()->back()->withInput();
+            }
 
             $cedulaCompleta = $request->cedula_tipo . '-' . $request->cedula;
             $rifCompleto = 'J-' . $request->rif;
