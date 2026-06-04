@@ -9,7 +9,7 @@ class Paciente extends Model
 
     public function citas()
     {
-        return $this->hasMany(Cita::class, 'id_paciente');
+        return $this->hasMany(Cita::class, 'paciente_id');
     }
 
     public function parroquia()
@@ -19,7 +19,7 @@ class Paciente extends Model
 
     public function Expediente()
     {
-        return $this->hasOne(Expediente::class, 'id_paciente');
+        return $this->hasOne(Expediente::class, 'paciente_id');
     }
 
     protected $fillable = ['nombre', 'apellido', 'cedula', 'rif', 'fecha_nacimiento', 'telefono', 'parroquia_id', 'direccion'];
