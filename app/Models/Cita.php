@@ -19,6 +19,7 @@ class Cita extends Model
         'estado',
         'tipo_paciente',
         'observacion',
+        'reagendada_contador',
         'diagnostico_libre',
         'atendido_por',
     ];

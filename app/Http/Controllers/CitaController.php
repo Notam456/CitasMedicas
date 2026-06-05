@@ -21,20 +21,20 @@ class CitaController extends Controller
      */
     public function index(Request $request)
     {
-      
+
         if ($request->ajax() && $request->has('draw')) {
             return $this->dataTableResponse($request);
         }
 
-       
-        $title = '¿Estas seguro de que deseas eliminar esta cita?';
-        $texrt = 'Esta acción no se puede deshacer.';
+
+        $title = '¿Estas seguro de que deseas cancelar esta cita?';
+        $texrt = 'La cita será marcada como cancelada.';
         confirmDelete($title, $texrt);
 
         return view('Cita.index');
     }
 
-    
+
     private function buildBaseQuery(Request $request)
     {
         return Cita::query()
@@ -45,7 +45,6 @@ class CitaController extends Controller
             ->select(
                 'citas.id',
                 'citas.fecha_cita',
-                'citas.fecha_registro',
                 'citas.tipo_paciente',
                 'citas.estado',
                 'pacientes.nombre as paciente_nombre',
@@ -57,15 +56,15 @@ class CitaController extends Controller
             );
     }
 
-    
+
     private function dataTableResponse(Request $request)
     {
         $query = $this->buildBaseQuery($request);
 
-       
+
         $totalRecords = $query->count();
 
-      
+
         if ($search = $request->get('search')['value']) {
             $query->where(function ($q) use ($search) {
                 $q->where('pacientes.nombre', 'ILIKE', "%{$search}%")
@@ -79,10 +78,15 @@ class CitaController extends Controller
             });
         }
 
-      
+
         $filteredRecords = $query->count();
 
-      
+
+        if ($fechaFiltro = $request->fecha_filtro) {
+            $query->whereDate('citas.fecha_cita', $fechaFiltro);
+        }
+
+
         $orderColumn = $request->get('order')[0]['column'] ?? 4;
         $orderDir = $request->get('order')[0]['dir'] ?? 'desc';
 
@@ -92,9 +96,8 @@ class CitaController extends Controller
             2 => 'medicos.nombre',
             3 => 'especialidades.nombre',
             4 => 'citas.fecha_cita',
-            5 => 'citas.fecha_registro',
-            6 => 'citas.tipo_paciente',
-            7 => 'citas.estado',
+            5 => 'citas.tipo_paciente',
+            6 => 'citas.estado',
         ];
 
         if (isset($columns[$orderColumn])) {
@@ -103,12 +106,12 @@ class CitaController extends Controller
             $query->orderBy('citas.fecha_cita', 'desc');
         }
 
-       
+
         $start = $request->get('start', 0);
         $length = $request->get('length', 10);
         $data = $query->skip($start)->take($length)->get();
 
-       
+
         $dataFormatted = [];
         foreach ($data as $row) {
 
@@ -117,19 +120,28 @@ class CitaController extends Controller
                 ? '<span class="badge bg-info">Primera vez</span>'
                 : '<span class="badge bg-warning">Control</span>';
 
-        
+
             if ($row->estado == 'Agendada') {
                 $estadoBadge = '<span class="badge bg-success">Agendada</span>';
             } elseif ($row->estado == 'Atendida') {
                 $estadoBadge = '<span class="badge bg-primary">Atendida</span>';
+            } elseif ($row->estado == 'Cancelada') {
+                $estadoBadge = '<span class="badge bg-danger">Cancelada</span>';
             } else {
                 $estadoBadge = '<span class="badge bg-secondary">'.e($row->estado).'</span>';
             }
 
-           
-            $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
-            $btnDelete = '<a href="'.route('Citas.destroy', $row->id).'" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
-            $accionesHtml = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnDelete.'</div>';
+
+            if ($row->estado == 'Cancelada') {
+                $accionesHtml = '<div class="hstack gap-2 justify-content-end"><span class="text-muted small">—</span></div>';
+            } else {
+                $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
+                $btnReagendar = $row->estado == 'Agendada'
+                    ? '<a href="'.route('Citas.edit', $row->id).'" class="btn btn-xs btn-square btn-neutral text-info-hover border-info-hover" title="Reagendar"><i class="bi bi-calendar2-week"></i></a>'
+                    : '';
+                $btnDelete = '<a href="'.route('Citas.destroy', $row->id).'" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
+                $accionesHtml = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnReagendar.$btnDelete.'</div>';
+            }
 
             $dataFormatted[] = [
                 $row->paciente_nombre.' '.$row->paciente_apellido,
@@ -137,7 +149,6 @@ class CitaController extends Controller
                 'Dr. '.$row->medico_nombre.' '.$row->medico_apellido,
                 $row->especialidad_nombre,
                 Carbon::parse($row->fecha_cita)->format('d/m/Y'),
-                Carbon::parse($row->fecha_registro)->format('d/m/Y'),
                 $tipoPacienteBadge,
                 $estadoBadge,
                 $accionesHtml,
@@ -178,6 +189,7 @@ class CitaController extends Controller
             $calendarios = Calendario::where('medico_id', $medico_id)
                 ->whereYear('fecha', $anio)
                 ->whereMonth('fecha', $mes)
+                ->whereDate('fecha', '>=', now()->toDateString())
                 ->get();
 
             // 2. Mapear y calcular cupos libres
@@ -223,7 +235,9 @@ class CitaController extends Controller
     {
         $request->validate([
             // Datos del paciente
-            'cedula' => 'required|string|min:8|max:20',
+            'cedula_tipo' => 'required|in:V,E',
+            'cedula' => 'required|string|min:7|max:20',
+            'rif' => 'required|string|max:20',
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
             'fecha_nacimiento' => 'required|date',
@@ -233,7 +247,7 @@ class CitaController extends Controller
             'sexo' => 'required|in:Masculino,Femenino',
             // Datos de la cita
             'calendario_id' => 'required|numeric',
-            'fecha_cita' => 'required|date',
+            'fecha_cita' => 'required|date|after_or_equal:today',
             'observacion' => 'nullable|string',
             'especialidad_id' => 'required|exists:especialidades,id',
             'tipo_paciente' => 'required|string|in:primera_vez,control',
@@ -242,9 +256,13 @@ class CitaController extends Controller
         try {
             DB::beginTransaction();
 
-            $paciente = Paciente::updateOrCreate(
-                ['cedula' => $request->cedula],
+            $cedulaCompleta = $request->cedula_tipo . '-' . $request->cedula;
+            $rifCompleto = 'J-' . $request->rif;
+
+            $paciente = Paciente::firstOrCreate(
+                ['cedula' => $cedulaCompleta],
                 [
+                    'rif' => $rifCompleto,
                     'nombre' => $request->nombre,
                     'apellido' => $request->apellido,
                     'fecha_nacimiento' => $request->fecha_nacimiento,
@@ -283,9 +301,10 @@ class CitaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Cita $cita)
+    public function show(int $id)
     {
-        //
+        $cita = Cita::with('paciente', 'calendario.medico.especialidad')->findOrFail($id);
+        return response()->json($cita);
     }
 
     /**
@@ -293,7 +312,20 @@ class CitaController extends Controller
      */
     public function edit(Cita $cita)
     {
-        //
+        if (trim($cita->estado) !== 'Agendada') {
+            Alert::error('Error', 'Solo se pueden reagendar citas con estado "Agendada".');
+            return redirect()->route('Citas.index');
+        }
+
+        if ($cita->reagendada_contador >= 2) {
+            Alert::error('Límite alcanzado', 'Esta cita ya ha sido reagendada el máximo de 2 veces.');
+            return redirect()->route('Citas.index');
+        }
+
+        $cita->load('paciente', 'calendario.medico.especialidad');
+        $especialidades = Especialidad::all();
+
+        return view('Cita.Editcita', compact('cita', 'especialidades'));
     }
 
     /**
@@ -301,7 +333,31 @@ class CitaController extends Controller
      */
     public function update(Request $request, Cita $cita)
     {
-        //
+        if (trim($cita->estado) !== 'Agendada') {
+            Alert::error('Error', 'Solo se pueden reagendar citas agendadas.');
+            return redirect()->route('Citas.index');
+        }
+
+        if ($cita->reagendada_contador >= 2) {
+            Alert::error('Límite alcanzado', 'Esta cita ya ha sido reagendada el máximo de 2 veces.');
+            return redirect()->route('Citas.index');
+        }
+
+        $request->validate([
+            'calendario_id' => 'required|numeric|exists:calendarios,id',
+            'fecha_cita' => 'required|date|after_or_equal:today',
+            'observacion' => 'nullable|string',
+        ]);
+
+        $cita->update([
+            'calendario_id' => $request->calendario_id,
+            'fecha_cita' => $request->fecha_cita,
+            'observacion' => $request->observacion,
+            'reagendada_contador' => $cita->reagendada_contador + 1,
+        ]);
+
+        Alert::success('¡Éxito!', 'Cita reagendada correctamente.');
+        return redirect()->route('Citas.index');
     }
 
     /**
@@ -309,6 +365,8 @@ class CitaController extends Controller
      */
     public function destroy(Cita $cita)
     {
-        //
+        $cita->update(['estado' => 'Cancelada']);
+        Alert::success('¡Éxito!', 'Cita cancelada correctamente.');
+        return redirect()->route('Citas.index');
     }
 }
