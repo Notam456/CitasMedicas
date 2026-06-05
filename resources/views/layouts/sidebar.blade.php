@@ -46,20 +46,23 @@
             <a href="{{ route('calendario.index') }}" class="nav-item nav-link"><i class="bi bi-calendar-event-fill me-2"></i>Planificación</a>
             @endcan
 
-            @can('Citas')
+            @canany(['Citas', 'Morbilidad'])
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-calendar-check-fill me-2"></i>Citas</a>
                 <div class="dropdown-menu bg-transparent border-0">
+                    @can('Citas')
                     <a href="{{ route('Citas.create') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-plus-circle me-2"></i>Agendar Citas</a>
                     <a href="{{ route('Citas.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-list-check me-2"></i>Citas Agendadas</a>
+                    @endcan
+                    @can('Morbilidad')
                     <a href="{{ route('morbilidad.pendientes') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-person-check-fill me-2"></i>Atender Citas</a>
                     <a href="{{ route('diagnosticos.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-check2-all me-2"></i>Citas Atendidas</a>
-                    @can('Morbilidad')
+                    
                     <a href="{{ route('morbilidad.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-file-earmark-text me-2"></i>Reporte de Citas</a>
                     @endcan
                 </div>
             </div>
-            @endcan
+            @endcanany
 
             @can('Reportes')
             <a href="{{route('reportes.index')}}" class="nav-link nav-item"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Reportes</a>
