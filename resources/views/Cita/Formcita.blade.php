@@ -70,6 +70,20 @@
                     @enderror
                 </div>
 
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Sexo</label>
+                    <div class="d-flex gap-3 pt-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="sexo" id="input_sexo_m" value="Masculino">
+                            <label class="form-check-label" for="input_sexo_m">Masculino</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="sexo" id="input_sexo_f" value="Femenino">
+                            <label class="form-check-label" for="input_sexo_f">Femenino</label>
+                        </div>
+                    </div>
+                </div>
+
                 <h6 class="text-secondary border-bottom pb-2">Ubicación del Paciente</h6>
                     
                 <!-- Estado -->
@@ -217,6 +231,12 @@
                     document.getElementById('input_telefono').value = data.datos.telefono;
                     document.getElementById('input_direccion').value = data.datos.direccion;
 
+                    if (data.datos.sexo === 'Masculino') {
+                        document.getElementById('input_sexo_m').checked = true;
+                    } else if (data.datos.sexo === 'Femenino') {
+                        document.getElementById('input_sexo_f').checked = true;
+                    }
+
                     const p = data.datos.parroquia;
                     const m = p.municipio;
                     const e = m.estado;
@@ -253,6 +273,8 @@
                     document.getElementById('input_fecha').value = '';
                     document.getElementById('input_telefono').value = '';
                     document.getElementById('input_direccion').value = '';
+                    document.getElementById('input_sexo_m').checked = false;
+                    document.getElementById('input_sexo_f').checked = false;
                     
                     document.getElementById('select-estado').value = '';
                     document.getElementById('select-estado').disabled = false;

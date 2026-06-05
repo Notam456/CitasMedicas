@@ -9,6 +9,9 @@
     <div class="table-responsive bg-light rounded h-100 p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="mb-0">Lista de Pacientes</h3>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearPaciente">
+                <i class="bi bi-person-plus me-1"></i> Registrar Paciente
+            </button>
         </div>
 
         <table class="table table-hover" id="tablaPacientes">
@@ -23,6 +26,110 @@
             </thead>
             <tbody></tbody>
         </table>
+    </div>
+
+    <!-- Modal Crear Paciente -->
+    <div class="modal fade" id="modalCrearPaciente" tabindex="-1" aria-labelledby="modalCrearPacienteLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalCrearPacienteLabel">Registrar Paciente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form action="{{ route('paciente.store') }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="cedula" placeholder="Cédula del paciente" required>
+                                    <label for="cedula">Cédula</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3 d-none d-md-block"></div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="nombre" placeholder="Nombres del paciente" required>
+                                    <label for="nombre">Nombres</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="apellido" placeholder="Apellidos del paciente" required>
+                                    <label for="apellido">Apellidos</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" name="fecha_nacimiento" placeholder="Fecha de nacimiento" required>
+                                    <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="telefono" placeholder="Teléfono del paciente" required>
+                                    <label for="telefono">Teléfono</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted small fw-bold">Sexo</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="sexo" id="crearSexoM" value="Masculino" required>
+                                        <label class="form-check-label" for="crearSexoM">Masculino</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="sexo" id="crearSexoF" value="Femenino">
+                                        <label class="form-check-label" for="crearSexoF">Femenino</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3"></div>
+
+                            <div class="col-12">
+                                <h6 class="text-secondary border-bottom pb-2 mt-2">Ubicación del Paciente</h6>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">Estado</label>
+                                <select class="form-select select-estado-create">
+                                    <option value="">Seleccione Estado</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">Municipio</label>
+                                <select class="form-select select-municipio-create">
+                                    <option value="">Seleccione Municipio</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">Parroquia</label>
+                                <select name="parroquia_id" class="form-select select-parroquia-create" required>
+                                    <option value="">Seleccione Parroquia</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="direccion" placeholder="Dirección del paciente">
+                                    <label for="direccion">Dirección exacta</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Registrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Editar Paciente (sin cambios estructurales) -->
@@ -93,6 +200,21 @@
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted small fw-bold">Sexo</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="sexo" id="editarSexoM" value="Masculino">
+                                        <label class="form-check-label" for="editarSexoM">Masculino</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="sexo" id="editarSexoF" value="Femenino">
+                                        <label class="form-check-label" for="editarSexoF">Femenino</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3"></div>
 
                             <div class="col-12">
                                 <h6 class="text-secondary border-bottom pb-2 mt-2">Ubicación del Paciente</h6>
@@ -177,6 +299,12 @@
                             <label class="fw-bold">Teléfono</label>
                             <p class="form-control" id="mostrarTelefonoPaciente"></p>
                         </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Sexo</label>
+                            <p class="form-control" id="mostrarSexoPaciente"></p>
+                        </div>
+                        <div class="col-md-6 mb-3"></div>
 
                         <div class="col-md-6 mb-3">
                             <label class="fw-bold">Estado</label>
@@ -319,6 +447,12 @@ document.addEventListener('click', async function(event) {
             inputDireccion.disabled = false;
             inputDireccion.value = data.direccion;
 
+            if (data.sexo === 'Masculino') {
+                document.getElementById('editarSexoM').checked = true;
+            } else if (data.sexo === 'Femenino') {
+                document.getElementById('editarSexoF').checked = true;
+            }
+
             selectEstado.disabled = false;
 
             if (data.parroquia && data.parroquia.municipio) {
@@ -376,6 +510,7 @@ document.addEventListener('click', async function(event) {
         var inputEstado = document.getElementById('mostrarEstadoPaciente');
         var inputMunicipio = document.getElementById('mostrarMunicipioPaciente');
         var inputParroquia = document.getElementById('mostrarParroquiaPaciente');
+        var inputSexo = document.getElementById('mostrarSexoPaciente');
 
         try {
             const modalElement = document.getElementById('modalShowPaciente');
@@ -393,6 +528,7 @@ document.addEventListener('click', async function(event) {
             inputEstado.innerHTML = "Cargando...";
             inputMunicipio.innerHTML = "Cargando...";
             inputParroquia.innerHTML = "Cargando...";
+            inputSexo.innerHTML = "Cargando...";
 
             modalInstance.show();
             const response = await fetch(`/paciente/${pacienteId}`, {
@@ -413,6 +549,7 @@ document.addEventListener('click', async function(event) {
             inputFechaNacimiento.innerHTML = data.fecha_nacimiento;
             inputTelefono.innerHTML = data.telefono;
             inputDireccion.innerHTML = data.direccion;
+            inputSexo.innerHTML = data.sexo || 'N/A';
 
             inputParroquia.innerHTML = data.parroquia ? data.parroquia.nombre : 'N/A';
             inputMunicipio.innerHTML = data.parroquia?.municipio ? data.parroquia.municipio.nombre : 'N/A';
@@ -464,6 +601,70 @@ document.getElementById('select-municipio-edit').addEventListener('change', func
             .catch(err => console.error(err));
     }
 });
+
+// Cascading selects para el modal crear
+async function initSelectCreate() {
+    const modalCreate = document.getElementById('modalCrearPaciente');
+    if (!modalCreate) return;
+
+    const selectEstado = modalCreate.querySelector('.select-estado-create');
+    const selectMunicipio = modalCreate.querySelector('.select-municipio-create');
+    const selectParroquia = modalCreate.querySelector('.select-parroquia-create');
+
+    try {
+        const res = await fetch('/api/estados');
+        if (res.ok) {
+            const estados = await res.json();
+            selectEstado.innerHTML = '<option value="">Seleccione Estado</option>';
+            estados.forEach(e => {
+                selectEstado.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
+            });
+        }
+    } catch (err) {
+        console.error('Error al cargar estados:', err);
+    }
+
+    selectEstado.addEventListener('change', async function() {
+        const estadoId = this.value;
+        selectMunicipio.innerHTML = '<option value="">Cargando...</option>';
+        selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+        if (estadoId) {
+            try {
+                const res = await fetch(`/api/municipios/${estadoId}`);
+                if (res.ok) {
+                    const municipios = await res.json();
+                    selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
+                    municipios.forEach(m => {
+                        selectMunicipio.innerHTML += `<option value="${m.id}">${m.nombre}</option>`;
+                    });
+                }
+            } catch (err) { console.error(err); }
+        } else {
+            selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
+        }
+    });
+
+    selectMunicipio.addEventListener('change', async function() {
+        const municipioId = this.value;
+        selectParroquia.innerHTML = '<option value="">Cargando...</option>';
+        if (municipioId) {
+            try {
+                const res = await fetch(`/api/parroquias/${municipioId}`);
+                if (res.ok) {
+                    const parroquias = await res.json();
+                    selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+                    parroquias.forEach(p => {
+                        selectParroquia.innerHTML += `<option value="${p.id}">${p.nombre}</option>`;
+                    });
+                }
+            } catch (err) { console.error(err); }
+        } else {
+            selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initSelectCreate);
 </script>
 
 @if ($errors->any())

@@ -74,9 +74,8 @@
 
             @slot('reporte_bs_target','#modal25CausasPrincipales')
             
-            @slot('reporte_excel')
-            {{route('reportes.medicos_excel')}}
-            @endslot
+            @slot('reporte_excel', '#')
+            @slot('excel_modal', true)
             
             @endcomponent
         </div>

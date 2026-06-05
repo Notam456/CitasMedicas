@@ -9,12 +9,14 @@ use App\Models\Paciente;
 use App\Models\Parroquia;
 use App\Models\Municipio;
 use App\Models\Distrito;
+use App\Models\CitaPatologia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Exports\MedicosPorEspecialidadExport;
 use App\Exports\ProcedenciaPacientesExport;
 use App\Exports\MovimientoConsultasExport;
+use App\Exports\CausasPrincipalesExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
@@ -318,5 +320,76 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
     {
         $request->merge(['excel' => true]);
         return $this->movimientoConsultas($request);
+    }
+
+    public function causasPrincipales(Request $request)
+    {
+        $request->validate([
+            'tipo_rango' => 'required|in:mes,rango',
+            'mes' => 'required_if:tipo_rango,mes|nullable|date_format:Y-m',
+            'fecha_desde' => 'required_if:tipo_rango,rango|nullable|date',
+            'fecha_hasta' => 'required_if:tipo_rango,rango|nullable|date|after_or_equal:fecha_desde',
+        ]);
+
+        if ($request->tipo_rango == 'mes') {
+            $fecha = Carbon::createFromFormat('Y-m', $request->mes);
+            $fecha_desde = $fecha->copy()->startOfMonth()->toDateString();
+            $fecha_hasta = $fecha->copy()->endOfMonth()->toDateString();
+            $fechaTexto = $fecha->locale('es')->translatedFormat('F Y');
+        } else {
+            $fecha_desde = $request->fecha_desde;
+            $fecha_hasta = $request->fecha_hasta;
+            $fechaTexto = Carbon::parse($fecha_desde)->format('d/m/Y') . ' al ' . Carbon::parse($fecha_hasta)->format('d/m/Y');
+        }
+
+        $data = CitaPatologia::select(
+                'patologias.nombre as patologia',
+                DB::raw("COUNT(CASE WHEN pacientes.sexo = 'Masculino' AND citas.tipo_paciente = 'primera_vez' THEN 1 END) as masculino_primera"),
+                DB::raw("COUNT(CASE WHEN pacientes.sexo = 'Masculino' AND citas.tipo_paciente = 'control' THEN 1 END) as masculino_sucesivas"),
+                DB::raw("COUNT(CASE WHEN pacientes.sexo = 'Femenino' AND citas.tipo_paciente = 'primera_vez' THEN 1 END) as femenino_primera"),
+                DB::raw("COUNT(CASE WHEN pacientes.sexo = 'Femenino' AND citas.tipo_paciente = 'control' THEN 1 END) as femenino_sucesivas"),
+                DB::raw("COUNT(*) as total")
+            )
+            ->join('citas', 'cita_patologias.cita_id', '=', 'citas.id')
+            ->join('patologias', 'cita_patologias.patologia_id', '=', 'patologias.id')
+            ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
+            ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
+            ->whereIn('citas.estado', ['Atendida', 'Agendada'])
+            ->groupBy('patologias.id', 'patologias.nombre')
+            ->orderByDesc(DB::raw('COUNT(*)'))
+            ->limit(25)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'patologia' => $item->patologia,
+                    'masculino_primera' => (int) $item->masculino_primera,
+                    'masculino_sucesivas' => (int) $item->masculino_sucesivas,
+                    'femenino_primera' => (int) $item->femenino_primera,
+                    'femenino_sucesivas' => (int) $item->femenino_sucesivas,
+                    'total' => (int) $item->total,
+                ];
+            })
+            ->toArray();
+
+        $titulo = '25 Principales Causas de Consulta Externa';
+
+        if ($request->has('excel')) {
+            return Excel::download(new CausasPrincipalesExport($data, $titulo, $fechaTexto), '25_causas_principales.xlsx');
+        }
+
+        $membrete = $this->getMembreteBase64();
+        $pdf = Pdf::loadView('reportes.pdf.causas_principales_pdf', compact('data', 'titulo', 'fechaTexto', 'membrete'));
+        return $pdf->stream('25_causas_principales.pdf');
+    }
+
+    public function causasPrincipalesPdf(Request $request)
+    {
+        return $this->causasPrincipales($request);
+    }
+
+    public function causasPrincipalesExcel(Request $request)
+    {
+        $request->merge(['excel' => true]);
+        return $this->causasPrincipales($request);
     }
 }
