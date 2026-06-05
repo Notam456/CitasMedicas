@@ -26,6 +26,16 @@
 
     <div class="fecha">
         <p>Fecha del reporte: {{ now()->format('d/m/Y H:i') }}</p>
+        @if($especialidad)
+            <p><strong>Especialidad:</strong> {{ $especialidad }}</p>
+        @endif
+        @if($fecha_desde && $fecha_hasta)
+            <p><strong>Período:</strong> {{ \Carbon\Carbon::parse($fecha_desde)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fecha_hasta)->format('d/m/Y') }}</p>
+        @elseif($fecha_desde)
+            <p><strong>Desde:</strong> {{ \Carbon\Carbon::parse($fecha_desde)->format('d/m/Y') }}</p>
+        @elseif($fecha_hasta)
+            <p><strong>Hasta:</strong> {{ \Carbon\Carbon::parse($fecha_hasta)->format('d/m/Y') }}</p>
+        @endif
     </div>
 
     @if($morbilidades->count())

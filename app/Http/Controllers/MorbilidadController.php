@@ -24,12 +24,21 @@ class MorbilidadController extends Controller
         if ($request->has('export_excel') || $request->has('export_pdf')) {
             $query = $this->buildBaseQuery($request);
             $query->orderBy('citas.fecha_cita', 'desc');
-            
+
+            $especialidad = $request->filled('especialidad_id')
+                ? Especialidad::find($request->especialidad_id)?->nombre
+                : null;
+            $fecha_desde = $request->fecha_desde;
+            $fecha_hasta = $request->fecha_hasta;
+
             if ($request->has('export_excel')) {
                 $morbilidades = $query->lazy();
-                return Excel::download(new MorbilidadExport($morbilidades), 'morbilidades.xlsx');
+                return Excel::download(
+                    new MorbilidadExport($morbilidades, $especialidad, $fecha_desde, $fecha_hasta),
+                    'morbilidades.xlsx'
+                );
             }
-            
+
             if ($request->has('export_pdf')) {
                 $total = $query->count();
                 $limite = 1000;
@@ -40,7 +49,7 @@ class MorbilidadController extends Controller
                 ini_set('max_execution_time', 300);
                 $morbilidades = $query->get();
                 $membrete = public_path('assets/img/membreteMPPS2.png');
-                $pdf = Pdf::loadView('reportes.pdf.morbilidad_pdf', compact('morbilidades', 'membrete'));
+                $pdf = Pdf::loadView('reportes.pdf.morbilidad_pdf', compact('morbilidades', 'membrete', 'especialidad', 'fecha_desde', 'fecha_hasta'));
                 return $pdf->stream('morbilidades.pdf');
             }
         }

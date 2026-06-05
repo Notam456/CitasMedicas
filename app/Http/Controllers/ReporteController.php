@@ -344,6 +344,7 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
 
         $data = CitaPatologia::select(
                 'patologias.nombre as patologia',
+                'especialidades.nombre as especialidad',
                 DB::raw("COUNT(CASE WHEN pacientes.sexo = 'Masculino' AND citas.tipo_paciente = 'primera_vez' THEN 1 END) as masculino_primera"),
                 DB::raw("COUNT(CASE WHEN pacientes.sexo = 'Masculino' AND citas.tipo_paciente = 'control' THEN 1 END) as masculino_sucesivas"),
                 DB::raw("COUNT(CASE WHEN pacientes.sexo = 'Femenino' AND citas.tipo_paciente = 'primera_vez' THEN 1 END) as femenino_primera"),
@@ -353,15 +354,19 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
             ->join('citas', 'cita_patologias.cita_id', '=', 'citas.id')
             ->join('patologias', 'cita_patologias.patologia_id', '=', 'patologias.id')
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
+            ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
+            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
+            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
             ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
             ->whereIn('citas.estado', ['Atendida', 'Agendada'])
-            ->groupBy('patologias.id', 'patologias.nombre')
+            ->groupBy('especialidades.id', 'especialidades.nombre', 'patologias.id', 'patologias.nombre')
             ->orderByDesc(DB::raw('COUNT(*)'))
             ->limit(25)
             ->get()
             ->map(function ($item) {
                 return [
                     'patologia' => $item->patologia,
+                    'especialidad' => $item->especialidad,
                     'masculino_primera' => (int) $item->masculino_primera,
                     'masculino_sucesivas' => (int) $item->masculino_sucesivas,
                     'femenino_primera' => (int) $item->femenino_primera,

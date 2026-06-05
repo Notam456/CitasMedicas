@@ -3,6 +3,7 @@
         <tr>
             <th rowspan="2">#</th>
             <th rowspan="2">Patología (Diagnóstico)</th>
+            <th rowspan="2">Especialidad</th>
             <th colspan="2">Masculino</th>
             <th colspan="2">Femenino</th>
             <th rowspan="2">Total</th>
@@ -20,6 +21,7 @@
         <tr>
             <td>{{ $index + 1 }}</td>
             <td>{{ $row['patologia'] }}</td>
+            <td>{{ $row['especialidad'] }}</td>
             <td>{{ $row['masculino_primera'] }}</td>
             <td>{{ $row['masculino_sucesivas'] }}</td>
             <td>{{ $row['femenino_primera'] }}</td>
@@ -35,7 +37,7 @@
         @endphp
         @endforeach
         <tr style="font-weight: bold; background-color: #c3e6cb;">
-            <td colspan="2">TOTAL GENERAL</td>
+            <td colspan="3">TOTAL GENERAL</td>
             <td>{{ $totales['m1'] }}</td>
             <td>{{ $totales['ms'] }}</td>
             <td>{{ $totales['f1'] }}</td>

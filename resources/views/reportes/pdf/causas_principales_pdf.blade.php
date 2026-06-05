@@ -12,13 +12,14 @@
         thead { display: table-row-group; }
         th, td { border: 1px solid #ddd; padding: 3px 2px; text-align: center; vertical-align: middle; word-wrap: break-word; }
         th { background-color: #f2f2f2; font-weight: bold; font-size: 8px; }
-        th:first-child, td:first-child { width: 4%; }
-        th:nth-child(2), td:nth-child(2) { width: 28%; }
-        th:nth-child(3), td:nth-child(3) { width: 13%; }
-        th:nth-child(4), td:nth-child(4) { width: 13%; }
-        th:nth-child(5), td:nth-child(5) { width: 13%; }
-        th:nth-child(6), td:nth-child(6) { width: 13%; }
-        th:nth-child(7), td:nth-child(7) { width: 10%; }
+        th:first-child, td:first-child { width: 3%; }
+        th:nth-child(2), td:nth-child(2) { width: 22%; }
+        th:nth-child(3), td:nth-child(3) { width: 15%; }
+        th:nth-child(4), td:nth-child(4) { width: 12%; }
+        th:nth-child(5), td:nth-child(5) { width: 12%; }
+        th:nth-child(6), td:nth-child(6) { width: 12%; }
+        th:nth-child(7), td:nth-child(7) { width: 12%; }
+        th:nth-child(8), td:nth-child(8) { width: 8%; }
         tr { page-break-inside: avoid; }
         .total-row { background-color: #c3e6cb; font-weight: bold; }
         .text-left { text-align: left; }
@@ -45,6 +46,7 @@
                 <tr>
                     <th rowspan="2">#</th>
                     <th rowspan="2">Patología (Diagnóstico)</th>
+                    <th rowspan="2">Especialidad</th>
                     <th colspan="2">Masculino</th>
                     <th colspan="2">Femenino</th>
                     <th rowspan="2">Total</th>
@@ -64,6 +66,7 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td class="text-left">{{ $row['patologia'] }}</td>
+                    <td>{{ $row['especialidad'] }}</td>
                     <td>{{ $row['masculino_primera'] }}</td>
                     <td>{{ $row['masculino_sucesivas'] }}</td>
                     <td>{{ $row['femenino_primera'] }}</td>
@@ -79,7 +82,7 @@
                 @endphp
                 @endforeach
                 <tr class="total-row">
-                    <td colspan="2"><strong>TOTAL GENERAL</strong></td>
+                    <td colspan="3"><strong>TOTAL GENERAL</strong></td>
                     <td><strong>{{ $totales['m1'] }}</strong></td>
                     <td><strong>{{ $totales['ms'] }}</strong></td>
                     <td><strong>{{ $totales['f1'] }}</strong></td>

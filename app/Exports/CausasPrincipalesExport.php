@@ -37,7 +37,7 @@ class CausasPrincipalesExport implements FromView, ShouldAutoSize, WithEvents
                 $sheet = $event->sheet;
                 $highestRow = $sheet->getHighestRow();
 
-                $sheet->getStyle('A1:G2')->applyFromArray([
+                $sheet->getStyle('A1:H2')->applyFromArray([
                     'font' => ['bold' => true],
                     'fill' => [
                         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -52,7 +52,7 @@ class CausasPrincipalesExport implements FromView, ShouldAutoSize, WithEvents
                 ]);
 
                 if ($highestRow >= 3) {
-                    $dataRange = 'A3:G' . $highestRow;
+                    $dataRange = 'A3:H' . $highestRow;
                     $sheet->getStyle($dataRange)->applyFromArray([
                         'borders' => [
                             'allBorders' => [
@@ -67,7 +67,7 @@ class CausasPrincipalesExport implements FromView, ShouldAutoSize, WithEvents
                 foreach ($rows as $row) {
                     $cell = $sheet->getCell("A$row");
                     if (strpos($cell->getValue(), 'TOTAL GENERAL') !== false) {
-                        $sheet->getStyle("A$row:G$row")->applyFromArray([
+                        $sheet->getStyle("A$row:H$row")->applyFromArray([
                             'font' => ['bold' => true],
                             'fill' => [
                                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,

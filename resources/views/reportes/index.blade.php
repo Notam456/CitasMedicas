@@ -23,24 +23,6 @@
         {{-- 2 --}}
         <div class="col-md-4">
             @component('reportes.card')
-            @slot('card_title','Morbilidad')
-
-            @slot('card_desc')
-            Reporte de Morbilidad, con filtro mensual o exportación en Excel.
-            @endslot
-
-            @slot('reporte_bs_target','#modalMorbilidad')
-            
-            @slot('reporte_excel')
-            {{route('reportes.medicos_excel')}}
-            @endslot
-        
-            @endcomponent
-        </div>
-
-        {{-- 3 --}}
-        <div class="col-md-4">
-            @component('reportes.card')
             @slot('card_title','Procedencia de Pacientes')
 
             @slot('card_desc')
@@ -55,8 +37,24 @@
             @slot('excel_modal', true)
             @endcomponent
         </div>
-    </div>
 
+    {{-- 3 --}}
+    <div class="col-md-4">
+        @component('reportes.card')
+        @slot('card_title','25 Causas Principales')
+
+        @slot('card_desc')
+        diagnóstico y sexo de las 25 principales causas de consulta externa.
+        @endslot
+
+        @slot('reporte_bs_target','#modal25CausasPrincipales')
+        
+        @slot('reporte_excel', '#')
+        @slot('excel_modal', true)
+        
+        @endcomponent
+    </div>
+</div>
 
 {{--SEGUNDA ROW--}}
 
@@ -64,21 +62,7 @@
     <div class="row g-4 mt-4">
 
         {{-- 1 --}}
-        <div class="col-md-4">
-            @component('reportes.card')
-            @slot('card_title','25 Causas Principales')
-
-            @slot('card_desc')
-            diagnóstico y sexo de las 25 principales causas de consulta externa.
-            @endslot
-
-            @slot('reporte_bs_target','#modal25CausasPrincipales')
-            
-            @slot('reporte_excel', '#')
-            @slot('excel_modal', true)
-            
-            @endcomponent
-        </div>
+        
 
         {{-- Movimiento de Consultas --}}
         <div class="col-md-4">
@@ -93,7 +77,7 @@
             @endcomponent
         </div>
 
-        {{-- 3 --}}
+        {{-- 2 --}}
         <div class="col-md-4">
             @component('reportes.card')
             @slot('card_title','Movimiento Consulta Aro')
@@ -110,14 +94,8 @@
             
             @endcomponent
         </div>
-    </div>
 
-
-{{--TERCERA ROW--}}
-
-    <div class="row g-4 mt-4">
-
-        {{-- 1 --}}
+        {{-- 3 --}}
         <div class="col-md-4">
             @component('reportes.card')
             @slot('card_title','Inasistencia Pacientes')
@@ -134,8 +112,14 @@
             
             @endcomponent
         </div>
+    </div>
 
-        {{-- 2 --}}
+
+{{--TERCERA ROW--}}
+
+    <div class="row g-4 mt-4">
+
+        {{-- 1 --}}
         <div class="col-md-4">
             @component('reportes.card')
             @slot('card_title','Inasistencia Médicos')
