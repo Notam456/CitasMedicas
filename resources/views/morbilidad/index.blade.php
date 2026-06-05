@@ -148,7 +148,7 @@ $(document).ready(function() {
             fecha_hasta: $('#fecha_hasta').val(),
             export_pdf: 1
         });
-        window.location.href = "{{ route('morbilidad.index') }}?" + params;
+        window.open("{{ route('morbilidad.index') }}?" + params, '_blank');
     });
 });
 </script>

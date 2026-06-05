@@ -26,7 +26,7 @@
         </table>
     </div>
 
-    <!-- Modal Editar Paciente (sin cambios estructurales) -->
+    <!-- Modal Editar Paciente -->
     <div class="modal fade" id="modalEditarPaciente" tabindex="-1" aria-labelledby="modalEditarPacienteLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -106,6 +106,21 @@
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted small fw-bold">Sexo</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="sexo" id="editarSexoM" value="Masculino">
+                                        <label class="form-check-label" for="editarSexoM">Masculino</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="sexo" id="editarSexoF" value="Femenino">
+                                        <label class="form-check-label" for="editarSexoF">Femenino</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3"></div>
 
                             <div class="col-12">
                                 <h6 class="text-secondary border-bottom pb-2 mt-2">Ubicación del Paciente</h6>
@@ -193,6 +208,12 @@
                             <label class="fw-bold">Teléfono</label>
                             <p class="form-control" id="mostrarTelefonoPaciente"></p>
                         </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Sexo</label>
+                            <p class="form-control" id="mostrarSexoPaciente"></p>
+                        </div>
+                        <div class="col-md-6 mb-3"></div>
 
                         <div class="col-md-6 mb-3">
                             <label class="fw-bold">Estado</label>
@@ -347,6 +368,12 @@ document.addEventListener('click', async function(event) {
             inputDireccion.disabled = false;
             inputDireccion.value = data.direccion;
 
+            if (data.sexo === 'Masculino') {
+                document.getElementById('editarSexoM').checked = true;
+            } else if (data.sexo === 'Femenino') {
+                document.getElementById('editarSexoF').checked = true;
+            }
+
             selectEstado.disabled = false;
 
             if (data.parroquia && data.parroquia.municipio) {
@@ -405,6 +432,7 @@ document.addEventListener('click', async function(event) {
         var inputEstado = document.getElementById('mostrarEstadoPaciente');
         var inputMunicipio = document.getElementById('mostrarMunicipioPaciente');
         var inputParroquia = document.getElementById('mostrarParroquiaPaciente');
+        var inputSexo = document.getElementById('mostrarSexoPaciente');
 
         try {
             const modalElement = document.getElementById('modalShowPaciente');
@@ -423,6 +451,7 @@ document.addEventListener('click', async function(event) {
             inputEstado.innerHTML = "Cargando...";
             inputMunicipio.innerHTML = "Cargando...";
             inputParroquia.innerHTML = "Cargando...";
+            inputSexo.innerHTML = "Cargando...";
 
             modalInstance.show();
             const response = await fetch(`/paciente/${pacienteId}`, {
@@ -444,6 +473,7 @@ document.addEventListener('click', async function(event) {
             inputFechaNacimiento.innerHTML = data.fecha_nacimiento;
             inputTelefono.innerHTML = data.telefono;
             inputDireccion.innerHTML = data.direccion;
+            inputSexo.innerHTML = data.sexo || 'N/A';
 
             inputParroquia.innerHTML = data.parroquia ? data.parroquia.nombre : 'N/A';
             inputMunicipio.innerHTML = data.parroquia?.municipio ? data.parroquia.municipio.nombre : 'N/A';
@@ -495,6 +525,7 @@ document.getElementById('select-municipio-edit').addEventListener('change', func
             .catch(err => console.error(err));
     }
 });
+
 </script>
 
 @if ($errors->any())

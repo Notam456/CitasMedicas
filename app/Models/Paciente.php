@@ -22,7 +22,7 @@ class Paciente extends Model
         return $this->hasOne(Expediente::class, 'id_paciente');
     }
 
-    protected $fillable = ['nombre', 'apellido', 'cedula', 'rif', 'fecha_nacimiento', 'telefono', 'parroquia_id', 'direccion'];
+    protected $fillable = ['nombre', 'apellido', 'cedula', 'rif', 'fecha_nacimiento', 'telefono', 'parroquia_id', 'direccion', 'sexo'];
 
     
 }

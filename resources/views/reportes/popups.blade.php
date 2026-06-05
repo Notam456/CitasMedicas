@@ -90,14 +90,68 @@
     </div>
     @endcomponent
 
-    {{--4 25 Causas Principales (pendiente) --}}
+    {{--4 25 Causas Principales --}}
     @component('reportes.modal')
-        @slot('modal_id', 'modal25CausasPrincipales')
-        @slot('modal_title', 'Mes')
-        @slot('form_action', '#')
-        <div class="mb-3">
-            <label class="form-label">En proceso</label>
+    @slot('modal_id', 'modal25CausasPrincipales')
+    @slot('modal_title', '25 Causas Principales de Consulta Externa')
+    @slot('form_action', route('reportes.causas_principales_pdf'))
+    @slot('excel_action', route('reportes.causas_principales_excel'))
+
+    <div class="mb-3">
+        <label class="form-label">Tipo de rango</label>
+        <div class="d-flex gap-3">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipo_rango" id="causas_tipo_mes" value="mes" checked>
+                <label class="form-check-label" for="causas_tipo_mes">Mes específico</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipo_rango" id="causas_tipo_rango" value="rango">
+                <label class="form-check-label" for="causas_tipo_rango">Rango de fechas</label>
+            </div>
         </div>
+    </div>
+
+    <div class="mb-3" id="causas_div_mes">
+        <label class="form-label">Seleccione el Mes</label>
+        <div class="row">
+            <div class="col-md-6">
+                <select id="causas_mes" class="form-select" required>
+                    <option value="">Mes</option>
+                    @for($i = 1; $i <= 12; $i++)
+                        <option value="{{ $i }}" {{ $i == date('n') ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::create()->month($i)->locale('es')->translatedFormat('F') }}
+                        </option>
+                    @endfor
+                </select>
+            </div>
+            <div class="col-md-6">
+                <select id="causas_anio" class="form-select" required>
+                    <option value="">Año</option>
+                    @php
+                        $anioActual = date('Y');
+                        $anioInicio = $anioActual - 5;
+                    @endphp
+                    @for($i = $anioInicio; $i <= $anioActual + 5; $i++)
+                        <option value="{{ $i }}" {{ $i == $anioActual ? 'selected' : '' }}>{{ $i }}</option>
+                    @endfor
+                </select>
+            </div>
+        </div>
+        <input type="hidden" name="mes" id="causas_mes_hidden">
+    </div>
+
+    <div class="mb-3 d-none" id="causas_div_rango">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="causas_fecha_desde" class="form-label">Fecha desde</label>
+                <input type="date" name="fecha_desde" id="causas_fecha_desde" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label for="causas_fecha_hasta" class="form-label">Fecha hasta</label>
+                <input type="date" name="fecha_hasta" id="causas_fecha_hasta" class="form-control">
+            </div>
+        </div>
+    </div>
     @endcomponent
 
     {{--5 Movimiento de Consultas --}}
@@ -274,6 +328,21 @@
                 mesHiddenId: 'proc_mes_hidden',
                 fechaDesdeId: 'proc_fecha_desde',
                 fechaHastaId: 'proc_fecha_hasta'
+            });
+        }
+
+        // 25 Causas Principales
+        if (document.getElementById('causas_tipo_mes')) {
+            initRangoFechas({
+                tipoMesId: 'causas_tipo_mes',
+                tipoRangoId: 'causas_tipo_rango',
+                divMesId: 'causas_div_mes',
+                divRangoId: 'causas_div_rango',
+                mesSelectId: 'causas_mes',
+                anioSelectId: 'causas_anio',
+                mesHiddenId: 'causas_mes_hidden',
+                fechaDesdeId: 'causas_fecha_desde',
+                fechaHastaId: 'causas_fecha_hasta'
             });
         }
 

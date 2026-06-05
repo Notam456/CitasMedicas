@@ -21,6 +21,7 @@ return new class extends Migration
     $table->date('fecha_nacimiento');
     $table->string('telefono');
     $table->string('direccion');
+    $table->string('sexo', 10)->nullable();
     $table->timestamps();
     });
     }
