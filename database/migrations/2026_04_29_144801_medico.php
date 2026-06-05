@@ -13,7 +13,7 @@ return new class extends Migration
     {
     Schema::create('medicos', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('especialidad_id')->constrained('especialidades');
+    $table->foreignId('especialidad_id')->constrained('especialidades')->onDelete('CASCADE');
     $table->string('nombre');
     $table->string('apellido');
     $table->string('cedula')->unique();
