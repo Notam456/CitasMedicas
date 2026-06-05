@@ -37,10 +37,10 @@ class PacienteController extends Controller
         if ($search = $request->get('search')['value']) {
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'ILIKE', "%{$search}%")
-                  ->orWhere('apellido', 'ILIKE', "%{$search}%")
-                  ->orWhere('cedula', 'ILIKE', "%{$search}%")
-                  ->orWhere('rif', 'ILIKE', "%{$search}%")
-                  ->orWhere('direccion', 'ILIKE', "%{$search}%");
+                    ->orWhere('apellido', 'ILIKE', "%{$search}%")
+                    ->orWhere('cedula', 'ILIKE', "%{$search}%")
+                    ->orWhere('rif', 'ILIKE', "%{$search}%")
+                    ->orWhere('direccion', 'ILIKE', "%{$search}%");
             });
         }
 
@@ -61,10 +61,10 @@ class PacienteController extends Controller
 
         $dataFormatted = [];
         foreach ($data as $row) {
-            $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
-            $btnEdit = '<button type="button" data-id="'.$row->id.'" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
-            $btnDelete = '<a href="'.route('paciente.destroy', $row->id).'" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
-            $acciones = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnEdit.$btnDelete.'</div>';
+            $btnShow = '<button type="button" data-id="' . $row->id . '" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
+            $btnEdit = '<button type="button" data-id="' . $row->id . '" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
+            $btnDelete = '<a href="' . route('paciente.destroy', $row->id) . '" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
+            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . $btnDelete . '</div>';
 
             $dataFormatted[] = [
                 $row->nombre,
@@ -87,7 +87,9 @@ class PacienteController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create() {}
+    public function create()
+    {
+    }
 
     /**
      * Buscar paciente por cédula.
@@ -119,7 +121,7 @@ class PacienteController extends Controller
             'apellido' => 'required|string|max:255',
             'cedula_tipo' => 'required|in:V,E',
             'cedula' => 'required|string|min:7|max:20',
-            'cedula_completa'  => 'required|string|unique:pacientes,cedula',
+            'cedula_completa' => 'required|string|unique:pacientes,cedula',
             'rif' => 'required|string|max:20',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'required|string|min:7|max:15',
@@ -177,7 +179,7 @@ class PacienteController extends Controller
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
             'cedula_tipo' => 'required|in:V,E',
-            'cedula_completa'  => 'required|string|unique:pacientes,cedula,' . $id,
+            'cedula_completa' => 'required|string|unique:pacientes,cedula,' . $id,
             'cedula' => 'required|string|min:7|max:20',
             'rif' => 'required|string|max:20',
             'fecha_nacimiento' => 'required|date',
@@ -210,11 +212,15 @@ class PacienteController extends Controller
      */
     public function destroy(int $id)
     {
-        $paciente = Paciente::findOrFail($id);
+        $paciente = Paciente::withCount('citas')->findOrFail($id);
+
+        if ($paciente->citas_count > 0) {
+            Alert::error('No se puede eliminar', 'Este paciente tiene citas médicas registradas en el sistema.');
+            return redirect()->route('paciente.index');
+        }
+
         $paciente->delete();
-
         Alert::success('Paciente eliminado exitosamente.');
-
         return redirect()->route('paciente.index');
     }
 }

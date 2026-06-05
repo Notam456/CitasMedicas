@@ -6,6 +6,7 @@ use App\Models\Medico;
 use App\Models\Especialidad;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 
 class MedicoController extends Controller
 {
@@ -33,12 +34,12 @@ class MedicoController extends Controller
         if ($search = $request->get('search')['value']) {
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'ILIKE', "%{$search}%")
-                  ->orWhere('apellido', 'ILIKE', "%{$search}%")
-                  ->orWhere('cedula', 'ILIKE', "%{$search}%")
-                  ->orWhere('telefono', 'ILIKE', "%{$search}%")
-                  ->orWhereHas('especialidad', function ($q2) use ($search) {
-                      $q2->where('nombre', 'ILIKE', "%{$search}%");
-                  });
+                    ->orWhere('apellido', 'ILIKE', "%{$search}%")
+                    ->orWhere('cedula', 'ILIKE', "%{$search}%")
+                    ->orWhere('telefono', 'ILIKE', "%{$search}%")
+                    ->orWhereHas('especialidad', function ($q2) use ($search) {
+                        $q2->where('nombre', 'ILIKE', "%{$search}%");
+                    });
             });
         }
 
@@ -59,10 +60,10 @@ class MedicoController extends Controller
 
         $dataFormatted = [];
         foreach ($data as $row) {
-            $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
-            $btnEdit = '<button type="button" data-id="'.$row->id.'" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
-            $btnDelete = '<a href="'.route('medicos.destroy', $row->id).'" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
-            $acciones = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnEdit.$btnDelete.'</div>';
+            $btnShow = '<button type="button" data-id="' . $row->id . '" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
+            $btnEdit = '<button type="button" data-id="' . $row->id . '" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
+            $btnDelete = '<a href="' . route('medicos.destroy', $row->id) . '" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
+            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . $btnDelete . '</div>';
 
             $dataFormatted[] = [
                 $row->nombre,
@@ -148,6 +149,10 @@ class MedicoController extends Controller
     public function destroy(int $id)
     {
         $medico = Medico::findOrFail($id);
+        if ($medico->citas_count > 0) {
+            alert()->error('No se puede eliminar', 'Este médico tiene citas médicas asociadas en el sistema.');
+            return redirect()->route('medicos.index');
+        }
         $medico->delete();
 
         alert()->success('Médico eliminado exitosamente.');

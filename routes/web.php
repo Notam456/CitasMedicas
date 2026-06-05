@@ -35,7 +35,6 @@ Route::post('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout'
 //Ruta user
 Route::middleware(['auth', 'can:Usuarios'])->group(function () {
     Route::resource('users', UserController::class);
-    Route::get('/users/{id}/edit', [UserController::class, 'edit']);
 });
 
 //Ruta maestros

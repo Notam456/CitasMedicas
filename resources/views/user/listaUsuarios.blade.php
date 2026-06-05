@@ -168,6 +168,14 @@
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="editarPasswordUsuario_confirmation" name="password_confirmation"
+                                placeholder="Contraseña">
+                            <label for="editarPasswordUsuario">Confirmar Contraseña</label>
+                            @error('password')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label for="editarRolUsuario" class="form-label mb-0">Rol del Usuario</label>
