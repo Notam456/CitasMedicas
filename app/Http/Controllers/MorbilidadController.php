@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cita;
 use App\Models\Especialidad;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MorbilidadExport;
@@ -37,9 +38,9 @@ class MorbilidadController extends Controller
                 }
                 ini_set('memory_limit', '1024M');
                 ini_set('max_execution_time', 300);
-                $morbilidades = $query->orderBy('citas.fecha_cita', 'desc')->get();
+                $morbilidades = $query->get();
                 $membrete = public_path('assets/img/membreteMPPS2.png');
-                $pdf = Pdf::loadView('reportes.morbilidad_pdf', compact('morbilidades', 'membrete'));
+                $pdf = Pdf::loadView('reportes.pdf.morbilidad_pdf', compact('morbilidades', 'membrete'));
                 return $pdf->stream('morbilidades.pdf');
             }
         }
@@ -63,8 +64,6 @@ class MorbilidadController extends Controller
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
             ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
             ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
-            ->leftJoin('cita_patologias', 'citas.id', '=', 'cita_patologias.cita_id')
-            ->leftJoin('patologias', 'cita_patologias.patologia_id', '=', 'patologias.id')
             ->select(
                 'citas.id',
                 'pacientes.nombre as paciente_nombre',
@@ -76,10 +75,19 @@ class MorbilidadController extends Controller
                 'medicos.apellido as medico_apellido',
                 'especialidades.nombre as especialidad_nombre',
                 'citas.diagnostico_libre',
-                'citas.estado'
+                'citas.estado',
+                'citas.tipo_paciente',
+                DB::raw("(SELECT STRING_AGG(p.nombre, ', ') FROM cita_patologias cp JOIN patologias p ON p.id = cp.patologia_id WHERE cp.cita_id = citas.id) as patologias_nombres")
             )
             ->where('citas.estado', 'Atendida')
-            ->whereNotNull('citas.diagnostico_libre'); // al menos un diagnóstico libre o patologías
+            ->where(function ($q) {
+                $q->whereNotNull('citas.diagnostico_libre')
+                  ->orWhereExists(function ($sub) {
+                      $sub->select(DB::raw(1))
+                          ->from('cita_patologias')
+                          ->whereColumn('cita_patologias.cita_id', 'citas.id');
+                  });
+            });
 
         if ($request->filled('especialidad_id')) {
             $query->where('especialidades.id', $request->especialidad_id);
@@ -129,12 +137,9 @@ class MorbilidadController extends Controller
         $data = $query->skip($start)->take($length)->get();
         $dataFormatted = [];
         foreach ($data as $row) {
-            // Obtener patologías asociadas
-            $cita = Cita::find($row->id);
-            $patologiasNombres = $cita->patologias->pluck('nombre')->toArray();
             $diagnostico = '';
-            if (!empty($patologiasNombres)) {
-                $diagnostico = implode(', ', $patologiasNombres);
+            if (!empty($row->patologias_nombres)) {
+                $diagnostico = $row->patologias_nombres;
                 if ($row->diagnostico_libre) {
                     $diagnostico .= ' - ' . $row->diagnostico_libre;
                 }

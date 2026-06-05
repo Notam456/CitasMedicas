@@ -114,7 +114,7 @@ class PacienteController extends Controller
             'telefono' => 'required|string|min:7|max:15',
             'parroquia_id' => 'required|exists:parroquias,id',
             'direccion' => 'nullable|string|max:255',
-            'sexo' => 'nullable|in:Masculino,Femenino',
+            'sexo' => 'required|in:Masculino,Femenino',
         ]);
 
         Paciente::create([
@@ -164,7 +164,7 @@ class PacienteController extends Controller
             'telefono' => 'required|string|min:7|max:15',
             'parroquia_id' => 'required|exists:parroquias,id',
             'direccion' => 'nullable|string|max:255',
-            'sexo' => 'nullable|in:Masculino,Femenino',
+            'sexo' => 'required|in:Masculino,Femenino',
         ]);
 
         $paciente = Paciente::findOrFail($id);

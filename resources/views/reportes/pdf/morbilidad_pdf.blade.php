@@ -4,21 +4,29 @@
     <meta charset="utf-8">
     <title>Reporte de Morbilidad</title>
     <style>
-        body { font-family: 'DejaVu Sans', sans-serif; margin: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        h1 { color: #20356B; text-align: center; }
-        .membrete { width: 100%; margin-bottom: 20px; }
+        body { font-family: 'DejaVu Sans', sans-serif; margin: 20px; font-size: 11px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        h1 { color: #20356B; text-align: center; font-size: 18px; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 6px 4px; text-align: left; vertical-align: top; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        thead { display: table-row-group; }
+        tr { page-break-inside: avoid; }
+        .fecha { text-align: right; font-size: 10px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    @if(file_exists($membrete))
-        <img src="{{ $membrete }}" class="membrete">
+    @if(isset($membrete) && file_exists($membrete))
+        <img src="{{ $membrete }}" style="width: 100%;">
     @endif
 
-    <h1>Reporte de Morbilidad</h1>
-    <p><strong>Fecha del reporte:</strong> {{ now()->format('d/m/Y H:i') }}</p>
+    <div class="header">
+        <h1>Reporte de Morbilidad</h1>
+    </div>
+
+    <div class="fecha">
+        <p>Fecha del reporte: {{ now()->format('d/m/Y H:i') }}</p>
+    </div>
 
     @if($morbilidades->count())
     <table>
@@ -41,8 +49,21 @@
                 <td>{{ \Carbon\Carbon::parse($m->fecha_cita)->format('d/m/Y') }}</td>
                 <td>{{ $m->especialidad_nombre }}</td>
                 <td>Dr. {{ $m->medico_nombre }} {{ $m->medico_apellido }}</td>
-                <td>{{ $m->diagnostico }}</td>
-                <td>{{ $m->morbilidad_observaciones }}</td>
+                <td>
+                    @php
+                        $diag = '';
+                        if (!empty($m->patologias_nombres)) {
+                            $diag = $m->patologias_nombres;
+                            if ($m->diagnostico_libre) {
+                                $diag .= ' - ' . $m->diagnostico_libre;
+                            }
+                        } else {
+                            $diag = $m->diagnostico_libre ?: 'Sin diagnóstico';
+                        }
+                    @endphp
+                    {{ $diag }}
+                </td>
+                <td>{{ $m->cita_observacion ?: 'Asistió' }}</td>
             </tr>
             @endforeach
         </tbody>

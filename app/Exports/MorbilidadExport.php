@@ -39,10 +39,10 @@ class MorbilidadExport implements FromCollection, WithHeadings, WithMapping, Sho
             $fecha = \Carbon\Carbon::parse($fecha)->format('d/m/Y');
         }
 
-        // Diagnóstico combinado (patología + libre)
+        // Diagnóstico combinado (patologías + libre)
         $diagnostico = '';
-        if (!empty($row->patologia_nombre)) {
-            $diagnostico = $row->patologia_nombre;
+        if (!empty($row->patologias_nombres)) {
+            $diagnostico = $row->patologias_nombres;
             if (!empty($row->diagnostico_libre)) {
                 $diagnostico .= ' - ' . $row->diagnostico_libre;
             }
@@ -52,11 +52,8 @@ class MorbilidadExport implements FromCollection, WithHeadings, WithMapping, Sho
             $diagnostico = 'Sin diagnóstico';
         }
 
-        // Observación: prioriza cita_observacion, luego asistio
-        $observacion = $row->cita_observacion ?? '';
-        if (empty($observacion)) {
-            $observacion = isset($row->asistio) ? ($row->asistio ? 'Asistió' : 'No asistió') : '';
-        }
+        // Observación
+        $observacion = $row->cita_observacion ?: 'Asistió';
 
         return [
             $row->paciente_nombre . ' ' . $row->paciente_apellido,

@@ -230,6 +230,7 @@ class CitaController extends Controller
             'telefono' => 'required|string|min:7|max:15',
             'parroquia_id' => 'required|numeric',
             'direccion' => 'nullable|string|max:255',
+            'sexo' => 'required|in:Masculino,Femenino',
             // Datos de la cita
             'calendario_id' => 'required|numeric',
             'fecha_cita' => 'required|date',
@@ -241,7 +242,7 @@ class CitaController extends Controller
         try {
             DB::beginTransaction();
 
-            $paciente = Paciente::firstOrCreate(
+            $paciente = Paciente::updateOrCreate(
                 ['cedula' => $request->cedula],
                 [
                     'nombre' => $request->nombre,
@@ -250,6 +251,7 @@ class CitaController extends Controller
                     'telefono' => $request->telefono,
                     'parroquia_id' => $request->parroquia_id,
                     'direccion' => $request->direccion,
+                    'sexo' => $request->sexo,
                 ]
             );
 
