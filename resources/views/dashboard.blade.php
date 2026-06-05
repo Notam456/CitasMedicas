@@ -119,7 +119,7 @@
                 window.especialidadesLabels = @json($especialidadesLabels);
                 window.especialidadesData = @json($especialidadesData);
             </script>
-             <script src="{{asset('assets/js/dashboard.js')}}""></script>
+             <script src="{{asset('assets/js/dashboard.js')}}"></script>
              <!-- funcion de los charts de municipios y especialidades -->
 
              @include('layouts.footer')
