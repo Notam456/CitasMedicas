@@ -141,6 +141,9 @@ Route::middleware(['auth', 'can:Reportes'])->group(function () {
 
     Route::get('/reportes/pdf/movimiento-consultas/pdf', [ReporteController::class, 'movimientoConsultasPdf'])->name('reportes.movimiento_consultas_pdf');
     Route::get('/reportes/excel/movimiento-consultas/excel', [ReporteController::class, 'movimientoConsultasExcel'])->name('reportes.movimiento_consultas_excel');
+
+    Route::get('/reportes/pdf/causas-principales/pdf', [ReporteController::class, 'causasPrincipalesPdf'])->name('reportes.causas_principales_pdf');
+    Route::get('/reportes/excel/causas-principales/excel', [ReporteController::class, 'causasPrincipalesExcel'])->name('reportes.causas_principales_excel');
 });
 
 Route::middleware(['auth', 'can:Usuarios'])->group(function () {

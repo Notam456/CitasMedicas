@@ -8,28 +8,25 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Illuminate\Contracts\View\View;
 
-class MorbilidadExport implements FromView, ShouldAutoSize, WithEvents
+class CausasPrincipalesExport implements FromView, ShouldAutoSize, WithEvents
 {
     protected $data;
-    protected $especialidad;
-    protected $fecha_desde;
-    protected $fecha_hasta;
+    protected $titulo;
+    protected $fechaTexto;
 
-    public function __construct($data, $especialidad = null, $fecha_desde = null, $fecha_hasta = null)
+    public function __construct($data, $titulo, $fechaTexto)
     {
         $this->data = $data;
-        $this->especialidad = $especialidad;
-        $this->fecha_desde = $fecha_desde;
-        $this->fecha_hasta = $fecha_hasta;
+        $this->titulo = $titulo;
+        $this->fechaTexto = $fechaTexto;
     }
 
     public function view(): View
     {
-        return view('reportes.excel.morbilidad_excel', [
-            'morbilidades' => $this->data,
-            'especialidad' => $this->especialidad,
-            'fecha_desde' => $this->fecha_desde,
-            'fecha_hasta' => $this->fecha_hasta,
+        return view('reportes.excel.causas_principales_excel', [
+            'data' => $this->data,
+            'titulo' => $this->titulo,
+            'fechaTexto' => $this->fechaTexto,
         ]);
     }
 
@@ -40,7 +37,7 @@ class MorbilidadExport implements FromView, ShouldAutoSize, WithEvents
                 $sheet = $event->sheet;
                 $highestRow = $sheet->getHighestRow();
 
-                $sheet->getStyle('A1:G1')->applyFromArray([
+                $sheet->getStyle('A1:H2')->applyFromArray([
                     'font' => ['bold' => true],
                     'fill' => [
                         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -54,8 +51,8 @@ class MorbilidadExport implements FromView, ShouldAutoSize, WithEvents
                     ],
                 ]);
 
-                if ($highestRow >= 2) {
-                    $dataRange = 'A2:G' . $highestRow;
+                if ($highestRow >= 3) {
+                    $dataRange = 'A3:H' . $highestRow;
                     $sheet->getStyle($dataRange)->applyFromArray([
                         'borders' => [
                             'allBorders' => [
@@ -64,6 +61,20 @@ class MorbilidadExport implements FromView, ShouldAutoSize, WithEvents
                             ],
                         ],
                     ]);
+                }
+
+                $rows = range(2, $highestRow);
+                foreach ($rows as $row) {
+                    $cell = $sheet->getCell("A$row");
+                    if (strpos($cell->getValue(), 'TOTAL GENERAL') !== false) {
+                        $sheet->getStyle("A$row:H$row")->applyFromArray([
+                            'font' => ['bold' => true],
+                            'fill' => [
+                                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                                'startColor' => ['argb' => 'FFC3E6CB'],
+                            ],
+                        ]);
+                    }
                 }
             },
         ];

@@ -14,6 +14,8 @@ class PacienteSeeder extends Seeder
         $faker = Faker::create('es_ES');
         $parroquias = Parroquia::pluck('id')->toArray();
 
+        $sexos = ['Masculino', 'Femenino'];
+
         for ($i = 0; $i < 50; $i++) {
             Paciente::create([
                 'parroquia_id' => $faker->randomElement($parroquias),
@@ -24,6 +26,7 @@ class PacienteSeeder extends Seeder
                 'fecha_nacimiento' => $faker->dateTimeBetween('-80 years', '-18 years')->format('Y-m-d'),
                 'telefono' => '0412' . rand(100000, 999999),
                 'direccion' => $faker->streetAddress(),
+                'sexo' => $faker->randomElement($sexos),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
