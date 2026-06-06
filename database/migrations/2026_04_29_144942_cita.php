@@ -17,8 +17,8 @@ return new class extends Migration
     $table->foreignId('calendario_id')->constrained('calendarios')->onDelete('CASCADE');
     $table->foreignId('user_id')->constrained()->onDelete('CASCADE');
     $table->date('fecha_registro');
-    $table->date('fecha_cita');
-    $table->string('estado');
+    $table->date('fecha_cita')->index();
+    $table->string('estado')->index();
     $table->string('tipo_paciente');
     $table->text('observacion')->nullable();
     $table->text('diagnostico_libre')->nullable();

@@ -23,53 +23,47 @@ use function PHPUnit\Framework\returnValue;
 
 //Ruta de inicio
 Route::get('/', function () {
-    return view('login'); });
+    return view('login');
+});
 
 //Rutas para las vistas de autenticación
 Route::view('/login', 'login')->name('login');
 Route::view('/signup', 'signup')->name('signup');
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
-Route::post('/iniciar-sesion', [LoginController::class, 'login'])->name('iniciar-sesion');
-Route::post('/validar-registro', [LoginController::class, 'register'])->name('register');
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/iniciar-sesion', [LoginController::class, 'login'])->name('iniciar-sesion');
+    Route::post('/validar-registro', [LoginController::class, 'register'])->name('register');
+});
 Route::post('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout');
 
 //Ruta user
 Route::middleware(['auth', 'can:Usuarios'])->group(function () {
     Route::resource('users', UserController::class);
+    Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
+    Route::put('/roles/{role:name}', [RoleController::class, 'update'])->name('roles.update');
+    Route::get('/roles/{role:name}/permissions', [RoleController::class, 'getPermissions'])->name('roles.permissions');
 });
 
 //Ruta maestros
 Route::middleware(['auth', 'can:Paciente'])->group(function () {
     Route::resource('paciente', PacienteController::class);
-    Route::get('/paciente/{id}/edit', [PacienteController::class, 'edit']);
-    Route::get('/paciente/{id}/show', [PacienteController::class, 'show']);
 });
 
 Route::middleware(['auth', 'can:Especialidad'])->group(function () {
     Route::resource('especialidades', EspecialidadController::class);
-    Route::get('/especialidades/{id}/edit', [EspecialidadController::class, 'edit']);
-    Route::get('/especialidades/{id}/show', [EspecialidadController::class, 'show']);
 });
 
 Route::middleware(['auth', 'can:Médicos'])->group(function () {
     Route::resource('medicos', MedicoController::class);
-    Route::get('/medicos/{id}/edit', [MedicoController::class, 'edit']);
-    Route::get('/medicos/{id}/show', [MedicoController::class, 'show']);
 });
 
 Route::middleware(['auth', 'can:Procedencia'])->group(function () {
     Route::resource('estados', EstadoController::class);
     Route::get('/api/estados', [EstadoController::class, 'getEstados']);
-    Route::get('/estados/{id}/edit', [EstadoController::class, 'edit']);
-    Route::get('/estados/{id}/show', [EstadoController::class, 'show']);
 
     Route::resource('municipios', MunicipioController::class);
-    Route::get('/municipios/{id}/edit', [MunicipioController::class, 'edit']);
-    Route::get('/municipios/{id}/show', [MunicipioController::class, 'show']);
 
     Route::resource('parroquias', ParroquiaController::class);
-    Route::get('/parroquias/{id}/edit', [ParroquiaController::class, 'edit']);
-    Route::get('/parroquias/{id}/show', [ParroquiaController::class, 'show']);
 
     Route::resource('distritos', DistritoController::class);
     Route::get('/api/distritos', [DistritoController::class, 'getDistritosData'])->name('api.distritos');
@@ -104,8 +98,6 @@ Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'g
 
 // Dashboard y Reportes Yajure
 
-// Route::get('/', [DashboardController::class, 'index'])->name('inicio'); // yajure: no me borren este bypass por favor!
-
 Route::get('/api/medicamentos', function () {
     return App\Models\Medicamento::all();
 })->middleware('auth');
@@ -113,7 +105,7 @@ Route::get('/api/medicamentos', function () {
 
 
 Route::middleware(['auth', 'can:Morbilidad'])->group(function () {
-    
+
     Route::get('/morbilidad', [MorbilidadController::class, 'index'])->name('morbilidad.index');
     Route::get('/morbilidad/pendientes', [MorbilidadController::class, 'pendientes'])->name('morbilidad.pendientes');
 
@@ -150,11 +142,5 @@ Route::middleware(['auth', 'can:Reportes'])->group(function () {
 
     Route::get('/reportes/pdf/causas-principales/pdf', [ReporteController::class, 'causasPrincipalesPdf'])->name('reportes.causas_principales_pdf');
     Route::get('/reportes/excel/causas-principales/excel', [ReporteController::class, 'causasPrincipalesExcel'])->name('reportes.causas_principales_excel');
-});
-
-Route::middleware(['auth', 'can:Usuarios'])->group(function () {
-    Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
-    Route::put('/roles/{role:name}', [RoleController::class, 'update'])->name('roles.update');
-    Route::get('/roles/{role:name}/permissions', [RoleController::class, 'getPermissions'])->name('roles.permissions');
 });
 

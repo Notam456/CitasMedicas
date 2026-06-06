@@ -8,7 +8,7 @@ class Cita extends Model
 {
     protected $table = 'citas';
 
-    public $timestamps = true;
+  
 
     protected $fillable = [
         'user_id',

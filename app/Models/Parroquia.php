@@ -15,7 +15,6 @@ class Parroquia extends Model
 
     protected $table = 'parroquias';
     protected $primaryKey = 'id';
-    public $timestamps = true;
 
     protected $fillable = ['nombre', 'municipio_id'];
 

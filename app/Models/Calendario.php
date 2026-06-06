@@ -15,5 +15,5 @@ class Calendario extends Model
         return $this->hasMany(Cita::class, 'calendario_id');
     }
 
-    public $fillable = ['medico_id', 'hora_inicio', 'hora_fin', 'fecha', 'cupos_primera_vez', 'cupos_sucesivos'];
+    protected $fillable = ['medico_id', 'hora_inicio', 'hora_fin', 'fecha', 'cupos_primera_vez', 'cupos_sucesivos'];
 }
