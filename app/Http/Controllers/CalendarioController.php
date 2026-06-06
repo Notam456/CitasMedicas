@@ -203,35 +203,5 @@ class CalendarioController extends Controller
         return redirect()->route('calendario.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Calendario $calendario)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Calendario $calendario)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Calendario $calendario)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Calendario $calendario)
-    {
-        //
-    }
+   
 }
