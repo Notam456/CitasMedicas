@@ -31,12 +31,12 @@ class ParroquiaController extends Controller
         if ($search = $request->get('search')['value']) {
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'ILIKE', "%{$search}%")
-                  ->orWhereHas('municipio', function ($q2) use ($search) {
-                      $q2->where('nombre', 'ILIKE', "%{$search}%")
-                        ->orWhereHas('estado', function ($q3) use ($search) {
-                            $q3->where('nombre', 'ILIKE', "%{$search}%");
-                        });
-                  });
+                    ->orWhereHas('municipio', function ($q2) use ($search) {
+                        $q2->where('nombre', 'ILIKE', "%{$search}%")
+                            ->orWhereHas('estado', function ($q3) use ($search) {
+                                $q3->where('nombre', 'ILIKE', "%{$search}%");
+                            });
+                    });
             });
         }
 
@@ -57,10 +57,10 @@ class ParroquiaController extends Controller
 
         $dataFormatted = [];
         foreach ($data as $row) {
-            $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
-            $btnEdit = '<button type="button" data-id="'.$row->id.'" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
-            $btnDelete = '<a href="'.route('parroquias.destroy', $row->id).'" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
-            $acciones = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnEdit.$btnDelete.'</div>';
+            $btnShow = '<button type="button" data-id="' . $row->id . '" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
+            $btnEdit = '<button type="button" data-id="' . $row->id . '" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
+            $btnDelete = '<a href="' . route('parroquias.destroy', $row->id) . '" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
+            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . $btnDelete . '</div>';
 
             $dataFormatted[] = [
                 $row->nombre,
@@ -94,7 +94,9 @@ class ParroquiaController extends Controller
     {
         $request->validate([
             'nombre' => [
-                'required', 'string', 'max:255',
+                'required',
+                'string',
+                'max:255',
                 Rule::unique('parroquias')->where(function ($query) use ($request) {
                     return $query->where('municipio_id', $request->municipio_id);
                 })
@@ -119,7 +121,9 @@ class ParroquiaController extends Controller
         $parroquia = Parroquia::findOrFail($id);
         $request->validate([
             'nombre' => [
-                'required', 'string', 'max:255',
+                'required',
+                'string',
+                'max:255',
                 Rule::unique('parroquias')->where(function ($query) use ($request, $id) {
                     return $query->where('municipio_id', $request->municipio_id)->where('id', '!=', $id);
                 })
@@ -140,5 +144,12 @@ class ParroquiaController extends Controller
 
         Alert::success('Parroquia eliminada exitosamente.');
         return redirect()->route('parroquias.index');
+    }
+
+    public function getParroquias($municipio_id)
+    {
+        $parroquias = Parroquia::where('municipio_id', $municipio_id)->get();
+
+        return response()->json($parroquias);
     }
 }

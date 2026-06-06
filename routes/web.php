@@ -72,7 +72,7 @@ Route::middleware(['auth', 'can:Procedencia'])->group(function () {
 
 // Rutas de API
 
-Route::middleware(['auth', 'permission:Citas|Pacientes'])->group(function () {
+Route::middleware(['auth', 'can:Citas,Pacientes'])->group(function () {
     Route::get('/api/municipios/{estado_id}', [MunicipioController::class, 'getMunicipios']);
     Route::get('/api/parroquias/{municipio_id}', [ParroquiaController::class, 'getParroquias']);
 });
