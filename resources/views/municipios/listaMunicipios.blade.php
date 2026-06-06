@@ -64,7 +64,8 @@
                             <select class="form-select" name="distrito_id">
                                 <option value="">Sin distrito asignado</option>
                                 @foreach ($distritos as $distrito)
-                                    <option value="{{ $distrito->id }}" {{ old('distrito_id') == $distrito->id ? 'selected' : '' }}>
+                                    <option value="{{ $distrito->id }}"
+                                        {{ old('distrito_id') == $distrito->id ? 'selected' : '' }}>
                                         {{ $distrito->nombre }}
                                     </option>
                                 @endforeach
@@ -169,132 +170,152 @@
 @endsection
 
 @push('scripts')
-<link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
-<script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
+    <script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
 
-<script>
-$(document).ready(function() {
-    $('#tablaMunicipios').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: '{{ route("municipios.index") }}',
-        columns: [
-            { data: 0, name: 'nombre' },
-            { data: 1, name: 'estado' },
-            { data: 2, name: 'distrito' },
-            { data: 3, name: 'action', orderable: false, searchable: false, className: 'text-end' }
-        ],
-        language: { url: "{{ asset('vendor/datatables/es-ES.json') }}" },
-        pageLength: 10,
-        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todas"]],
-        order: [[0, 'asc']]
-    });
-});
-
-document.addEventListener('click', async function(event) {
-    const btn = event.target.closest('.btn-edit');
-    const btnShow = event.target.closest('.btn-show');
-
-    if (btn) {
-        const municipioId = btn.getAttribute('data-id');
-        const inputNombre = document.getElementById('editarNombreMunicipio');
-        const inputEstado = document.getElementById('editarEstadoMunicipio');
-        const selectDistrito = document.getElementById('editarDistritoMunicipio');
-
-        try {
-            const modalElement = document.getElementById('modalEditarMunicipio');
-            let modalInstance = bootstrap.Modal.getInstance(modalElement);
-            if (!modalInstance) {
-                modalInstance = new bootstrap.Modal(modalElement);
-            }
-            inputNombre.disabled = true;
-            inputNombre.value = "Cargando...";
-            inputEstado.disabled = true;
-            if (selectDistrito) selectDistrito.disabled = true;
-
-            modalInstance.show();
-            const response = await fetch(`/municipios/${municipioId}/edit`, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
+    <script>
+        $(document).ready(function() {
+            $('#tablaMunicipios').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: '{{ route('municipios.index') }}',
+                columns: [{
+                        data: 0,
+                        name: 'nombre'
+                    },
+                    {
+                        data: 1,
+                        name: 'estado'
+                    },
+                    {
+                        data: 2,
+                        name: 'distrito'
+                    },
+                    {
+                        data: 3,
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-end'
+                    }
+                ],
+                language: {
+                    url: "{{ asset('vendor/datatables/es-ES.json') }}"
+                },
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, "Todas"]
+                ],
+                order: [
+                    [0, 'asc']
+                ]
             });
+        });
 
-            if (!response.ok) throw new Error('Error al obtener datos');
+        document.addEventListener('click', async function(event) {
+            const btn = event.target.closest('.btn-edit');
+            const btnShow = event.target.closest('.btn-show');
 
-            const data = await response.json();
+            if (btn) {
+                const municipioId = btn.getAttribute('data-id');
+                const inputNombre = document.getElementById('editarNombreMunicipio');
+                const inputEstado = document.getElementById('editarEstadoMunicipio');
+                const selectDistrito = document.getElementById('editarDistritoMunicipio');
 
-            document.getElementById('id').value = data.id;
-            inputNombre.value = data.nombre;
-            inputNombre.disabled = false;
-            inputEstado.value = data.estado_id;
-            inputEstado.disabled = false;
-            if (selectDistrito) {
-                selectDistrito.value = data.distrito_id || '';
-                selectDistrito.disabled = false;
-            }
+                try {
+                    const modalElement = document.getElementById('modalEditarMunicipio');
+                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (!modalInstance) {
+                        modalInstance = new bootstrap.Modal(modalElement);
+                    }
+                    inputNombre.disabled = true;
+                    inputNombre.value = "Cargando...";
+                    inputEstado.disabled = true;
+                    if (selectDistrito) selectDistrito.disabled = true;
 
-            const form = document.querySelector('#modalEditarMunicipio form');
-            form.action = `/municipios/${data.id}`;
+                    modalInstance.show();
+                    const response = await fetch(`/municipios/${municipioId}/edit`, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
 
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error', 'No se pudieron cargar los datos del municipio', 'error');
-        }
-    }
+                    if (!response.ok) throw new Error('Error al obtener datos');
 
-    if (btnShow) {
-        const municipioId = btnShow.getAttribute('data-id');
-        const spanNombre = document.getElementById('mostrarMunicipioNombre');
-        const spanEstado = document.getElementById('mostrarMunicipioEstado');
-        const spanDistrito = document.getElementById('mostrarMunicipioDistrito');
+                    const data = await response.json();
 
-        try {
-            const modalElement = document.getElementById('modalShowMunicipio');
-            let modalInstance = bootstrap.Modal.getInstance(modalElement);
-            if (!modalInstance) {
-                modalInstance = new bootstrap.Modal(modalElement);
-            }
+                    document.getElementById('id').value = data.id;
+                    inputNombre.value = data.nombre;
+                    inputNombre.disabled = false;
+                    inputEstado.value = data.estado_id;
+                    inputEstado.disabled = false;
+                    if (selectDistrito) {
+                        selectDistrito.value = data.distrito_id || '';
+                        selectDistrito.disabled = false;
+                    }
 
-            spanNombre.innerHTML = "Cargando...";
-            spanEstado.innerHTML = "Cargando...";
-            spanDistrito.innerHTML = "Cargando...";
+                    const form = document.querySelector('#modalEditarMunicipio form');
+                    form.action = `/municipios/${data.id}`;
 
-            modalInstance.show();
-            const response = await fetch(`/municipios/${municipioId}/show`, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'No se pudieron cargar los datos del municipio', 'error');
                 }
+            }
+
+            if (btnShow) {
+                const municipioId = btnShow.getAttribute('data-id');
+                const spanNombre = document.getElementById('mostrarMunicipioNombre');
+                const spanEstado = document.getElementById('mostrarMunicipioEstado');
+                const spanDistrito = document.getElementById('mostrarMunicipioDistrito');
+
+                try {
+                    const modalElement = document.getElementById('modalShowMunicipio');
+                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (!modalInstance) {
+                        modalInstance = new bootstrap.Modal(modalElement);
+                    }
+
+                    spanNombre.innerHTML = "Cargando...";
+                    spanEstado.innerHTML = "Cargando...";
+                    spanDistrito.innerHTML = "Cargando...";
+
+                    modalInstance.show();
+                    const response = await fetch(`/municipios/${municipioId}/show`, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Error al obtener datos');
+
+                    const data = await response.json();
+
+                    spanNombre.innerHTML = data.nombre;
+                    spanEstado.innerHTML = data.estado;
+                    spanDistrito.innerHTML = data.distrito || 'No asignado';
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'No se pudieron cargar los datos del municipio', 'error');
+                }
+            }
+        });
+
+        @if ($errors->any())
+
+            const errorMessages = @json(implode("\n", $errors->all()));
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: errorMessages
             });
-
-            if (!response.ok) throw new Error('Error al obtener datos');
-
-            const data = await response.json();
-
-            spanNombre.innerHTML = data.nombre;
-            spanEstado.innerHTML = data.estado;
-            spanDistrito.innerHTML = data.distrito || 'No asignado';
-
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error', 'No se pudieron cargar los datos del municipio', 'error');
-        }
-    }
-});
-
-@if ($errors->any())
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let errorMessages = '';
-        @foreach ($errors->all() as $error)
-            errorMessages += '• {{ $error }}\n';
-        @endforeach
-        Swal.fire({ icon: 'error', title: 'Error', text: errorMessages, confirmButtonColor: '#3085d6' });
-    });
-</script>
-@endif
-</script>
+    </script>
+    @endif
 @endpush

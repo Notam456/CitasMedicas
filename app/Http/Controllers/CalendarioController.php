@@ -7,6 +7,8 @@ use App\Models\Especialidad;
 use App\Models\Medico;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use RealRashid\SweetAlert\Facades\Alert;
+
 
 class CalendarioController extends Controller
 {
@@ -84,16 +86,17 @@ class CalendarioController extends Controller
         }
 
         $request->validate([
-            'medico_id' => 'required',
+            'medico_id' => 'required|exists:medicos,id',
             'fecha' => 'required|date',
-            'hora_inicio' => 'required',
-            'hora_fin' => 'required',
+            'hora_inicio' => 'required|date_format:H:i',
+            'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
+            
             'cupos_primera_vez' => [
                 'required',
                 'integer',
                 'min:0',
                 function ($attribute, $value, $fail) use ($request) {
-                    $total = $value + $request->cupos_sucesivos;
+                    $total = $value + ($request->cupos_sucesivos ?? 0);
                     if ($total <= 0) {
                         $fail('La suma de cupos (primera vez + sucesivos) debe ser mayor a cero.');
                     }
@@ -118,18 +121,19 @@ class CalendarioController extends Controller
     private function storeMasivo(Request $request)
     {
         $request->validate([
-            'medico_id' => 'required',
+            'medico_id' => 'required|exists:medicos,id', 
             'fecha_inicio' => 'required|date',
             'duracion_rango' => 'required|in:1_week,1_month,3_months,6_months',
             'dias_semana' => 'required|array',
-            'hora_inicio' => 'required',
-            'hora_fin' => 'required',
+            'dias_semana.*' => 'required|integer|between:1,7',
+            'hora_inicio' => 'required|date_format:H:i',
+            'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
             'cupos_primera_vez' => [
                 'required',
                 'integer',
                 'min:0',
                 function ($attribute, $value, $fail) use ($request) {
-                    $total = $value + $request->cupos_sucesivos;
+                    $total = $value + ($request->cupos_sucesivos ?? 0);
                     if ($total <= 0) {
                         $fail('La suma de cupos (primera vez + sucesivos) debe ser mayor a cero.');
                     }
@@ -195,39 +199,9 @@ class CalendarioController extends Controller
         if ($overwritten > 0) {
             $message .= " Se sobrescribieron $overwritten configuraciones existentes.";
         }
-
-        return redirect()->route('calendario.index')->with('success', $message);
+        Alert::success($message);
+        return redirect()->route('calendario.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Calendario $calendario)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Calendario $calendario)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Calendario $calendario)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Calendario $calendario)
-    {
-        //
-    }
+   
 }

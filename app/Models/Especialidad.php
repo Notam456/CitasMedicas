@@ -17,5 +17,4 @@ class Especialidad extends Model
     
     protected $attributes = ['estado' => true,];
 
-    public $timestamps = false;
 }

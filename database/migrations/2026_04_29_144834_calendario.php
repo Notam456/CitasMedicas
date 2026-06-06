@@ -14,7 +14,7 @@ return new class extends Migration
     Schema::create('calendarios', function (Blueprint $table) {
     $table->id();
     $table->foreignId('medico_id')->constrained('medicos')->cascadeOnDelete();
-    $table->date('fecha');
+    $table->date('fecha')->index();
     $table->time('hora_inicio');
     $table->time('hora_fin');
     $table->integer('cupos_sucesivos');

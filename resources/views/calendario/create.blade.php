@@ -14,6 +14,7 @@
             </button>
         </div>
 
+
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
                 <form action="{{ route('calendario.store') }}" method="POST">
@@ -21,7 +22,6 @@
                     <input type="hidden" name="tipo_configuracion" value="masivo">
 
                     <div class="row g-4">
-                        <!-- Selección de Médico -->
                         <div class="col-md-6">
                             <label class="form-label text-muted fw-bold small">Especialidad *</label>
                             <div class="input-group">
@@ -46,13 +46,12 @@
                             </div>
                         </div>
 
-                        <!-- Rango de Fechas -->
                         <div class="col-md-6">
                             <label class="form-label text-muted fw-bold small">Fecha Inicio *</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-calendar-day"></i></span>
                                 <input type="date" name="fecha_inicio" class="form-control border-secondary-subtle"
-                                    value="{{ date('Y-m-d') }}" required>
+                                    value="{{ old('fecha_inicio', date('Y-m-d')) }}" required>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -60,14 +59,18 @@
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-history"></i></span>
                                 <select name="duracion_rango" class="form-select border-secondary-subtle" required>
-                                    <option value="1_week">Una Semana (7 días)</option>
-                                    <option value="1_month" selected>Un Mes (30 días)</option>
-                                    <option value="3_months">Trimestral (3 meses)</option>
-                                    <option value="6_months">Semestral (6 meses)</option>
+                                    <option value="1_week" {{ old('duracion_rango') == '1_week' ? 'selected' : '' }}>Una
+                                        Semana (7 días)</option>
+                                    <option value="1_month"
+                                        {{ old('duracion_rango', '1_month') == '1_month' ? 'selected' : '' }}>Un Mes (30
+                                        días)</option>
+                                    <option value="3_months" {{ old('duracion_rango') == '3_months' ? 'selected' : '' }}>
+                                        Trimestral (3 meses)</option>
+                                    <option value="6_months" {{ old('duracion_rango') == '6_months' ? 'selected' : '' }}>
+                                        Semestral (6 meses)</option>
                                 </select>
                             </div>
                         </div>
-                        <!-- Días de la Semana -->
                         <div class="col-12">
                             <label class="form-label text-muted fw-bold small d-block">Días de la semana *</label>
                             <div class="d-flex flex-wrap gap-3">
@@ -85,7 +88,8 @@
                                 @foreach ($dias as $value => $label)
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="checkbox" name="dias_semana[]"
-                                            value="{{ $value }}" id="dia_{{ $value }}">
+                                            value="{{ $value }}" id="dia_{{ $value }}"
+                                            {{ is_array(old('dias_semana')) && in_array($value, old('dias_semana')) ? 'checked' : '' }}>
                                         <label class="form-check-label"
                                             for="dia_{{ $value }}">{{ $label }}</label>
                                     </div>
@@ -93,24 +97,25 @@
                             </div>
                         </div>
 
-                        <!-- Horarios y Cupos -->
                         <div class="col-md-3">
                             <label class="form-label text-muted fw-bold small">Hora Inicio *</label>
-                            <input type="time" name="hora_inicio" class="form-control" value="08:00" required>
+                            <input type="time" name="hora_inicio" class="form-control"
+                                value="{{ old('hora_inicio', '08:00') }}" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label text-muted fw-bold small">Hora Fin *</label>
-                            <input type="time" name="hora_fin" class="form-control" value="12:00" required>
+                            <input type="time" name="hora_fin" class="form-control"
+                                value="{{ old('hora_fin', '12:00') }}" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label text-muted fw-bold small">Cupos 1ra Vez *</label>
                             <input type="number" name="cupos_primera_vez" class="form-control" min="0"
-                                value="10" required>
+                                value="{{ old('cupos_primera_vez', '10') }}" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label text-muted fw-bold small">Cupos Sucesivos *</label>
-                            <input type="number" name="cupos_sucesivos" class="form-control" min="0" value="10"
-                                required>
+                            <input type="number" name="cupos_sucesivos" class="form-control" min="0"
+                                value="{{ old('cupos_sucesivos', '10') }}" required>
                         </div>
 
                         <div class="col-12 mt-4 text-end">
@@ -125,7 +130,6 @@
         </div>
     </div>
 
-    <!-- Modal con el calendario actual -->
     <div class="modal fade" id="modalCalendario" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -180,11 +184,11 @@
         </div>
     </div>
 
-    <!-- Modal para configurar un día individual (dentro del modal de calendario) -->
     <div class="modal fade" id="modalConfigurar" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <form id="form-guardar-cupo">
+                    @csrf
                     <div class="modal-header">
                         <h5 class="modal-title fw-bold"><i class="fas fa-clock me-2"></i>Configurar Jornada</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -236,7 +240,6 @@
             modalBS = new bootstrap.Modal(document.getElementById('modalConfigurar'));
             cargarCalendario();
 
-            // Sincronizar selectores si se desea (opcional)
             const espMasivo = document.getElementById('select-especialidad-masivo');
             const espManual = document.getElementById('select-especialidad');
 
@@ -366,8 +369,8 @@
             document.getElementById('input-medico-id').value = medId;
             document.getElementById('input-fecha').value = fecha;
 
-            document.getElementById('input-inicio').value = evento ? evento.hora_inicio : "08:00";
-            document.getElementById('input-fin').value = evento ? evento.hora_fin : "12:00";
+            document.getElementById('input-inicio').value = evento ? evento.hora_inicio.substring(0, 5) : "08:00";
+            document.getElementById('input-fin').value = evento ? evento.hora_fin.substring(0, 5) : "12:00";
             document.getElementById('input-cupos-p').value = evento ? evento.cupos_primera_vez : "10";
             document.getElementById('input-cupos-s').value = evento ? evento.cupos_sucesivos : "10";
 
@@ -382,10 +385,17 @@
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
                     }
                 })
-                .then(res => res.json())
+                .then(async res => {
+                    const data = await res.json();
+                    if (!res.ok) {
+                        throw data;
+                    }
+                    return data;
+                })
                 .then(data => {
                     if (data.success) {
                         modalBS.hide();
@@ -398,10 +408,38 @@
                             showConfirmButton: false
                         });
                     }
+                })
+                .catch(err => {
+                    let errorMsg = 'Ocurrió un inconveniente procesando los datos.';
+                    if (err.errors) {
+                        errorMsg = Object.values(err.errors).map(msg => `• ${msg}`).join('\n');
+                    } else if (err.message) {
+                        errorMsg = err.message;
+                    }
+
+                    Swal.fire({
+                        title: 'Error de Validación',
+                        text: errorMsg,
+                        icon: 'error',
+                        confirmButtonColor: '#0d6efd'
+                    });
                 });
         };
     </script>
+    @push('scripts')
 
+        @if ($errors->any())
+            <script>
+                const errorMessages = @json(implode("\n", $errors->all()));
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorMessages
+                });
+            </script>
+        @endif
+    @endpush
     <style>
         .calendar-day:hover {
             background: #f0f7ff !important;

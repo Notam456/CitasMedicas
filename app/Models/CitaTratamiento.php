@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CitaTratamiento extends Model
 {
-    protected $table = 'cita_tratamiento';
+    protected $table = 'cita_tratamientos';
     protected $fillable = ['cita_id', 'medicamento_id', 'dosis', 'duracion', 'indicaciones'];
 
     public function cita()

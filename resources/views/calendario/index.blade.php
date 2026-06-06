@@ -7,6 +7,19 @@
     @include('layouts.navbar')
 
     <div class="container py-4">
+        
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle me-3 fs-4 text-success"></i>
+                    <div>
+                        {{ session('success') }}
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h3 class="mb-0"> Calendario de Disponibilidad</h3>
@@ -52,7 +65,6 @@
                     </div>
                 </div>
 
-                <!-- Calendario -->
                 <div class="table-responsive rounded shadow-sm border">
                     <div class="row g-0 bg-light border-bottom text-center fw-bold py-2 text-muted small text-uppercase">
                         <div class="col" style="width: 14.28%;">Dom</div>
@@ -64,24 +76,19 @@
                         <div class="col" style="width: 14.28%;">Sab</div>
                     </div>
 
-
                     <div id="calendario-grid" class="row g-0 bg-white" style="min-height: 400px;">
-                        <!-- lo llena el JavaScript -->
-                    </div>
+                        </div>
                 </div>
             </div>
         </div>
     </div>
 
-
     <div class="modal fade" id="bsModalResumen" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel"><i class="fas fa-info-circle me-2"></i>Resumen de Disponibilidad
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                    <h5 class="modal-title" id="modalLabel"><i class="fas fa-info-circle me-2"></i>Resumen de Disponibilidad</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="d-flex align-items-center mb-3">
@@ -93,8 +100,7 @@
                             <h5 id="fecha-seleccionada" class="fw-bold mb-0 text-dark"></h5>
                         </div>
                     </div>
-                    <div id="lista-medicos" class="mt-4">
-                    </div>
+                    <div id="lista-medicos" class="mt-4"></div>
                 </div>
                 <div class="modal-footer bg-light border-top-0">
                     <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cerrar</button>
@@ -115,7 +121,6 @@
             cargarCalendario();
         });
 
-
         document.getElementById('select-especialidad').addEventListener('change', function() {
             const espId = this.value;
             const selectMed = document.getElementById('select-medico');
@@ -131,8 +136,7 @@
                 .then(data => {
                     selectMed.innerHTML = '<option value="">Todos los médicos</option>';
                     data.forEach(m => {
-                        selectMed.innerHTML +=
-                            `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
+                        selectMed.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
                     });
 
                     if (data.length === 1) {
@@ -159,10 +163,7 @@
                 return;
             }
 
-            const opciones = {
-                month: 'long',
-                year: 'numeric'
-            };
+            const opciones = { month: 'long', year: 'numeric' };
             document.getElementById('mes-actual').innerText = fechaActual.toLocaleDateString('es-ES', opciones);
 
             fetch(`/calendario/eventos?mes=${mes}&anio=${anio}&especialidad_id=${espId}&medico_id=${medId}`)
@@ -180,30 +181,21 @@
             const ultimoDiaMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0).getDate();
 
             for (let i = 0; i < primerDiaSemana; i++) {
-                grid.innerHTML +=
-                    `<div class="col p-2 border-end border-bottom bg-light" style="flex: 0 0 14.28%; height: 100px;"></div>`;
+                grid.innerHTML += `<div class="col p-2 border-end border-bottom bg-light" style="flex: 0 0 14.28%; height: 100px;"></div>`;
             }
 
             for (let dia = 1; dia <= ultimoDiaMes; dia++) {
-                const fechaStr =
-                    `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+                const fechaStr = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
                 const eventosDia = eventos.filter(e => e.fecha === fechaStr);
 
-
-                const totalCuposConfigurados = eventosDia.reduce((sum, e) => sum + e.cupos_primera_vez + e.cupos_sucesivos,
-                    0);
-
-                const totalCuposAsignados = eventosDia.reduce((sum, e) => sum + e.citas_primera_vez_count + e
-                    .citas_sucesivas_count, 0);
-
+                const totalCuposConfigurados = eventosDia.reduce((sum, e) => sum + e.cupos_primera_vez + e.cupos_sucesivos, 0);
+                const totalCuposAsignados = eventosDia.reduce((sum, e) => sum + e.citas_primera_vez_count + e.citas_sucesivas_count, 0);
                 const cuposDisponibles = totalCuposConfigurados - totalCuposAsignados;
-
 
                 let porcentajeOcupacion = 0;
                 if (totalCuposConfigurados > 0) {
                     porcentajeOcupacion = (cuposDisponibles / totalCuposConfigurados) * 100;
                 }
-
 
                 let colorClase = 'text-danger';
                 let bgBarra = 'bg-danger';
@@ -215,31 +207,25 @@
                 const divDia = document.createElement('div');
                 divDia.className = 'col p-2 border-end border-bottom calendar-day bg-white text-dark';
                 divDia.style.cssText = 'flex: 0 0 14.28%; height: 110px; cursor: pointer; transition: background 0.2s;';
-                divDia.onmouseover = function() {
-                    this.style.background = '#f8f9fa';
-                };
-                divDia.onmouseout = function() {
-                    this.style.background = 'white';
-                };
+                divDia.onmouseover = function() { this.style.background = '#f8f9fa'; };
+                divDia.onmouseout = function() { this.style.background = 'white'; };
 
                 divDia.onclick = () => abrirResumen(fechaStr, eventosDia);
-
                 grid.appendChild(divDia);
 
                 divDia.innerHTML = `
-            <div class="d-flex justify-content-between align-items-start">
-                <span class="fw-bold">${dia}</span>
-                ${totalCuposConfigurados > 0 ? `<span class="badge rounded-pill ${cuposDisponibles > 0 ? 'bg-success' : 'bg-warning'} p-1"><i class="fas ${cuposDisponibles > 0 ? 'fa-check' : 'fa-exclamation'}"></i></span>` : ''}
-            </div>
-            <div class="text-center mt-2">
-                <div class="small fw-bold ${colorClase}">
-                    ${totalCuposConfigurados > 0 ? `${cuposDisponibles} disp. de ${totalCuposConfigurados}` : '0 Cupos'}
-                </div>
-                <div class="progress mt-1" style="height: 6px; background-color: #e9ecef;">
-                    <div class="progress-bar ${bgBarra}" style="width: ${totalCuposConfigurados > 0 ? porcentajeOcupacion : 0}%"></div>
-                </div>
-            </div>
-        `;
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="fw-bold">${dia}</span>
+                        ${totalCuposConfigurados > 0 ? `<span class="badge rounded-pill ${cuposDisponibles > 0 ? 'bg-success' : 'bg-warning'} p-1"><i class="fas ${cuposDisponibles > 0 ? 'fa-check' : 'fa-exclamation'}"></i></span>` : ''}
+                    </div>
+                    <div class="text-center mt-2">
+                        <div class="small fw-bold ${colorClase}">
+                            ${totalCuposConfigurados > 0 ? `${cuposDisponibles} disp. de ${totalCuposConfigurados}` : '0 Cupos'}
+                        </div>
+                        <div class="progress mt-1" style="height: 6px; background-color: #e9ecef;">
+                            <div class="progress-bar ${bgBarra}" style="width: ${totalCuposConfigurados > 0 ? porcentajeOcupacion : 0}%"></div>
+                        </div>
+                    </div>`;
             }
         }
 
@@ -256,49 +242,48 @@
 
             if (eventos.length === 0) {
                 lista.innerHTML = `
-            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                No hay médicos programados para este día.
-            </div>`;
+                    <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No hay médicos programados para este día.
+                    </div>`;
             } else {
                 eventos.forEach(ev => {
-
                     const totalMed = ev.cupos_primera_vez + ev.cupos_sucesivos;
                     const asignadosMed = ev.citas_primera_vez_count + ev.citas_sucesivas_count;
                     const dispMed = totalMed - asignadosMed;
 
                     lista.innerHTML += `
-                <div class="card mb-3 border-start border-4 ${dispMed > 0 ? 'border-primary' : 'border-warning'} shadow-sm">
-                    <div class="card-body py-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="mb-0 fw-bold text-primary">Dr. ${ev.medico.nombre} ${ev.medico.apellido}</h6>
-                            <span class="badge ${dispMed > 0 ? 'bg-info' : 'bg-warning'} text-dark fw-bold">
-                                ${dispMed} / ${totalMed} Disponibles
-                            </span>
-                        </div>
-                        
-                        <div class="row g-2 text-center my-2">
-                            <div class="col-6">
-                                <div class="p-2 bg-light rounded border">
-                                    <small class="text-muted d-block">Primera Vez</small>
-                                    <span class="fw-bold text-dark">${ev.citas_primera_vez_count}</span> 
-                                    <span class="text-muted">/ ${ev.cupos_primera_vez}</span>
+                        <div class="card mb-3 border-start border-4 ${dispMed > 0 ? 'border-primary' : 'border-warning'} shadow-sm">
+                            <div class="card-body py-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0 fw-bold text-primary">Dr. ${ev.medico.nombre} ${ev.medico.apellido}</h6>
+                                    <span class="badge ${dispMed > 0 ? 'bg-info' : 'bg-warning'} text-dark fw-bold">
+                                        ${dispMed} / ${totalMed} Disponibles
+                                    </span>
                                 </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-2 bg-light rounded border">
-                                    <small class="text-muted d-block">Control (Sucesivos)</small>
-                                    <span class="fw-bold text-dark">${ev.citas_sucesivas_count}</span> 
-                                    <span class="text-muted">/ ${ev.cupos_sucesivos}</span>
+                                
+                                <div class="row g-2 text-center my-2">
+                                    <div class="col-6">
+                                        <div class="p-2 bg-light rounded border">
+                                            <small class="text-muted d-block">Primera Vez</small>
+                                            <span class="fw-bold text-dark">${ev.citas_primera_vez_count}</span> 
+                                            <span class="text-muted">/ ${ev.cupos_primera_vez}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 bg-light rounded border">
+                                            <small class="text-muted d-block">Control (Sucesivos)</small>
+                                            <span class="fw-bold text-dark">${ev.citas_sucesivas_count}</span> 
+                                            <span class="text-muted">/ ${ev.cupos_sucesivos}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div class="small text-muted mt-2 pt-2 border-top">
-                            <i class="far fa-clock me-1 text-secondary"></i> Jornada: ${ev.hora_inicio.substring(0,5)} - ${ev.hora_fin.substring(0,5)}
-                        </div>
-                    </div>
-                </div>`;
+                                <div class="small text-muted mt-2 pt-2 border-top">
+                                    <i class="far fa-clock me-1 text-secondary"></i> Jornada: ${ev.hora_inicio.substring(0,5)} - ${ev.hora_fin.substring(0,5)}
+                                </div>
+                            </div>
+                        </div>`;
                 });
             }
 

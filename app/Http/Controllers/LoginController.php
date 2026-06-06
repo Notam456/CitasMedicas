@@ -6,12 +6,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 
 class LoginController
 {
     public function login(Request $request)
     {
-        $credentials = $request->only('name', 'password');
+        
+        $credentials = $request->validate([
+        'name'     => 'required|string|max:255',
+        'password' => 'required|string',
+    ], [
+        'name.required'     => 'El nombre de usuario es obligatorio.',
+        'password.required' => 'La contraseña es obligatoria.',
+    ]);
+        
 
         if (Auth::attempt($credentials)) {
 
@@ -20,7 +29,11 @@ class LoginController
             return redirect()->route('dashboard');
         }
 
-        return back()->withErrors(['name' => 'Las credenciales no son correctas.',]);
+       return back()
+        ->withInput($request->only('name'))
+        ->withErrors([
+            'name' => 'Las credenciales son incorrectas.',
+        ]);
     }
 
     public function register(Request $request)

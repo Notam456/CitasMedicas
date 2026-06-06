@@ -9,6 +9,7 @@ use Illuminate\Validation\Rule;
 use RealRashid\SweetAlert\Facades\Alert;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -27,7 +28,7 @@ class UserController extends Controller
         $title = '¿Estas seguro de que deseas eliminar este usuario?';
         $text = 'Esta acción no se puede deshacer.';
         confirmDelete($title, $text);
-        
+
         return view('user.listaUsuarios', compact('roles', 'permisos'));
     }
 
@@ -40,7 +41,7 @@ class UserController extends Controller
         if ($search = $request->get('search')['value']) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ILIKE', "%{$search}%")
-                  ->orWhere('email', 'ILIKE', "%{$search}%");
+                    ->orWhere('email', 'ILIKE', "%{$search}%");
             });
         }
 
@@ -69,8 +70,8 @@ class UserController extends Controller
             }
 
             $actionBtn = '<div class="hstack gap-2 justify-content-end">';
-            $actionBtn .= '<button type="button" data-id="'.$user->id.'" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
-            $actionBtn .= '<a href="'.route('users.destroy', $user->id).'" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
+            $actionBtn .= '<button type="button" data-id="' . $user->id . '" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
+            $actionBtn .= '<a href="' . route('users.destroy', $user->id) . '" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
             $actionBtn .= '</div>';
 
             $dataFormatted[] = [
@@ -112,7 +113,7 @@ class UserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password'=> Hash::make($request->password),
+            'password' => Hash::make($request->password),
         ]);
 
         $user->assignRole($request->role);
@@ -137,7 +138,7 @@ class UserController extends Controller
     {
         $userToEdit = User::findOrFail($id);
         $role = $userToEdit->getRoleNames()->first();
-        
+
         return response()->json([
             'id' => $userToEdit->id,
             'name' => $userToEdit->name,
@@ -154,7 +155,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $id,
-            'password' => 'nullable|string|min:8',
+            'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|string|exists:roles,name',
         ]);
 
@@ -180,10 +181,17 @@ class UserController extends Controller
      */
     public function destroy(int $id)
     {
+
         $user = User::findOrFail($id);
+        if (Auth::check() && Auth::id() == $user->id) {
+            Alert::error('Error al eliminar', 'No se puede eliminar el usuario actual.');
+            return redirect()->route('users.index');
+        }
+
+
         $user->delete();
 
-        alert()->success('Usuario eliminado exitosamente.');
+        Alert::success('Usuario eliminado exitosamente.');
 
         return redirect()->route('users.index');
     }

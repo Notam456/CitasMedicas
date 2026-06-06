@@ -46,10 +46,10 @@ class DiagnosticoController extends Controller
                 'citas.estado',
                 'atendido.name as atendido_por_nombre',
                 'creador.name as creado_por_nombre',
-                'citas.created_at'
+                'citas.created_at',
+                DB::raw("(SELECT STRING_AGG(p.nombre, ', ') FROM cita_patologias cp JOIN patologias p ON p.id = cp.patologia_id WHERE cp.cita_id = citas.id) as patologias_nombres")
             )
             ->where('citas.estado', 'Atendida');
-
         // Aplicar filtros
         if ($request->filled('especialidad_id')) {
             $query->where('especialidades.id', $request->especialidad_id);
@@ -66,14 +66,14 @@ class DiagnosticoController extends Controller
         if ($search = $request->get('search')['value']) {
             $query->where(function ($q) use ($search) {
                 $q->where('pacientes.nombre', 'ILIKE', "%{$search}%")
-                  ->orWhere('pacientes.apellido', 'ILIKE', "%{$search}%")
-                  ->orWhere('pacientes.cedula', 'ILIKE', "%{$search}%")
-                  ->orWhere('medicos.nombre', 'ILIKE', "%{$search}%")
-                  ->orWhere('medicos.apellido', 'ILIKE', "%{$search}%")
-                  ->orWhere('especialidades.nombre', 'ILIKE', "%{$search}%")
-                  ->orWhere('citas.diagnostico_libre', 'ILIKE', "%{$search}%")
-                  ->orWhere('atendido.name', 'ILIKE', "%{$search}%")
-                  ->orWhere('creador.name', 'ILIKE', "%{$search}%");
+                    ->orWhere('pacientes.apellido', 'ILIKE', "%{$search}%")
+                    ->orWhere('pacientes.cedula', 'ILIKE', "%{$search}%")
+                    ->orWhere('medicos.nombre', 'ILIKE', "%{$search}%")
+                    ->orWhere('medicos.apellido', 'ILIKE', "%{$search}%")
+                    ->orWhere('especialidades.nombre', 'ILIKE', "%{$search}%")
+                    ->orWhere('citas.diagnostico_libre', 'ILIKE', "%{$search}%")
+                    ->orWhere('atendido.name', 'ILIKE', "%{$search}%")
+                    ->orWhere('creador.name', 'ILIKE', "%{$search}%");
             });
         }
 
@@ -101,11 +101,9 @@ class DiagnosticoController extends Controller
 
         $dataFormatted = [];
         foreach ($data as $row) {
-            $cita = Cita::find($row->id);
-            $patologiasNombres = $cita->patologias->pluck('nombre')->toArray();
             $diagnosticoStr = '';
-            if (!empty($patologiasNombres)) {
-                $diagnosticoStr = implode(', ', $patologiasNombres);
+            if (!empty($row->patologias_nombres)) {
+                $diagnosticoStr = $row->patologias_nombres;
                 if ($row->diagnostico_libre) {
                     $diagnosticoStr .= ' - ' . $row->diagnostico_libre;
                 }
@@ -113,10 +111,10 @@ class DiagnosticoController extends Controller
                 $diagnosticoStr = $row->diagnostico_libre ?: 'Sin diagnóstico';
             }
 
-            $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
-            $btnEdit = '<button type="button" data-id="'.$row->id.'" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
-            $btnDelete = '<a href="'.route('diagnosticos.destroy', $row->id).'" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
-            $acciones = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnEdit.$btnDelete.'</div>';
+            $btnShow = '<button type="button" data-id="' . $row->id . '" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
+            $btnEdit = '<button type="button" data-id="' . $row->id . '" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
+            //$btnDelete = '<a href="' . route('diagnosticos.destroy', $row->id) . '" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
+            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . '</div>';
 
             $dataFormatted[] = [
                 $row->paciente_nombre . ' ' . $row->paciente_apellido,
@@ -192,7 +190,7 @@ class DiagnosticoController extends Controller
             $cita->patologias()->sync($request->patologias ?? []);
 
             // Medicamentos
-            $medicamentosValidos = array_filter($request->medicamentos ?? [], function($med) {
+            $medicamentosValidos = array_filter($request->medicamentos ?? [], function ($med) {
                 return !empty($med['id']);
             });
             $cita->tratamientos()->delete();
@@ -206,7 +204,7 @@ class DiagnosticoController extends Controller
             }
 
             // Referencias
-            $referenciasValidas = array_filter($request->referencias ?? [], function($ref) {
+            $referenciasValidas = array_filter($request->referencias ?? [], function ($ref) {
                 return !empty($ref['especialidad_id']);
             });
             $cita->referencias()->delete();
@@ -228,14 +226,14 @@ class DiagnosticoController extends Controller
         return redirect()->route('diagnosticos.index');
     }
 
-    public function destroy($id)
+   /* public function destroy($id)
     {
         $cita = Cita::findOrFail($id);
         $cita->delete();
         Alert::success('Cita y su diagnóstico eliminados correctamente.');
         return redirect()->route('diagnosticos.index');
     }
-
+*/
     public function show($id)
     {
         $cita = Cita::with([
@@ -303,7 +301,7 @@ class DiagnosticoController extends Controller
                 $cita->patologias()->sync($request->patologias);
             }
 
-            $medicamentosValidos = array_filter($request->medicamentos ?? [], function($med) {
+            $medicamentosValidos = array_filter($request->medicamentos ?? [], function ($med) {
                 return !empty($med['id']);
             });
             foreach ($medicamentosValidos as $med) {
@@ -315,7 +313,7 @@ class DiagnosticoController extends Controller
                 ]);
             }
 
-            $referenciasValidas = array_filter($request->referencias ?? [], function($ref) {
+            $referenciasValidas = array_filter($request->referencias ?? [], function ($ref) {
                 return !empty($ref['especialidad_id']);
             });
             foreach ($referenciasValidas as $ref) {

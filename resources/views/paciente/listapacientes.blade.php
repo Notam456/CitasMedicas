@@ -530,18 +530,12 @@ document.getElementById('select-municipio-edit').addEventListener('change', func
 
 @if ($errors->any())
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let errorMessages = '';
-        @foreach ($errors->all() as $error)
-            errorMessages += '• {{ $error }}\n';
-        @endforeach
-        Swal.fire({
-            icon: 'error',
-            title: '¡Ups! Algo salió mal en tu acción, inténtalo de nuevo',
-            text: errorMessages,
-            confirmButtonColor: '#3085d6',
-            confirmButtonText: 'Entendido'
-        });
+    const errorMessages = @json(implode("\n", $errors->all()));
+
+    Swal.fire({ 
+        icon: 'error', 
+        title: 'Error', 
+        text: errorMessages 
     });
 </script>
 @endif
