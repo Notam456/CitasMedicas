@@ -25,20 +25,26 @@
                 <a href="#" class="dropdown-item text-center">Ver todos los mensajes</a>
             </div>
         </div> -->
+            @if(!request()->routeIs('notificaciones.index'))
             <div class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                <a href="#" class="nav-link dropdown-toggle position-relative" data-bs-toggle="dropdown" id="notifDropdown">
                     <i class="fa fa-bell me-lg-2"></i>
                     <span class="d-none d-lg-inline-flex">Notificaciones</span>
+                    <span id="notif-count" class="badge rounded-pill bg-danger" style="display:none; position:absolute; top:2px; right:2px; font-size:0.65rem; min-width:18px;">0</span>
                 </a>
-                <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-                    <a href="#" class="dropdown-item">
-                        <h6 class="fw-normal mb-0">Profile updated</h6>
-                        <small>15 minutes ago</small>
+                <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0" style="min-width: 320px;" id="notif-dropdown-menu">
+                    <div id="notif-lista">
+                        <div class="text-center py-3 text-muted small">
+                            <i class="bi bi-bell-slash"></i> Cargando notificaciones...
+                        </div>
+                    </div>
+                    <hr class="dropdown-divider my-1">
+                    <a href="{{ route('notificaciones.index') }}" class="dropdown-item text-center small">
+                        Ver todas las notificaciones
                     </a>
-                    <hr class="dropdown-divider">
-                    <a href="#" class="dropdown-item text-center">Ver todas las notificaciones</a>
                 </div>
             </div>
+            @endif
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                     <img class="rounded-circle me-lg-2" src="{{ asset('assets/img/user.jpg') }}" alt=""
