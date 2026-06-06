@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             CitaSeeder::class,
             MedicamentoSeeder::class,
             PatologiaDiagnosticoSeeder::class,
+            NotificationSeeder::class,
         ]);
     }
 }
