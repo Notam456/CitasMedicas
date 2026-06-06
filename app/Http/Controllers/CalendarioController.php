@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Calendario;
 use App\Models\Especialidad;
 use App\Models\Medico;
+use App\Models\User;
+use App\Notifications\PlanificacionCreada;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
 
 
@@ -115,6 +118,12 @@ class CalendarioController extends Controller
             ]
         );
 
+        $medico = Medico::with('especialidad')->find($request->medico_id);
+        Notification::send(User::all(), new PlanificacionCreada(
+            $medico,
+            "disponibilidad para el {$request->fecha}",
+        ));
+
         return response()->json(['success' => true, 'message' => 'Cupos actualizados correctamente.']);
     }
 
@@ -199,6 +208,13 @@ class CalendarioController extends Controller
         if ($overwritten > 0) {
             $message .= " Se sobrescribieron $overwritten configuraciones existentes.";
         }
+
+        $medico = Medico::with('especialidad')->find($request->medico_id);
+        Notification::send(User::all(), new PlanificacionCreada(
+            $medico,
+            "disponibilidad para {$count} días.",
+        ));
+
         Alert::success($message);
         return redirect()->route('calendario.index');
     }

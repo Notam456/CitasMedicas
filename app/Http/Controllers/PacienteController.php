@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Paciente;
 use App\Models\Parroquia;
+use App\Models\User;
+use App\Notifications\NuevoPaciente;
+use App\Notifications\PacienteModificado;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class PacienteController extends Controller
@@ -130,7 +134,7 @@ class PacienteController extends Controller
             'sexo' => 'required|in:Masculino,Femenino',
         ]);
 
-        Paciente::create([
+        $paciente = Paciente::create([
             'cedula' => $request->cedula_completa,
             'rif' => 'J-' . $request->rif,
             'nombre' => $request->nombre,
@@ -141,6 +145,8 @@ class PacienteController extends Controller
             'direccion' => $request->direccion,
             'sexo' => $request->sexo,
         ]);
+
+        Notification::send(User::all(), new NuevoPaciente($paciente));
 
         Alert::success('Paciente creado exitosamente.');
 
@@ -201,6 +207,11 @@ class PacienteController extends Controller
             'direccion' => $request->direccion,
             'sexo' => $request->sexo,
         ]);
+
+        if (!auth()->user()->hasRole('administrador')) {
+            $admins = User::role('administrador')->get();
+            Notification::send($admins, new PacienteModificado($paciente, auth()->user()));
+        }
 
         Alert::success('Paciente actualizado exitosamente.');
 
