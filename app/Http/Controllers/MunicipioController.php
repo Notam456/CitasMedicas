@@ -142,4 +142,11 @@ class MunicipioController extends Controller
         Alert::success('Municipio eliminado exitosamente.');
         return redirect()->route('municipios.index');
     }
+
+    public function getMunicipios($estado_id)
+    {
+        $municipios = Municipio::where('estado_id', $estado_id)->get();
+        
+        return response()->json($municipios);
+    }
 }
