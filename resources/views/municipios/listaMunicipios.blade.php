@@ -316,6 +316,6 @@
                 title: 'Error',
                 text: errorMessages
             });
+        @endif
     </script>
-    @endif
 @endpush
