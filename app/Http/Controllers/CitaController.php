@@ -8,10 +8,14 @@ use App\Models\Especialidad;
 use App\Models\Estado;
 use App\Models\Medico;
 use App\Models\Paciente;
+use App\Models\User;
+use App\Notifications\CitaCancelada;
+use App\Notifications\CitaReagendada;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class CitaController extends Controller
@@ -365,6 +369,8 @@ class CitaController extends Controller
             return redirect()->route('Citas.index');
         }
 
+        $fechaOriginal = $cita->fecha_cita;
+
         $request->validate([
             'calendario_id' => 'required|numeric|exists:calendarios,id',
             'fecha_cita' => 'required|date|after_or_equal:today',
@@ -378,6 +384,11 @@ class CitaController extends Controller
             'reagendada_contador' => $cita->reagendada_contador + 1,
         ]);
 
+        if (!auth()->user()->hasRole('administrador')) {
+            $admins = User::role('administrador')->get();
+            Notification::send($admins, new CitaReagendada($cita, auth()->user(), $fechaOriginal));
+        }
+
         Alert::success('¡Éxito!', 'Cita reagendada correctamente.');
         return redirect()->route('Citas.index');
     }
@@ -388,6 +399,12 @@ class CitaController extends Controller
     public function destroy(Cita $cita)
     {
         $cita->update(['estado' => 'Cancelada']);
+
+        if (!auth()->user()->hasRole('administrador')) {
+            $admins = User::role('administrador')->get();
+            Notification::send($admins, new CitaCancelada($cita, auth()->user()));
+        }
+
         Alert::success('¡Éxito!', 'Cita cancelada correctamente.');
         return redirect()->route('Citas.index');
     }

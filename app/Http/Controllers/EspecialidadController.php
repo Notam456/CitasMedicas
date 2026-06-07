@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Especialidad;
+use App\Models\User;
+use App\Notifications\NuevaEspecialidad;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class EspecialidadController extends Controller
@@ -84,7 +87,9 @@ class EspecialidadController extends Controller
             'nombre' => 'required|string|max:255|unique:especialidades,nombre',
         ]);
 
-        Especialidad::create($request->only('nombre'));
+        $especialidad = Especialidad::create($request->only('nombre'));
+
+        Notification::send(User::all(), new NuevaEspecialidad($especialidad));
 
         alert()->success('Especialidad creada exitosamente.');
         return redirect()->route('especialidades.index');
