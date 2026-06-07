@@ -8,11 +8,26 @@
 
     <div class="container-fluid px-4 py-4">
 
+        <style>
+            .calendar-day-available:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                z-index: 1;
+                position: relative;
+            }
+            .calendar-day-available .calendar-slot {
+                transition: background-color 0.2s;
+            }
+            .calendar-day-available:hover .calendar-slot {
+                background-color: #d1e7dd;
+            }
+        </style>
+
         <div class="mb-4">
             <h2 class="fw-bold text-primary border-bottom pb-2">Agendar Cita</h2>
         </div>
 
-        <form action="{{ route('Citas.store') }}" method="POST" class="card shadow-sm border-0">
+        <form action="{{ route('Citas.store') }}" method="POST" class="card shadow-sm border-0" id="form-cita">
             @csrf
             <input type="hidden" name="especialidad_id" id="input_especialidad_id" value="{{ $id ?? '' }}">
 
@@ -32,7 +47,7 @@
                                 required>
                             <button type="button" class="btn btn-secondary" id="btn_buscar_cedula">Buscar</button>
                         </div>
-                        <small id="mensaje_cedula" class="form-text mt-1 text-primary">Ingrese cédula para buscar.</small>
+                        <small id="mensaje_cedula" class="form-text mt-1 text-primary" aria-live="polite">Ingrese cédula para buscar.</small>
                     </div>
 
                     <div class="col-md-4">
@@ -106,7 +121,7 @@
 
                     <!-- Estado -->
                     <div class="col-md-4">
-                        <label class="form-label">Estado</label>
+                        <label class="form-label" for="select-estado">Estado</label>
                         <select id="select-estado" class="form-select">
                             <option value="">Seleccione Estado</option>
                             @foreach($estados as $estado)
@@ -119,7 +134,7 @@
 
                     <!-- Municipio -->
                     <div class="col-md-4">
-                        <label class="form-label">Municipio</label>
+                        <label class="form-label" for="select-municipio">Municipio</label>
                         <select id="select-municipio" class="form-select">
                             <option value="">Seleccione Municipio</option>
                         </select>
@@ -127,7 +142,7 @@
 
                     <!-- Parroquia -->
                     <div class="col-md-4">
-                        <label class="form-label">Parroquia</label>
+                        <label class="form-label" for="select-parroquia">Parroquia</label>
                         <select name="parroquia_id" id="select-parroquia"
                             class="form-select @error('parroquia_id') is-invalid @enderror" required>
                             <option value="">Seleccione Parroquia</option>
@@ -182,13 +197,13 @@
                 <div class="row g-3">
                     <div class="col-md-4 text-center">
                         <div class="btn-group shadow-sm" role="group">
-                            <button type="button" class="btn btn-outline-secondary px-3" onclick="cambiarMes(-1)">
+                            <button type="button" class="btn btn-outline-secondary px-3" id="btn-mes-anterior">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
                             <button class="btn btn-light fw-bold text-capitalize" style="min-width: 150px;" id="mes-actual"
                                 disabled>
                             </button>
-                            <button type="button" class="btn btn-outline-secondary px-3" onclick="cambiarMes(1)">
+                            <button type="button" class="btn btn-outline-secondary px-3" id="btn-mes-siguiente">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
                         </div>
@@ -241,15 +256,17 @@
         document.getElementById('btn_buscar_cedula').addEventListener('click', function () {
             let cedulaTipo = document.getElementById('input_cedula_tipo').value;
             let cedulaNum = document.getElementById('input_cedula').value;
-            let cedulaCompleta = cedulaTipo + '-' + cedulaNum;
-            let mensaje = document.getElementById('mensaje_cedula');
+            const cedulaCompleta = cedulaTipo + '-' + cedulaNum;
+            const mensaje = document.getElementById('mensaje_cedula');
 
             if (cedulaNum.length < 5) return;
 
             mensaje.innerHTML = 'Buscando...';
             mensaje.className = 'form-text mt-1 text-warning';
 
-            fetch(`/api/paciente/buscar/${cedulaCompleta}`)
+            const buscarUrl = '{{ route('paciente.buscar', ['cedula' => '__CEDULA__']) }}';
+
+            fetch(buscarUrl.replace('__CEDULA__', encodeURIComponent(cedulaCompleta)))
                 .then(response => response.json())
                 .then(data => {
                     if (data.encontrado) {
@@ -279,7 +296,6 @@
 
                         if (e?.id && m?.id && p?.id) {
                             document.getElementById('select-estado').value = e.id;
-
                             let selectM = document.getElementById('select-municipio');
                             selectM.innerHTML = `<option value="${m.id}" selected>${m.nombre}</option>`;
 
@@ -289,19 +305,7 @@
                             document.getElementById('select-estado').disabled = true;
                             document.getElementById('select-municipio').disabled = true;
                             document.getElementById('select-parroquia').disabled = true;
-
-                            if (!document.getElementById('hidden_parroquia')) {
-                                let hiddenP = document.createElement('input');
-                                hiddenP.type = 'hidden';
-                                hiddenP.name = 'parroquia_id';
-                                hiddenP.id = 'hidden_parroquia';
-                                hiddenP.value = p.id;
-                                document.querySelector('form').appendChild(hiddenP);
-                            } else {
-                                document.getElementById('hidden_parroquia').value = p.id;
-                            }
                         } else {
-                            
                             document.getElementById('select-estado').disabled = false;
                             document.getElementById('select-municipio').disabled = false;
                             document.getElementById('select-parroquia').disabled = false;
@@ -330,9 +334,6 @@
                         document.getElementById('select-parroquia').innerHTML = '<option value="">Seleccione Parroquia</option>';
                         document.getElementById('select-parroquia').disabled = false;
 
-                        let hiddenP = document.getElementById('hidden_parroquia');
-                        if (hiddenP) hiddenP.remove();
-
                         document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = false);
 
                         mensaje.innerHTML = 'Paciente nuevo. Por favor llene todos los campos.';
@@ -347,9 +348,9 @@
         });
 
         document.getElementById('select-estado').addEventListener('change', function () {
-            let estadoId = this.value;
-            let selectMunicipio = document.getElementById('select-municipio');
-            let selectParroquia = document.getElementById('select-parroquia');
+            const estadoId = this.value;
+            const selectMunicipio = document.getElementById('select-municipio');
+            const selectParroquia = document.getElementById('select-parroquia');
 
             selectMunicipio.innerHTML = '<option value="">Cargando...</option>';
             selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
@@ -359,17 +360,22 @@
                     .then(res => res.json())
                     .then(data => {
                         selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
+                        const fragmentM = document.createDocumentFragment();
                         data.forEach(m => {
-                            selectMunicipio.innerHTML += `<option value="${m.id}">${m.nombre}</option>`;
+                            const opt = document.createElement('option');
+                            opt.value = m.id;
+                            opt.textContent = m.nombre;
+                            fragmentM.appendChild(opt);
                         });
+                        selectMunicipio.appendChild(fragmentM);
                     })
                     .catch(err => console.error(err));
             }
         });
 
         document.getElementById('select-municipio').addEventListener('change', function () {
-            let municipioId = this.value;
-            let selectParroquia = document.getElementById('select-parroquia');
+            const municipioId = this.value;
+            const selectParroquia = document.getElementById('select-parroquia');
 
             selectParroquia.innerHTML = '<option value="">Cargando...</option>';
 
@@ -378,9 +384,14 @@
                     .then(res => res.json())
                     .then(data => {
                         selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+                        const fragmentP = document.createDocumentFragment();
                         data.forEach(p => {
-                            selectParroquia.innerHTML += `<option value="${p.id}">${p.nombre}</option>`;
+                            const opt = document.createElement('option');
+                            opt.value = p.id;
+                            opt.textContent = p.nombre;
+                            fragmentP.appendChild(opt);
                         });
+                        selectParroquia.appendChild(fragmentP);
                     })
                     .catch(err => console.error(err));
             }
@@ -422,12 +433,21 @@
             selectTipoPaciente.addEventListener('change', cargarCalendario);
 
             // 3. Pre-seleccionar especialidad si se pasó un id desde la vista anterior
-            const especialidadId = '{{ $id ?? '' }}';
+            const especialidadId = document.getElementById('input_especialidad_id').value;
             if (especialidadId) {
                 selectEspecialidad.value = especialidadId;
                 document.getElementById('input_especialidad_id').value = especialidadId;
                 selectEspecialidad.dispatchEvent(new Event('change'));
             }
+
+            // 4. Navegación de meses
+            document.getElementById('btn-mes-anterior').addEventListener('click', () => cambiarMes(-1));
+            document.getElementById('btn-mes-siguiente').addEventListener('click', () => cambiarMes(1));
+
+            // 5. Habilitar selects deshabilitados al enviar el formulario
+            document.getElementById('form-cita').addEventListener('submit', function () {
+                this.querySelectorAll('[disabled]').forEach(el => el.disabled = false);
+            });
         });
 
         function actualizarTextoMes() {
@@ -483,9 +503,14 @@
             const primerDia = new Date(fechaNavegacion.getFullYear(), fechaNavegacion.getMonth(), 1).getDay();
             const ultimoDia = new Date(fechaNavegacion.getFullYear(), fechaNavegacion.getMonth() + 1, 0).getDate();
 
+            const fragment = document.createDocumentFragment();
+
             // Rellenar cuadros vacíos antes del día 1
             for (let i = 0; i < primerDia; i++) {
-                grid.innerHTML += `<div class="col border-end border-bottom bg-light" style="flex: 0 0 14.28%; height: 90px;"></div>`;
+                const empty = document.createElement('div');
+                empty.className = 'col border-end border-bottom bg-light';
+                empty.style.cssText = 'flex: 0 0 14.28%; height: 90px;';
+                fragment.appendChild(empty);
             }
 
             const hoy = new Date();
@@ -498,12 +523,11 @@
                 const fechaStr = `${fechaNavegacion.getFullYear()}-${mesStr}-${diaStr}`;
                 const fechaCelda = new Date(fechaNavegacion.getFullYear(), fechaNavegacion.getMonth(), dia);
 
-                // Buscar si hay evento planificado para esta fecha
                 const ev = eventos?.find(e => e.fecha === fechaStr);
 
                 const div = document.createElement('div');
                 div.className = 'col p-2 border-end border-bottom position-relative calendar-day';
-                div.style.cssText = 'flex: 0 0 14.28%; height: 90px; transition: 0.2s;';
+                div.style.cssText = 'flex: 0 0 14.28%; height: 90px; transition: background-color 0.2s, box-shadow 0.2s;';
                 div.id = `celda-${fechaStr}`;
 
                 div.innerHTML = `<span class="fw-bold d-block text-start">${dia}</span>`;
@@ -511,14 +535,13 @@
                 if (ev && fechaCelda >= hoy) {
                     if (ev.disponibles > 0) {
                         div.style.cursor = 'pointer';
-                        div.classList.add('bg-white');
+                        div.classList.add('bg-white', 'calendar-day-available');
                         div.innerHTML += `
-                                <div class="text-center mt-1 px-1 py-1 rounded border border-success border-opacity-25">
+                                <div class="text-center mt-1 px-1 py-1 rounded border border-success border-opacity-25 calendar-slot">
                                     <div class="fw-bold text-success" style="font-size:0.75rem; line-height:1.2;">${ev.disponibles} Cupo${ev.disponibles !== 1 ? 's' : ''}</div>
                                     <div class="text-muted" style="font-size:0.6rem; line-height:1.1;">${ev.hora_inicio.substring(0, 5)} - ${ev.hora_fin.substring(0, 5)}</div>
                                 </div>`;
 
-                        // Función al hacer CLIC
                         div.onclick = () => seleccionarDia(fechaStr, ev.id);
                     } else {
                         div.classList.add('bg-light');
@@ -532,8 +555,10 @@
                     div.classList.add('bg-light');
                 }
 
-                grid.appendChild(div);
+                fragment.appendChild(div);
             }
+
+            grid.appendChild(fragment);
         }
 
         // 5. Rellenar inputs al hacer clic en un cupo disponible
