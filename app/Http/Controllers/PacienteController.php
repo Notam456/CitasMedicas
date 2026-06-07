@@ -167,8 +167,8 @@ class PacienteController extends Controller
      */
     public function edit(Paciente $paciente)
     {
-        $pacienteToEdit = Paciente::findOrFail($paciente->id);
-        return response()->json($pacienteToEdit);
+        $paciente->load('parroquia.municipio.estado');
+        return response()->json($paciente);
     }
 
     /**
