@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
 use App\Models\Calendario;
 use App\Models\Especialidad;
 use App\Models\Medico;
@@ -10,6 +9,7 @@ use App\Models\User;
 use App\Notifications\PlanificacionCreada;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
 
