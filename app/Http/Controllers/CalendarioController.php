@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\Calendario;
 use App\Models\Especialidad;
 use App\Models\Medico;
