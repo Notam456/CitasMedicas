@@ -24,6 +24,7 @@ return new class extends Migration
     $table->text('diagnostico_libre')->nullable();
     $table->unsignedBigInteger('atendido_por')->nullable()->after('user_id');
     $table->foreign('atendido_por')->references('id')->on('users')->onDelete('set null');
+    $table->unique(['medico_id', 'fecha', 'hora'], 'citas_unique_activas');
     $table->timestamps();
     });
     }

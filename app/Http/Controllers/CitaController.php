@@ -307,6 +307,12 @@ class CitaController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
+            if ($e->errorInfo[1] == 1062) {
+                Alert::error('Error', 'Ya existe una cita en ese horario.');
+
+                return redirect()->route('Citas.index');
+            }
             Alert::error('Error', 'No se pudo registrar la cita. Intente de nuevo.');
 
             return redirect()->route('Citas.index');
@@ -393,7 +399,7 @@ class CitaController extends Controller
             Alert::error('Error', 'No se pudo reagendar la cita. Intente de nuevo.');
 
             return redirect()->route('Citas.index');
-        
+
         }
     }
 
