@@ -89,13 +89,6 @@ class PacienteController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-    }
-
-    /**
      * Buscar paciente por cédula.
      */
     public function buscarPorCedula($cedula)
