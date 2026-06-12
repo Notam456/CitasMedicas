@@ -107,7 +107,8 @@ class CalendarioController extends Controller
             ],
             'cupos_sucesivos' => 'required|integer|min:0',
         ]);
-
+        DB::beginTransaction();
+        try {
         Calendario::updateOrCreate(
             ['medico_id' => $request->medico_id, 'fecha' => $request->fecha],
             [
@@ -123,8 +124,15 @@ class CalendarioController extends Controller
             $medico,
             "disponibilidad para el {$request->fecha}",
         ));
-
+        DB::commit();
         return response()->json(['success' => true, 'message' => 'Cupos actualizados correctamente.']);
+        } catch(\Exception $e) {
+            DB::rollBack();
+
+            Alert::error('Error', 'No se pudo completar la configuración. Por favor, intenta de nuevo.');
+
+            return redirect()->back()->withInput();
+        }
     }
 
     private function storeMasivo(Request $request)
