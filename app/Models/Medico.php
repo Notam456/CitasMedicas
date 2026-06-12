@@ -24,4 +24,16 @@ class Medico extends Model
     {
         return $this->hasMany(Calendario::class);
     }
+
+    public function citas()
+    {
+        return $this->hasManyThrough(
+            Cita::class,       
+            Calendario::class, 
+            'medico_id',       
+            'calendario_id',   
+            'id',              
+            'id'               
+        );
+    }
 }
