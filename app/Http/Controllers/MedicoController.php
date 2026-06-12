@@ -159,7 +159,7 @@ class MedicoController extends Controller
 
     public function destroy(int $id)
     {
-        $medico = Medico::findOrFail($id);
+        $medico = Medico::withCount('citas')->findOrFail($id);
         if ($medico->citas_count > 0) {
             alert()->error('No se puede eliminar', 'Este médico tiene citas médicas asociadas en el sistema.');
             return redirect()->route('medicos.index');
