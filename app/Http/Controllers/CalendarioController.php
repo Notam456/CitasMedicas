@@ -90,7 +90,7 @@ class CalendarioController extends Controller
 
         $request->validate([
             'medico_id' => 'required|exists:medicos,id',
-            'fecha' => 'required|date',
+            'fecha' => 'required|date|after_or_equal:today',
             'hora_inicio' => 'required|date_format:H:i',
             'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
 
@@ -106,6 +106,8 @@ class CalendarioController extends Controller
                 },
             ],
             'cupos_sucesivos' => 'required|integer|min:0',
+        ], [
+            'fecha.after_or_equal' => 'No se pueden registrar cupos en fechas pasadas.',
         ]);
         DB::beginTransaction();
         try {
@@ -139,7 +141,7 @@ class CalendarioController extends Controller
     {
         $request->validate([
             'medico_id' => 'required|exists:medicos,id',
-            'fecha_inicio' => 'required|date',
+            'fecha_inicio' => 'required|date|after_or_equal:today',
             'duracion_rango' => 'required|in:1_week,1_month,3_months,6_months',
             'dias_semana' => 'required|array',
             'dias_semana.*' => 'required|integer|between:1,7',
@@ -157,6 +159,8 @@ class CalendarioController extends Controller
                 },
             ],
             'cupos_sucesivos' => 'required|integer|min:0',
+        ], [
+            'fecha_inicio.after_or_equal' => 'La fecha de inicio no puede ser una fecha pasada.',
         ]);
 
         $fechaInicio = Carbon::parse($request->fecha_inicio);
