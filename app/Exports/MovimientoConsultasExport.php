@@ -53,6 +53,8 @@ class MovimientoConsultasExport implements FromView, ShouldAutoSize, WithEvents
                     ],
                 ]);
                 
+                $sheet->setAutoFilter('A1:D' . $highestRow);
+                
                 if ($highestRow >= 2) {
                     $sheet->getStyle('A2:D' . $highestRow)->applyFromArray([
                         'borders' => [

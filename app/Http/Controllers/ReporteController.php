@@ -272,7 +272,7 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
         }
 
         $tipoPaciente = $request->tipo_paciente;
-        $edadCondicion = $tipoPaciente == 'adulto' ? '>= 18' : '< 18';
+        $edadCondicion = $tipoPaciente == 'adulto' ? '> 12' : '<= 12';
 
         $data = Cita::select(
                 'especialidades.nombre as especialidad',

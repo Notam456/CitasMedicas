@@ -51,6 +51,8 @@ class CausasPrincipalesExport implements FromView, ShouldAutoSize, WithEvents
                     ],
                 ]);
 
+                $sheet->setAutoFilter('A1:H' . $highestRow);
+
                 if ($highestRow >= 3) {
                     $dataRange = 'A3:H' . $highestRow;
                     $sheet->getStyle($dataRange)->applyFromArray([

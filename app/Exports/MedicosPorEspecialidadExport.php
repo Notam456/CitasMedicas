@@ -51,6 +51,8 @@ class MedicosPorEspecialidadExport implements FromView, ShouldAutoSize, WithEven
                     ],
                 ]);
                 
+                $sheet->setAutoFilter('A1:E' . $highestRow);
+                
                 if ($highestRow >= 2) {
                     $sheet->getStyle('A2:E' . $highestRow)->applyFromArray([
                         'borders' => [

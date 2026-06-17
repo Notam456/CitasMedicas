@@ -31,6 +31,6 @@
     </tbody>
 </table>
 
-<p><strong>Tipo de paciente:</strong> {{ $tipoPaciente == 'adulto' ? 'Adultos (≥18 años)' : 'Pediatría (<18 años)' }}</p>
+<p><strong>Tipo de paciente:</strong> {{ $tipoPaciente == 'adulto' ? 'Mayores de 12 años' : 'Pediatría (12 años o menos)' }}</p>
 <p><strong>Período:</strong> {{ $fechaTexto }}</p>
 <p>Reporte generado: {{ now()->format('d/m/Y H:i:s') }}</p>

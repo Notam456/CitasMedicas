@@ -58,6 +58,8 @@ class ProcedenciaPacientesExport implements FromView, ShouldAutoSize, WithEvents
                     ],
                 ]);
                 
+                $sheet->setAutoFilter('A1:E' . $highestRow);
+                
                 // Aplicar bordes a todas las celdas con datos
                 if ($highestRow >= 2) {
                     $dataRange = 'A2:E' . $highestRow;

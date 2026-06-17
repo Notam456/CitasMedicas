@@ -54,6 +54,8 @@ class MorbilidadExport implements FromView, ShouldAutoSize, WithEvents
                     ],
                 ]);
 
+                $sheet->setAutoFilter('A1:G' . $highestRow);
+
                 if ($highestRow >= 2) {
                     $dataRange = 'A2:G' . $highestRow;
                     $sheet->getStyle($dataRange)->applyFromArray([
