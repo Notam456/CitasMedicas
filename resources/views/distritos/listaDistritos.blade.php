@@ -32,7 +32,8 @@
                     @csrf
                     <div class="modal-body">
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" name="nombre" required placeholder="Nombre">
+                            <input type="text" class="form-control" name="nombre" required placeholder="Nombre"
+                                pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                             <label>Nombre del Distrito</label>
                         </div>
                     </div>
@@ -57,7 +58,8 @@
                     <div class="modal-body">
                         <input type="hidden" id="edit_id" name="id">
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="edit_nombre" name="nombre" required>
+                            <input type="text" class="form-control" id="edit_nombre" name="nombre" required
+                                pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                             <label>Nombre del Distrito</label>
                         </div>
                     </div>

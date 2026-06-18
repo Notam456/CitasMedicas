@@ -72,7 +72,7 @@ class DistritoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['nombre' => 'required|string|max:255|unique:distritos,nombre']);
+        $request->validate(['nombre' => 'required|string|max:255|unique:distritos,nombre|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u']);
         Distrito::create($request->only('nombre'));
         Alert::success('Distrito creado exitosamente.');
         return redirect()->route('distritos.index');
@@ -86,7 +86,7 @@ class DistritoController extends Controller
     public function update(Request $request, $id)
     {
         $distrito = Distrito::findOrFail($id);
-        $request->validate(['nombre' => 'required|string|max:255|unique:distritos,nombre,' . $id]);
+        $request->validate(['nombre' => 'required|string|max:255|unique:distritos,nombre,' . $id . '|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u']);
         $distrito->update($request->only('nombre'));
         Alert::success('Distrito actualizado exitosamente.');
         return redirect()->route('distritos.index');

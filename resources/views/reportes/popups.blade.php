@@ -166,11 +166,11 @@
         <div class="d-flex gap-3">
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="tipo_paciente" id="mov_tipo_adulto" value="adulto" checked>
-                <label class="form-check-label" for="mov_tipo_adulto">Adultos (≥18 años)</label>
+                <label class="form-check-label" for="mov_tipo_adulto">Mayores de 12 años</label>
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="tipo_paciente" id="mov_tipo_pediatria" value="pediatria">
-                <label class="form-check-label" for="mov_tipo_pediatria">Pediatría (<18 años)</label>
+                <label class="form-check-label" for="mov_tipo_pediatria">Pediatría (12 años o menos)</label>
             </div>
         </div>
     </div>

@@ -25,6 +25,7 @@ class PermissionSeeder extends Seeder
             'Reportes',
             'Morbilidad',
             'Patologia',
+            'Medicamentos',
         ];
 
         foreach ($permissions as $permission) {

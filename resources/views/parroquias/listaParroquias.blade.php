@@ -40,7 +40,8 @@
                     <div class="modal-body">
                         <div class="form-floating mb-3">
                             <input type="text" class="form-control" name="nombre" placeholder="Nombre"
-                                value="{{ old('nombre') }}" required>
+                                value="{{ old('nombre') }}" required
+                                pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                             <label>Nombre de la Parroquia</label>
                             @error('nombre')
                                 <small class="text-danger">{{ $message }}</small>
@@ -88,7 +89,8 @@
                     <div class="modal-body">
                         <input type="hidden" id="id" name="id">
                         <div class="form-floating mb-3">
-                            <input type="text" id="editarNombreParroquia" class="form-control" name="nombre" required>
+                            <input type="text" id="editarNombreParroquia" class="form-control" name="nombre" required
+                                pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                             <label>Nombre de la Parroquia</label>
                             @error('nombre')
                                 <small class="text-danger">{{ $message }}</small>
