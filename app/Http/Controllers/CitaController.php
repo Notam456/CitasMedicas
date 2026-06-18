@@ -8,10 +8,14 @@ use App\Models\Especialidad;
 use App\Models\Estado;
 use App\Models\Medico;
 use App\Models\Paciente;
+use App\Models\User;
+use App\Notifications\CitaCancelada;
+use App\Notifications\CitaReagendada;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class CitaController extends Controller
@@ -26,14 +30,12 @@ class CitaController extends Controller
             return $this->dataTableResponse($request);
         }
 
-
         $title = '¿Estas seguro de que deseas cancelar esta cita?';
         $texrt = 'La cita será marcada como cancelada.';
         confirmDelete($title, $texrt);
 
         return view('Cita.index');
     }
-
 
     private function buildBaseQuery(Request $request)
     {
@@ -56,14 +58,11 @@ class CitaController extends Controller
             );
     }
 
-
     private function dataTableResponse(Request $request)
     {
         $query = $this->buildBaseQuery($request);
 
-
         $totalRecords = $query->count();
-
 
         if ($search = $request->get('search')['value']) {
             $query->where(function ($q) use ($search) {
@@ -78,14 +77,11 @@ class CitaController extends Controller
             });
         }
 
-
         $filteredRecords = $query->count();
-
 
         if ($fechaFiltro = $request->fecha_filtro) {
             $query->whereDate('citas.fecha_cita', $fechaFiltro);
         }
-
 
         $orderColumn = $request->get('order')[0]['column'] ?? 4;
         $orderDir = $request->get('order')[0]['dir'] ?? 'desc';
@@ -106,20 +102,16 @@ class CitaController extends Controller
             $query->orderBy('citas.fecha_cita', 'desc');
         }
 
-
         $start = $request->get('start', 0);
         $length = $request->get('length', 10);
         $data = $query->skip($start)->take($length)->get();
 
-
         $dataFormatted = [];
         foreach ($data as $row) {
-
 
             $tipoPacienteBadge = $row->tipo_paciente == 'primera_vez'
                 ? '<span class="badge bg-info">Primera vez</span>'
                 : '<span class="badge bg-warning">Control</span>';
-
 
             if ($row->estado == 'Agendada') {
                 $estadoBadge = '<span class="badge bg-success">Agendada</span>';
@@ -130,7 +122,6 @@ class CitaController extends Controller
             } else {
                 $estadoBadge = '<span class="badge bg-secondary">'.e($row->estado).'</span>';
             }
-
 
             if ($row->estado == 'Cancelada') {
                 $accionesHtml = '<div class="hstack gap-2 justify-content-end"><span class="text-muted small">—</span></div>';
@@ -260,6 +251,7 @@ class CitaController extends Controller
             if ($calendario->fecha !== $request->fecha_cita) {
                 DB::rollBack();
                 Alert::error('Error de Coherencia', 'La fecha seleccionada no coincide con la planificación del médico.');
+
                 return redirect()->back()->withInput();
             }
 
@@ -275,11 +267,12 @@ class CitaController extends Controller
             if ($ocupados >= $capacidad_maxima) {
                 DB::rollBack();
                 Alert::error('Sin Cupos', 'Lo sentimos, los cupos para este día se acaban de agotar.');
+
                 return redirect()->back()->withInput();
             }
 
-            $cedulaCompleta = $request->cedula_tipo . '-' . $request->cedula;
-            $rifCompleto = 'J-' . $request->rif;
+            $cedulaCompleta = $request->cedula_tipo.'-'.$request->cedula;
+            $rifCompleto = 'J-'.$request->rif;
 
             $paciente = Paciente::firstOrCreate(
                 ['cedula' => $cedulaCompleta],
@@ -314,8 +307,14 @@ class CitaController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Alert::error('Error', 'No se pudo registrar la cita. Intente de nuevo.');
 
+            if ($e->getCode() == '23505') {
+                Alert::error('Error', 'Este paciente ya tiene una cita en ese horario.');
+
+                return redirect()->route('Citas.index');
+            }
+            Alert::error('Error', 'No se pudo registrar la cita. Intente de nuevo.');
+            
             return redirect()->route('Citas.index');
         }
     }
@@ -326,6 +325,7 @@ class CitaController extends Controller
     public function show(int $id)
     {
         $cita = Cita::with('paciente', 'calendario.medico.especialidad')->findOrFail($id);
+
         return response()->json($cita);
     }
 
@@ -336,11 +336,13 @@ class CitaController extends Controller
     {
         if (trim($cita->estado) !== 'Agendada') {
             Alert::error('Error', 'Solo se pueden reagendar citas con estado "Agendada".');
+
             return redirect()->route('Citas.index');
         }
 
         if ($cita->reagendada_contador >= 2) {
             Alert::error('Límite alcanzado', 'Esta cita ya ha sido reagendada el máximo de 2 veces.');
+
             return redirect()->route('Citas.index');
         }
 
@@ -357,29 +359,48 @@ class CitaController extends Controller
     {
         if (trim($cita->estado) !== 'Agendada') {
             Alert::error('Error', 'Solo se pueden reagendar citas agendadas.');
+
             return redirect()->route('Citas.index');
         }
 
         if ($cita->reagendada_contador >= 2) {
             Alert::error('Límite alcanzado', 'Esta cita ya ha sido reagendada el máximo de 2 veces.');
+
             return redirect()->route('Citas.index');
         }
+
+        $fechaOriginal = $cita->fecha_cita;
 
         $request->validate([
             'calendario_id' => 'required|numeric|exists:calendarios,id',
             'fecha_cita' => 'required|date|after_or_equal:today',
             'observacion' => 'nullable|string',
         ]);
+        try {
+            DB::beginTransaction();
+            $cita->update([
+                'calendario_id' => $request->calendario_id,
+                'fecha_cita' => $request->fecha_cita,
+                'observacion' => $request->observacion,
+                'reagendada_contador' => $cita->reagendada_contador + 1,
+            ]);
 
-        $cita->update([
-            'calendario_id' => $request->calendario_id,
-            'fecha_cita' => $request->fecha_cita,
-            'observacion' => $request->observacion,
-            'reagendada_contador' => $cita->reagendada_contador + 1,
-        ]);
+            if (! auth()->user()->hasRole('administrador')) {
+                $admins = User::role('administrador')->get();
+                Notification::send($admins, new CitaReagendada($cita, auth()->user(), $fechaOriginal));
+            }
 
-        Alert::success('¡Éxito!', 'Cita reagendada correctamente.');
-        return redirect()->route('Citas.index');
+            DB::commit();
+            Alert::success('¡Éxito!', 'Cita reagendada correctamente.');
+
+            return redirect()->route('Citas.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Alert::error('Error', 'No se pudo reagendar la cita. Intente de nuevo.');
+
+            return redirect()->route('Citas.index');
+
+        }
     }
 
     /**
@@ -388,7 +409,14 @@ class CitaController extends Controller
     public function destroy(Cita $cita)
     {
         $cita->update(['estado' => 'Cancelada']);
+
+        if (! auth()->user()->hasRole('administrador')) {
+            $admins = User::role('administrador')->get();
+            Notification::send($admins, new CitaCancelada($cita, auth()->user()));
+        }
+
         Alert::success('¡Éxito!', 'Cita cancelada correctamente.');
+
         return redirect()->route('Citas.index');
     }
 }

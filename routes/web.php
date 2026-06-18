@@ -21,6 +21,7 @@ use App\Http\Controllers\PatologiaController;
 use App\Http\Controllers\MedicamentoController;
 
 use function PHPUnit\Framework\returnValue;
+use App\Http\Controllers\NotificacionController;
 
 //Ruta de inicio
 Route::get('/', function () {
@@ -96,6 +97,15 @@ Route::resource('calendario', CalendarioController::class)->middleware(['auth', 
 
 
 Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'getMunicipiosPorEstado']);
+
+// Notificaciones
+Route::middleware('auth')->group(function () {
+    Route::get('/notificaciones', [NotificacionController::class, 'index'])->name('notificaciones.index');
+    Route::get('/notificaciones/no-leidas', [NotificacionController::class, 'unread'])->name('notificaciones.unread');
+    Route::put('/notificaciones/{id}/leida', [NotificacionController::class, 'markAsRead'])->name('notificaciones.markAsRead');
+    Route::put('/notificaciones/leer-todas', [NotificacionController::class, 'markAllAsRead'])->name('notificaciones.markAllAsRead');
+    Route::delete('/notificaciones/{id}', [NotificacionController::class, 'destroy'])->name('notificaciones.destroy');
+});
 
 // Dashboard y Reportes Yajure
 

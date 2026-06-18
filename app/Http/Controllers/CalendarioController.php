@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Calendario;
 use App\Models\Especialidad;
 use App\Models\Medico;
+use App\Models\User;
+use App\Notifications\PlanificacionCreada;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
-
 
 class CalendarioController extends Controller
 {
@@ -22,12 +25,12 @@ class CalendarioController extends Controller
         $query = Calendario::whereYear('fecha', $anio)
             ->whereMonth('fecha', $mes)
             ->with('medico')
-            
+
             ->withCount(['citas as citas_primera_vez_count' => function ($q) {
                 $q->whereIn('estado', ['Agendada', 'Atendida'])
                     ->where('tipo_paciente', 'primera_vez');
             }])
-            
+
             ->withCount(['citas as citas_sucesivas_count' => function ($q) {
                 $q->whereIn('estado', ['Agendada', 'Atendida'])
                     ->where('tipo_paciente', 'control');
@@ -87,10 +90,10 @@ class CalendarioController extends Controller
 
         $request->validate([
             'medico_id' => 'required|exists:medicos,id',
-            'fecha' => 'required|date',
+            'fecha' => 'required|date|after_or_equal:today',
             'hora_inicio' => 'required|date_format:H:i',
             'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
-            
+
             'cupos_primera_vez' => [
                 'required',
                 'integer',
@@ -103,8 +106,11 @@ class CalendarioController extends Controller
                 },
             ],
             'cupos_sucesivos' => 'required|integer|min:0',
+        ], [
+            'fecha.after_or_equal' => 'No se pueden registrar cupos en fechas pasadas.',
         ]);
-
+        DB::beginTransaction();
+        try {
         Calendario::updateOrCreate(
             ['medico_id' => $request->medico_id, 'fecha' => $request->fecha],
             [
@@ -115,14 +121,27 @@ class CalendarioController extends Controller
             ]
         );
 
+        $medico = Medico::with('especialidad')->find($request->medico_id);
+        Notification::send(User::all(), new PlanificacionCreada(
+            $medico,
+            "disponibilidad para el {$request->fecha}",
+        ));
+        DB::commit();
         return response()->json(['success' => true, 'message' => 'Cupos actualizados correctamente.']);
+        } catch(\Exception $e) {
+            DB::rollBack();
+
+            Alert::error('Error', 'No se pudo completar la configuración. Por favor, intenta de nuevo.');
+
+            return redirect()->back()->withInput();
+        }
     }
 
     private function storeMasivo(Request $request)
     {
         $request->validate([
-            'medico_id' => 'required|exists:medicos,id', 
-            'fecha_inicio' => 'required|date',
+            'medico_id' => 'required|exists:medicos,id',
+            'fecha_inicio' => 'required|date|after_or_equal:today',
             'duracion_rango' => 'required|in:1_week,1_month,3_months,6_months',
             'dias_semana' => 'required|array',
             'dias_semana.*' => 'required|integer|between:1,7',
@@ -140,6 +159,8 @@ class CalendarioController extends Controller
                 },
             ],
             'cupos_sucesivos' => 'required|integer|min:0',
+        ], [
+            'fecha_inicio.after_or_equal' => 'La fecha de inicio no puede ser una fecha pasada.',
         ]);
 
         $fechaInicio = Carbon::parse($request->fecha_inicio);
@@ -165,43 +186,59 @@ class CalendarioController extends Controller
         $interval = new \DateInterval('P1D');
         $period = new \DatePeriod($dateTimeInicio, $interval, $dateTimeFin->modify('+1 day'));
 
-        $count = 0;
-        $overwritten = 0;
+        DB::beginTransaction();
+        try {
+            $count = 0;
+            $overwritten = 0;
 
-        foreach ($period as $date) {
-            $dayOfWeek = $date->format('N');
+            foreach ($period as $date) {
+                $dayOfWeek = $date->format('N');
 
-            if (in_array($dayOfWeek, $request->dias_semana)) {
-                $fechaStr = $date->format('Y-m-d');
+                if (in_array($dayOfWeek, $request->dias_semana)) {
+                    $fechaStr = $date->format('Y-m-d');
 
-                $exists = Calendario::where('medico_id', $request->medico_id)
-                    ->where('fecha', $fechaStr)
-                    ->exists();
+                    $exists = Calendario::where('medico_id', $request->medico_id)
+                        ->where('fecha', $fechaStr)
+                        ->exists();
 
-                if ($exists) {
-                    $overwritten++;
+                    if ($exists) {
+                        $overwritten++;
+                    }
+
+                    Calendario::updateOrCreate(
+                        ['medico_id' => $request->medico_id, 'fecha' => $fechaStr],
+                        [
+                            'hora_inicio' => $request->hora_inicio,
+                            'hora_fin' => $request->hora_fin,
+                            'cupos_primera_vez' => $request->cupos_primera_vez,
+                            'cupos_sucesivos' => $request->cupos_sucesivos,
+                        ]
+                    );
+                    $count++;
                 }
-
-                Calendario::updateOrCreate(
-                    ['medico_id' => $request->medico_id, 'fecha' => $fechaStr],
-                    [
-                        'hora_inicio' => $request->hora_inicio,
-                        'hora_fin' => $request->hora_fin,
-                        'cupos_primera_vez' => $request->cupos_primera_vez,
-                        'cupos_sucesivos' => $request->cupos_sucesivos,
-                    ]
-                );
-                $count++;
             }
-        }
+            DB::commit();
+            $message = "Se han configurado $count días.";
+            if ($overwritten > 0) {
+                $message .= " Se sobrescribieron $overwritten configuraciones existentes.";
+            }
 
-        $message = "Se han configurado $count días.";
-        if ($overwritten > 0) {
-            $message .= " Se sobrescribieron $overwritten configuraciones existentes.";
+            $medico = Medico::with('especialidad')->find($request->medico_id);
+            Notification::send(User::all(), new PlanificacionCreada(
+                $medico,
+                "disponibilidad para {$count} días.",
+            ));
+
+            Alert::success($message);
+
+            return redirect()->route('calendario.index');
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            Alert::error('Error', 'No se pudo completar la configuración masiva. Por favor, intenta de nuevo.');
+
+            return redirect()->back()->withInput();
         }
-        Alert::success($message);
-        return redirect()->route('calendario.index');
     }
-
-   
 }

@@ -51,7 +51,7 @@
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-calendar-day"></i></span>
                                 <input type="date" name="fecha_inicio" class="form-control border-secondary-subtle"
-                                    value="{{ old('fecha_inicio', date('Y-m-d')) }}" required>
+                                    value="{{ old('fecha_inicio', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" required>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -61,10 +61,11 @@
                                 <select name="duracion_rango" class="form-select border-secondary-subtle" required>
                                     <option value="1_week" {{ old('duracion_rango') == '1_week' ? 'selected' : '' }}>Una
                                         Semana (7 días)</option>
-                                    <option value="1_month"
-                                        {{ old('duracion_rango', '1_month') == '1_month' ? 'selected' : '' }}>Un Mes (30
+                                    <option value="1_month" {{ old('duracion_rango') == '1_month' ? 'selected' : '' }}>Un
+                                        Mes (30
                                         días)</option>
-                                    <option value="3_months" {{ old('duracion_rango') == '3_months' ? 'selected' : '' }}>
+                                    <option value="3_months"
+                                        {{ old('duracion_rango', '3_months') == '3_months' ? 'selected' : '' }}>
                                         Trimestral (3 meses)</option>
                                     <option value="6_months" {{ old('duracion_rango') == '6_months' ? 'selected' : '' }}>
                                         Semestral (6 meses)</option>
@@ -339,7 +340,22 @@
                         `<div class="mt-3 text-center text-light"><i class="fas fa-plus-circle fa-2x"></i></div>`;
                 }
 
-                div.onclick = () => abrirConfigurador(fechaStr, ev);
+                div.onclick = () => {
+                    const hoy = new Date();
+                    hoy.setHours(0, 0, 0, 0);
+                    const fechaSeleccionada = new Date(fechaStr + "T00:00:00");
+
+                    if (fechaSeleccionada < hoy) {
+                        Swal.fire({
+                            title: 'Fecha no válida',
+                            text: 'No se puede configurar disponibilidad para fechas pasadas.',
+                            icon: 'warning',
+                            confirmButtonColor: '#0d6efd'
+                        });
+                        return;
+                    }
+                    abrirConfigurador(fechaStr, ev);
+                };
                 grid.appendChild(div);
             }
         }

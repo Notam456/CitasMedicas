@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Patologia;
 use App\Models\Especialidad;
+use App\Models\User;
+use App\Notifications\NuevaPatologia;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class PatologiaController extends Controller
@@ -84,7 +87,9 @@ class PatologiaController extends Controller
             'descripcion' => 'nullable|string',
         ]);
 
-        Patologia::create($request->only(['nombre', 'especialidad_id', 'descripcion']));
+        $patologia = Patologia::create($request->only(['nombre', 'especialidad_id', 'descripcion']));
+
+        Notification::send(User::all(), new NuevaPatologia($patologia));
 
         Alert::success('Patología creada exitosamente.');
         return redirect()->route('patologias.index');

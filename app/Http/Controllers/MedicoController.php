@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Medico;
 use App\Models\Especialidad;
+use App\Models\User;
+use App\Notifications\NuevoMedico;
+use App\Notifications\MedicoModificado;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Notification;
 
 class MedicoController extends Controller
 {
@@ -104,13 +108,15 @@ class MedicoController extends Controller
             'especialidad_id' => 'required|exists:especialidades,id',
         ]);
 
-        Medico::create($request->only([
+        $medico = Medico::create($request->only([
             'nombre',
             'apellido',
             'cedula',
             'telefono',
             'especialidad_id',
         ]));
+
+        Notification::send(User::all(), new NuevoMedico($medico));
 
         alert()->success('Médico creado exitosamente.');
         return redirect()->route('medicos.index');
@@ -142,13 +148,18 @@ class MedicoController extends Controller
             'especialidad_id',
         ]));
 
+        if (!auth()->user()->hasRole('administrador')) {
+            $admins = User::role('administrador')->get();
+            Notification::send($admins, new MedicoModificado($medico, auth()->user()));
+        }
+
         alert()->success('Médico actualizado exitosamente.');
         return redirect()->route('medicos.index');
     }
 
     public function destroy(int $id)
     {
-        $medico = Medico::findOrFail($id);
+        $medico = Medico::withCount('citas')->findOrFail($id);
         if ($medico->citas_count > 0) {
             alert()->error('No se puede eliminar', 'Este médico tiene citas médicas asociadas en el sistema.');
             return redirect()->route('medicos.index');

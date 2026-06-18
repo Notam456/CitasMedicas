@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
+use App\Models\Calendario;
 use App\Models\Cita;
 use App\Models\Paciente;
-use App\Models\Calendario;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class CitaSeeder extends Seeder
 {
@@ -14,31 +14,50 @@ class CitaSeeder extends Seeder
     {
         $pacientes = Paciente::all();
         $calendarios = Calendario::all();
-        $userAdmin = User::first(); // asumimos que existe un usuario admin
+        $userAdmin = User::first();
 
         $estados = ['Agendada', 'Atendida', 'Cancelada'];
         $tipos_paciente = ['primera_vez', 'control'];
 
         foreach ($calendarios as $calendario) {
+            $citasExistentes = Cita::where('calendario_id', $calendario->id)
+                ->pluck('paciente_id')
+                ->toArray();
+
+            $pacientesDisponibles = $pacientes->whereNotIn('id', $citasExistentes);
+
+
+            if ($pacientesDisponibles->isEmpty()) {
+                continue;
+            }
+
             $numCitas = rand(0, min(3, $calendario->cupos_primera_vez));
+
             for ($i = 0; $i < $numCitas; $i++) {
-                $paciente = $pacientes->random();
-                $estado = $estados[array_rand($estados)];
-                $tipo_paciente = $tipos_paciente[array_rand($tipos_paciente)];
+                $paciente = $pacientesDisponibles->random();
+
+                
+                $pacientesDisponibles = $pacientesDisponibles->except($paciente->id);
+
                 Cita::create([
                     'paciente_id' => $paciente->id,
                     'calendario_id' => $calendario->id,
                     'user_id' => $userAdmin->id ?? 1,
                     'fecha_registro' => now()->subDays(rand(0, 30))->format('Y-m-d'),
                     'fecha_cita' => $calendario->fecha,
-                    'estado' => $estado,
-                    'tipo_paciente' => $tipo_paciente,
+                    'estado' => $estados[array_rand($estados)],
+                    'tipo_paciente' => $tipos_paciente[array_rand($tipos_paciente)],
                     'observacion' => 'Observación de la cita',
-                    'diagnostico_libre' => null,   // inicialmente null
-                    'atendido_por' => null,        // inicialmente null
+                    'diagnostico_libre' => null,
+                    'atendido_por' => null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
+                // Si se agotan los pacientes disponibles mientras estamos en el loop, salimos
+                if ($pacientesDisponibles->isEmpty()) {
+                    break;
+                }
             }
         }
     }

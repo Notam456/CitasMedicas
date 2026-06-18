@@ -19,6 +19,9 @@
     <meta content="" name="keywords">
     <meta content="" name="description">
 
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <!-- Favicon -->
     <link href="{{url('assets/img/favicon.ico')}}" rel="icon">
 
@@ -92,6 +95,77 @@
 
     <!-- Template Javascript -->
     <script src="{{asset('assets/js/main.js')}}"></script>
+    <script>
+        function cargarNotificaciones() {
+            fetch('/notificaciones/no-leidas')
+                .then(r => r.json())
+                .then(data => {
+                    var badge = document.getElementById('notif-count');
+                    var lista = document.getElementById('notif-lista');
+                    if (!badge || !lista) return;
+
+                    if (data.total > 0) {
+                        badge.style.display = '';
+                        badge.textContent = data.total > 99 ? '99+' : data.total;
+                    } else {
+                        badge.style.display = 'none';
+                    }
+
+                    lista.innerHTML = '';
+                    if (data.ultimas.length === 0) {
+                        lista.innerHTML = '<div class="text-center py-3 text-muted small"><i class="bi bi-bell-slash"></i> No hay notificaciones</div>';
+                    } else {
+                        data.ultimas.forEach(function(n) {
+                            var item = document.createElement('a');
+                            item.href = n.action_url || '#';
+                            item.className = 'dropdown-item ' + (n.read_at ? '' : 'fw-bold');
+                            item.innerHTML = '<div class="d-flex align-items-center">' +
+                                '<div class="ms-2 w-100">' +
+                                '<h6 class="fw-normal mb-0 small">' + escapeHtml(n.title) + '</h6>' +
+                                '<small class="text-muted">' + escapeHtml(n.body) + '</small>' +
+                                '<br><small class="text-secondary">' + n.created_at_diff + '</small>' +
+                                '</div></div>';
+                            item.addEventListener('click', function(e) {
+                                marcarLeida(n.id);
+                            });
+                            lista.appendChild(item);
+                            var divider = document.createElement('hr');
+                            divider.className = 'dropdown-divider my-1';
+                            lista.appendChild(divider);
+                        });
+                        lista.removeChild(lista.lastChild);
+                    }
+                })
+                .catch(function() {
+                    var lista = document.getElementById('notif-lista');
+                    if (lista) {
+                        lista.innerHTML = '<div class="text-center py-3 text-muted small">Error al cargar notificaciones</div>';
+                    }
+                });
+        }
+
+        function marcarLeida(id) {
+            fetch('/notificaciones/' + id + '/leida', {
+                method: 'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                }
+            }).catch(function() {});
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(text));
+            return div.innerHTML;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarNotificaciones();
+            setInterval(cargarNotificaciones, 60000);
+        });
+    </script>
     @stack('scripts')
 
 

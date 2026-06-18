@@ -13,6 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })
+    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
+        $schedule->command('notificaciones:verificar-cupos')->dailyAt('08:00');
+        $schedule->command('notificaciones:enviar-resumen-diario')->dailyAt('19:00');
+    })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
