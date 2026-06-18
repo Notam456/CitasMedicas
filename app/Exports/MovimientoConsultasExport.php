@@ -39,30 +39,14 @@ class MovimientoConsultasExport implements FromView, ShouldAutoSize, WithEvents
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet;
                 $highestRow = $sheet->getHighestRow();
-                
-                $sheet->getStyle('A1:D1')->applyFromArray([
-                    'font' => ['bold' => true],
-                    'fill' => [
-                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                        'startColor' => ['argb' => 'FFD3D3D3'],
-                    ],
-                    'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        ],
-                    ],
-                ]);
-                
-                $sheet->setAutoFilter('A1:D' . $highestRow);
-                
-                if ($highestRow >= 2) {
-                    $sheet->getStyle('A2:D' . $highestRow)->applyFromArray([
-                        'borders' => [
-                            'allBorders' => [
-                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                            ],
-                        ],
-                    ]);
+
+                $sheet->getRowDimension(1)->setRowHeight(40);
+                $sheet->getRowDimension(2)->setRowHeight(28);
+                $sheet->getRowDimension(3)->setRowHeight(20);
+                $sheet->getRowDimension(4)->setRowHeight(35);
+
+                if ($highestRow >= 4) {
+                    $sheet->setAutoFilter('A4:D' . $highestRow);
                 }
             },
         ];

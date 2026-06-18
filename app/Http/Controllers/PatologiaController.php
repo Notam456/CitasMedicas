@@ -79,7 +79,7 @@ class PatologiaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255|unique:patologias,nombre',
+            'nombre' => 'required|string|max:255|unique:patologias,nombre|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'especialidad_id' => 'required|exists:especialidades,id',
             'descripcion' => 'nullable|string',
         ]);
@@ -99,7 +99,7 @@ class PatologiaController extends Controller
     {
         $patologia = Patologia::findOrFail($id);
         $request->validate([
-            'nombre' => 'required|string|max:255|unique:patologias,nombre,' . $id,
+            'nombre' => 'required|string|max:255|unique:patologias,nombre,' . $id . '|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'especialidad_id' => 'required|exists:especialidades,id',
             'descripcion' => 'nullable|string',
         ]);

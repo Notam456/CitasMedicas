@@ -1,5 +1,5 @@
 @extends('layouts.template')
-@section('title', 'Lista de Especialidades | SAGECIM')
+@section('title', 'Lista de Medicamentos | SAGECIM')
 
 @include('layouts.sidebar')
 
@@ -8,16 +8,17 @@
 
     <div class="table-responsive bg-light rounded h-100 p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="mb-0">Lista de Especialidades</h3>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalEspecialidad">
-                <i class="bi bi-person-plus me-1"></i> Registrar Especialidad
+            <h3 class="mb-0">Lista de Medicamentos</h3>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalMedicamento">
+                <i class="bi bi-capsule me-1"></i> Registrar Medicamento
             </button>
         </div>
 
-        <table class="table table-hover" id="tablaEspecialidades">
+        <table class="table table-hover" id="tablaMedicamentos">
             <thead>
                 <tr>
                     <th>Nombre</th>
+                    <th>Descripción</th>
                     <th class="text-end">Acciones</th>
                 </tr>
             </thead>
@@ -25,24 +26,32 @@
         </table>
     </div>
 
-    <!-- Modal Registrar Especialidad -->
-    <div class="modal fade" id="modalEspecialidad" tabindex="-1" aria-labelledby="modalEspecialidadLabel"
+    <!-- Modal Registrar Medicamento -->
+    <div class="modal fade" id="modalMedicamento" tabindex="-1" aria-labelledby="modalMedicamentoLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalEspecialidadLabel">Registrar Especialidad</h5>
+                    <h5 class="modal-title" id="modalMedicamentoLabel">Registrar Medicamento</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <form action="{{ route('especialidades.store') }}" method="POST">
+                <form action="{{ route('medicamentos.store') }}" method="POST">
                     @csrf
                     <div class="modal-body">
                         <div class="form-floating mb-3">
-                            <input type="text" value="{{ old('nombre') }}" class="form-control" id="nombreEspecialidad"
-                                name="nombre" placeholder="Nombre de la especialidad" required
+                            <input type="text" value="{{ old('nombre') }}" class="form-control" id="nombreMedicamento"
+                                name="nombre" placeholder="Nombre del medicamento" required
                                 pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
-                            <label for="nombreEspecialidad">Nombre</label>
+                            <label for="nombreMedicamento">Nombre</label>
                             @error('nombre')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+                        <div class="form-floating mb-3">
+                            <textarea class="form-control" id="descripcionMedicamento" name="descripcion"
+                                placeholder="Descripción del medicamento" style="height: 100px;">{{ old('descripcion') }}</textarea>
+                            <label for="descripcionMedicamento">Descripción</label>
+                            @error('descripcion')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
@@ -56,13 +65,13 @@
         </div>
     </div>
 
-    <!-- Modal Editar Especialidad -->
-    <div class="modal fade" id="modalEditarEspecialidad" tabindex="-1" aria-labelledby="modalEditarEspecialidadLabel"
+    <!-- Modal Editar Medicamento -->
+    <div class="modal fade" id="modalEditarMedicamento" tabindex="-1" aria-labelledby="modalEditarMedicamentoLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalEditarEspecialidadLabel">Editar Especialidad</h5>
+                    <h5 class="modal-title" id="modalEditarMedicamentoLabel">Editar Medicamento</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <form action="" method="POST">
@@ -71,11 +80,19 @@
                     <div class="modal-body">
                         <input type="hidden" id="id">
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="editarNombreEspecialidad" name="nombre"
-                                placeholder="Nombre de la especialidad" required
+                            <input type="text" class="form-control" id="editarNombreMedicamento" name="nombre"
+                                placeholder="Nombre del medicamento" required
                                 pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
-                            <label for="editarNombreEspecialidad">Nombre</label>
+                            <label for="editarNombreMedicamento">Nombre</label>
                             @error('nombre')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+                        <div class="form-floating mb-3">
+                            <textarea class="form-control" id="editarDescripcionMedicamento" name="descripcion"
+                                placeholder="Descripción del medicamento" style="height: 100px;"></textarea>
+                            <label for="editarDescripcionMedicamento">Descripción</label>
+                            @error('descripcion')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
@@ -90,18 +107,22 @@
     </div>
 
     <!-- Modal Mostrar Datos -->
-    <div class="modal fade" id="modalShowEspecialidad" tabindex="-1" aria-labelledby="modalShowEspecialidadLabel"
+    <div class="modal fade" id="modalShowMedicamento" tabindex="-1" aria-labelledby="modalShowMedicamentoLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalShowEspecialidadLabel">Datos de la Especialidad</h5>
+                    <h5 class="modal-title" id="modalShowMedicamentoLabel">Datos del Medicamento</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <label for="mostrarNombreEspecialidad" class="form-label">Nombre</label>
+                    <label for="mostrarNombreMedicamento" class="form-label">Nombre</label>
                     <div class="form-floating mb-3">
-                        <p class="form-control-plaintext" id="mostrarEspecialidadNombre"></p>
+                        <p class="form-control-plaintext" id="mostrarMedicamentoNombre"></p>
+                    </div>
+                    <label for="mostrarDescripcionMedicamento" class="form-label">Descripción</label>
+                    <div class="form-floating mb-3">
+                        <p class="form-control-plaintext" id="mostrarMedicamentoDescripcion"></p>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -120,16 +141,20 @@
 
     <script>
         $(document).ready(function() {
-            $('#tablaEspecialidades').DataTable({
+            $('#tablaMedicamentos').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('especialidades.index') }}',
+                ajax: '{{ route('medicamentos.index') }}',
                 columns: [{
                         data: 0,
                         name: 'nombre'
                     },
                     {
                         data: 1,
+                        name: 'descripcion'
+                    },
+                    {
+                        data: 2,
                         name: 'action',
                         orderable: false,
                         searchable: false,
@@ -156,17 +181,18 @@
             if (btnEdit) {
                 const id = btnEdit.dataset.id;
                 try {
-                    const res = await fetch(`/especialidades/${id}/edit`, {
+                    const res = await fetch(`/medicamentos/${id}/edit`, {
                         headers: {
                             'Accept': 'application/json'
                         }
                     });
                     const data = await res.json();
                     document.getElementById('id').value = data.id;
-                    document.getElementById('editarNombreEspecialidad').value = data.nombre;
-                    document.getElementById('modalEditarEspecialidad').querySelector('form').action =
-                        `/especialidades/${data.id}`;
-                    new bootstrap.Modal(document.getElementById('modalEditarEspecialidad')).show();
+                    document.getElementById('editarNombreMedicamento').value = data.nombre;
+                    document.getElementById('editarDescripcionMedicamento').value = data.descripcion || '';
+                    document.getElementById('modalEditarMedicamento').querySelector('form').action =
+                        `/medicamentos/${data.id}`;
+                    new bootstrap.Modal(document.getElementById('modalEditarMedicamento')).show();
                 } catch {
                     Swal.fire('Error', 'No se pudo cargar', 'error');
                 }
@@ -174,14 +200,15 @@
             if (btnShow) {
                 const id = btnShow.dataset.id;
                 try {
-                    const res = await fetch(`/especialidades/${id}/show`, {
+                    const res = await fetch(`/medicamentos/${id}`, {
                         headers: {
                             'Accept': 'application/json'
                         }
                     });
                     const data = await res.json();
-                    document.getElementById('mostrarEspecialidadNombre').innerText = data.nombre;
-                    new bootstrap.Modal(document.getElementById('modalShowEspecialidad')).show();
+                    document.getElementById('mostrarMedicamentoNombre').innerText = data.nombre;
+                    document.getElementById('mostrarMedicamentoDescripcion').innerText = data.descripcion || 'Sin descripción';
+                    new bootstrap.Modal(document.getElementById('modalShowMedicamento')).show();
                 } catch {
                     Swal.fire('Error', 'No se pudo cargar', 'error');
                 }

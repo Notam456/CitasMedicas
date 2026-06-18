@@ -36,31 +36,14 @@ class MedicosPorEspecialidadExport implements FromView, ShouldAutoSize, WithEven
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet;
                 $highestRow = $sheet->getHighestRow();
-                
-                // Estilo para encabezados
-                $sheet->getStyle('A1:E1')->applyFromArray([
-                    'font' => ['bold' => true],
-                    'fill' => [
-                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                        'startColor' => ['argb' => 'FFD3D3D3'],
-                    ],
-                    'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        ],
-                    ],
-                ]);
-                
-                $sheet->setAutoFilter('A1:E' . $highestRow);
-                
-                if ($highestRow >= 2) {
-                    $sheet->getStyle('A2:E' . $highestRow)->applyFromArray([
-                        'borders' => [
-                            'allBorders' => [
-                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                            ],
-                        ],
-                    ]);
+
+                $sheet->getRowDimension(1)->setRowHeight(40);
+                $sheet->getRowDimension(2)->setRowHeight(28);
+                $sheet->getRowDimension(3)->setRowHeight(20);
+                $sheet->getRowDimension(4)->setRowHeight(35);
+
+                if ($highestRow >= 4) {
+                    $sheet->setAutoFilter('A4:E' . $highestRow);
                 }
             },
         ];

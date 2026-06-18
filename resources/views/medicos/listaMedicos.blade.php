@@ -57,7 +57,8 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="nombre" value="{{ old('nombre') }}" class="form-control"
-                                        id="nombreMedico" placeholder="Nombre" required>
+                                        id="nombreMedico" placeholder="Nombre" required
+                                        pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                                     <label for="nombreMedico">Nombres</label>
                                 </div>
                                 @error('nombre')
@@ -67,7 +68,8 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="apellido" value="{{ old('apellido') }}"
-                                        class="form-control" id="apellidoMedico" placeholder="Apellido" required>
+                                        class="form-control" id="apellidoMedico" placeholder="Apellido" required
+                                        pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                                     <label for="apellidoMedico">Apellidos</label>
                                 </div>
                                 @error('apellido')
@@ -141,7 +143,8 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="nombre" class="form-control" id="editarNombreMedico"
-                                        placeholder="Nombre" required>
+                                        placeholder="Nombre" required
+                                        pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                                     <label for="editarNombreMedico">Nombres</label>
                                 </div>
                                 @error('nombre')
@@ -151,7 +154,8 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="apellido" class="form-control" id="editarApellidoMedico"
-                                        placeholder="Apellido" required>
+                                        placeholder="Apellido" required
+                                        pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                                     <label for="editarApellidoMedico">Apellidos</label>
                                 </div>
                                 @error('apellido')

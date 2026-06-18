@@ -97,6 +97,7 @@ class ParroquiaController extends Controller
                 'required',
                 'string',
                 'max:255',
+                'regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
                 Rule::unique('parroquias')->where(function ($query) use ($request) {
                     return $query->where('municipio_id', $request->municipio_id);
                 })
@@ -124,6 +125,7 @@ class ParroquiaController extends Controller
                 'required',
                 'string',
                 'max:255',
+                'regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
                 Rule::unique('parroquias')->where(function ($query) use ($request, $id) {
                     return $query->where('municipio_id', $request->municipio_id)->where('id', '!=', $id);
                 })

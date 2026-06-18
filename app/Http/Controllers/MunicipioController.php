@@ -95,6 +95,7 @@ class MunicipioController extends Controller
         $request->validate([
             'nombre' => [
                 'required', 'string', 'max:255',
+                'regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
                 Rule::unique('municipios')->where(function ($query) use ($request) {
                     return $query->where('estado_id', $request->estado_id);
                 })
@@ -121,6 +122,7 @@ class MunicipioController extends Controller
         $request->validate([
             'nombre' => [
                 'required', 'string', 'max:255',
+                'regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
                 Rule::unique('municipios')->where(function ($query) use ($request, $id) {
                     return $query->where('estado_id', $request->estado_id)->where('id', '!=', $id);
                 })

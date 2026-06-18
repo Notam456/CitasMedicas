@@ -97,8 +97,8 @@ class MedicoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'apellido' => 'required|string|max:255',
+            'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
+            'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'cedula' => 'required|string|unique:medicos,cedula',
             'telefono' => 'required|string|max:20',
             'especialidad_id' => 'required|exists:especialidades,id',
@@ -127,8 +127,8 @@ class MedicoController extends Controller
         $medico = Medico::findOrFail($id);
 
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'apellido' => 'required|string|max:255',
+            'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
+            'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'cedula' => 'required|string|unique:medicos,cedula,' . $id,
             'telefono' => 'required|string|max:20',
             'especialidad_id' => 'required|exists:especialidades,id',

@@ -26,6 +26,10 @@
             <a href="{{ route('patologias.index') }}" class="nav-item nav-link"><i class="bi bi-file-medical-fill me-2"></i>Patologias</a>
             @endcan
 
+            @can('Medicamentos')
+            <a href="{{ route('medicamentos.index') }}" class="nav-item nav-link"><i class="bi bi-heart-fill me-2"></i>Medicamentos</a>
+            @endcan
+
             @can('Paciente')
             <a href="{{ route('paciente.index') }}" class="nav-item nav-link"><i class="bi bi-person-fill me-2"></i>Paciente</a>
             @endcan

@@ -18,6 +18,7 @@ use App\Http\Controllers\DistritoController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\PatologiaController;
+use App\Http\Controllers\MedicamentoController;
 
 use function PHPUnit\Framework\returnValue;
 
@@ -126,6 +127,10 @@ Route::get('/api/patologias/por-cita/{cita}', function ($citaId) {
 
 Route::middleware(['auth', 'can:Patologia'])->group(function () {
     Route::resource('patologias', PatologiaController::class);
+});
+
+Route::middleware(['auth', 'can:Medicamentos'])->group(function () {
+    Route::resource('medicamentos', MedicamentoController::class);
 });
 
 Route::middleware(['auth', 'can:Reportes'])->group(function () {

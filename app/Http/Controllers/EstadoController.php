@@ -75,7 +75,7 @@ class EstadoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255|unique:estados,nombre',
+            'nombre' => 'required|string|max:255|unique:estados,nombre|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
         ]);
 
         Estado::create($request->only('nombre'));
@@ -94,7 +94,7 @@ class EstadoController extends Controller
     {
         $estado = Estado::findOrFail($id);
         $request->validate([
-            'nombre' => 'required|string|max:255|unique:estados,nombre,' . $id,
+            'nombre' => 'required|string|max:255|unique:estados,nombre,' . $id . '|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
         ]);
 
         $estado->update($request->only('nombre'));

@@ -40,32 +40,13 @@ class MorbilidadExport implements FromView, ShouldAutoSize, WithEvents
                 $sheet = $event->sheet;
                 $highestRow = $sheet->getHighestRow();
 
-                $sheet->getStyle('A1:G1')->applyFromArray([
-                    'font' => ['bold' => true],
-                    'fill' => [
-                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                        'startColor' => ['argb' => 'FFD3D3D3'],
-                    ],
-                    'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                            'color' => ['argb' => 'FF000000'],
-                        ],
-                    ],
-                ]);
+                $sheet->getRowDimension(1)->setRowHeight(40);
+                $sheet->getRowDimension(2)->setRowHeight(28);
+                $sheet->getRowDimension(3)->setRowHeight(20);
+                $sheet->getRowDimension(4)->setRowHeight(35);
 
-                $sheet->setAutoFilter('A1:G' . $highestRow);
-
-                if ($highestRow >= 2) {
-                    $dataRange = 'A2:G' . $highestRow;
-                    $sheet->getStyle($dataRange)->applyFromArray([
-                        'borders' => [
-                            'allBorders' => [
-                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                                'color' => ['argb' => 'FF000000'],
-                            ],
-                        ],
-                    ]);
+                if ($highestRow >= 4) {
+                    $sheet->setAutoFilter('A4:G' . $highestRow);
                 }
             },
         ];
