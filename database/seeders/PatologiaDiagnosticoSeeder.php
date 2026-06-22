@@ -6,7 +6,6 @@ use Illuminate\Database\Seeder;
 use App\Models\Especialidad;
 use App\Models\Patologia;
 use App\Models\Cita;
-use App\Models\Medicamento;
 use App\Models\User;
 use Faker\Factory as Faker;
 
@@ -16,7 +15,6 @@ class PatologiaDiagnosticoSeeder extends Seeder
     {
         $faker = Faker::create('es_ES');
         $userAdmin = User::first();
-        $medicamentos = Medicamento::all();
 
         $especialidades = Especialidad::all();
         $patologiasPorEspecialidad = [];
@@ -104,32 +102,6 @@ class PatologiaDiagnosticoSeeder extends Seeder
                 $numPatologias = $faker->numberBetween(1, min(3, count($patologiaIds)));
                 $selectedPatologias = (array) $faker->randomElements($patologiaIds, $numPatologias);
                 $cita->patologias()->sync($selectedPatologias);
-            }
-
-            // Medicamentos (dosis y duración numéricas)
-            $numMedicamentos = $faker->numberBetween(0, 2);
-            for ($i = 0; $i < $numMedicamentos; $i++) {
-                $medicamento = $medicamentos->random();
-                $cita->tratamientos()->create([
-                    'medicamento_id' => $medicamento->id,
-                    'dosis' => $faker->randomElement(['250', '500', '750', '1000']),
-                    'duracion' => $faker->randomElement(['5', '7', '10', '14', '30']),
-                    'indicaciones' => $faker->sentence(5),
-                ]);
-            }
-
-            // Referencias
-            $numReferencias = $faker->numberBetween(0, 2);
-            $especialidadesDisponibles = Especialidad::where('id', '!=', $especialidadId)->get();
-            if ($especialidadesDisponibles->count() > 0) {
-                for ($i = 0; $i < $numReferencias; $i++) {
-                    $especialidadRef = $especialidadesDisponibles->random();
-                    $cita->referencias()->create([
-                        'especialidad_id' => $especialidadRef->id,
-                        'observaciones' => $faker->sentence(8),
-                        'fecha_referencia' => $faker->optional()->dateTimeBetween('+1 week', '+1 month'),
-                    ]);
-                }
             }
 
             $cita->atendido_por = $userAdmin->id ?? 1;

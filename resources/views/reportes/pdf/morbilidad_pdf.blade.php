@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Reporte de Morbilidad</title>
+    <title>Reporte de Citas</title>
     <style>
         body { font-family: 'DejaVu Sans', sans-serif; margin: 20px; font-size: 11px; }
         .header { text-align: center; margin-bottom: 20px; }
@@ -12,7 +12,7 @@
         th { background-color: #f2f2f2; font-weight: bold; }
         thead { display: table-row-group; }
         tr { page-break-inside: avoid; }
-        .fecha { text-align: right; font-size: 10px; margin-bottom: 10px; }
+        .fecha { text-align: center; font-size: 10px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -21,21 +21,40 @@
     @endif
 
     <div class="header">
-        <h1>Reporte de Morbilidad</h1>
+        <h1>Reporte de Citas</h1>
     </div>
 
     <div class="fecha">
-        <p>Fecha del reporte: {{ now()->format('d/m/Y H:i') }}</p>
-        @if($especialidad)
-            <p><strong>Especialidad:</strong> {{ $especialidad }}</p>
-        @endif
-        @if($fecha_desde && $fecha_hasta)
-            <p><strong>Período:</strong> {{ \Carbon\Carbon::parse($fecha_desde)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fecha_hasta)->format('d/m/Y') }}</p>
-        @elseif($fecha_desde)
-            <p><strong>Desde:</strong> {{ \Carbon\Carbon::parse($fecha_desde)->format('d/m/Y') }}</p>
-        @elseif($fecha_hasta)
-            <p><strong>Hasta:</strong> {{ \Carbon\Carbon::parse($fecha_hasta)->format('d/m/Y') }}</p>
-        @endif
+        <p>
+            Fecha del reporte: {{ now()->format('d/m/Y H:i') }}
+            @if($especialidad)
+                &nbsp;|&nbsp; <strong>Especialidad:</strong> {{ $especialidad }}
+            @endif
+            @if($tipo_paciente)
+                &nbsp;|&nbsp; <strong>Tipo:</strong> {{ $tipo_paciente === 'primera_vez' ? 'Primera Vez' : 'Sucesiva' }}
+            @endif
+            @if($estado)
+                &nbsp;|&nbsp; <strong>Estado:</strong> {{ $estado }}
+            @endif
+        </p>
+        <p>
+            <strong>Fecha de la Cita:</strong>
+            @if($fecha_desde && $fecha_hasta)
+                {{ \Carbon\Carbon::parse($fecha_desde)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fecha_hasta)->format('d/m/Y') }}
+            @else
+                Todos los Registros
+            @endif
+            @if($fecha_registro_desde || $fecha_registro_hasta)
+                &nbsp;|&nbsp; <strong>Fecha de Registro:</strong>
+                @if($fecha_registro_desde && $fecha_registro_hasta)
+                    {{ \Carbon\Carbon::parse($fecha_registro_desde)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fecha_registro_hasta)->format('d/m/Y') }}
+                @elseif($fecha_registro_desde)
+                    Desde {{ \Carbon\Carbon::parse($fecha_registro_desde)->format('d/m/Y') }}
+                @elseif($fecha_registro_hasta)
+                    Hasta {{ \Carbon\Carbon::parse($fecha_registro_hasta)->format('d/m/Y') }}
+                @endif
+            @endif
+        </p>
     </div>
 
     @if($morbilidades->count())
@@ -48,6 +67,7 @@
                 <th>Especialidad</th>
                 <th>Médico</th>
                 <th>Diagnóstico</th>
+                <th>Fecha Registro</th>
                 <th>Observaciones</th>
             </tr>
         </thead>
@@ -73,6 +93,7 @@
                     @endphp
                     {{ $diag }}
                 </td>
+                <td>{{ \Carbon\Carbon::parse($m->created_at)->format('d/m/Y') }}</td>
                 <td>{{ $m->cita_observacion ?: 'Asistió' }}</td>
             </tr>
             @endforeach

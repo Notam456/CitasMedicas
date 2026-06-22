@@ -18,7 +18,6 @@ use App\Http\Controllers\DistritoController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\PatologiaController;
-use App\Http\Controllers\MedicamentoController;
 
 use function PHPUnit\Framework\returnValue;
 use App\Http\Controllers\NotificacionController;
@@ -109,16 +108,12 @@ Route::middleware('auth')->group(function () {
 
 // Dashboard y Reportes Yajure
 
-Route::get('/api/medicamentos', function () {
-    return App\Models\Medicamento::all();
-})->middleware('auth');
-
-
-
 Route::middleware(['auth', 'can:Morbilidad'])->group(function () {
 
     Route::get('/morbilidad', [MorbilidadController::class, 'index'])->name('morbilidad.index');
     Route::get('/morbilidad/pendientes', [MorbilidadController::class, 'pendientes'])->name('morbilidad.pendientes');
+    Route::get('/morbilidad/{cita}', [MorbilidadController::class, 'getCita'])->name('morbilidad.getCita');
+    Route::get('/morbilidad/{cita}/pdf', [MorbilidadController::class, 'pdfCita'])->name('morbilidad.pdfCita');
 
     Route::get('/diagnosticos', [DiagnosticoController::class, 'index'])->name('diagnosticos.index');
     Route::get('/diagnosticos/{diagnostico}/edit', [DiagnosticoController::class, 'edit'])->name('diagnosticos.edit');
@@ -137,10 +132,6 @@ Route::get('/api/patologias/por-cita/{cita}', function ($citaId) {
 
 Route::middleware(['auth', 'can:Patologia'])->group(function () {
     Route::resource('patologias', PatologiaController::class);
-});
-
-Route::middleware(['auth', 'can:Medicamentos'])->group(function () {
-    Route::resource('medicamentos', MedicamentoController::class);
 });
 
 Route::middleware(['auth', 'can:Reportes'])->group(function () {

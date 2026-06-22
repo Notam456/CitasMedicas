@@ -11,19 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::dropIfExists('cita_tratamientos');
+        Schema::dropIfExists('medicamentos');
+    }
+
+    public function down(): void
+    {
         Schema::create('medicamentos', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
             $table->text('descripcion')->nullable();
             $table->timestamps();
         });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        //
     }
 };

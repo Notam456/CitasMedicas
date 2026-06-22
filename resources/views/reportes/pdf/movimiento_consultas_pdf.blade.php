@@ -31,9 +31,11 @@
     </div>
 
     <div class="fecha">
-        <p><strong>Tipo de paciente:</strong> {{ $tipoPaciente == 'adulto' ? 'Mayores de 12 años' : 'Pediatría (12 años o menos)' }}</p>
-        <p><strong>Período:</strong> {{ $fechaTexto }}</p>
-        <p>Reporte generado: {{ now()->format('d/m/Y H:i:s') }}</p>
+        <p>
+            <strong>Tipo de paciente:</strong> {{ $tipoPaciente == 'adulto' ? 'Mayores de 12 años' : 'Pediatría (12 años o menos)' }}
+            &nbsp;|&nbsp; <strong>Período:</strong> {{ $fechaTexto }}
+            &nbsp;|&nbsp; Reporte generado: {{ now()->format('d/m/Y H:i:s') }}
+        </p>
     </div>
 
     @if(count($data) > 0)

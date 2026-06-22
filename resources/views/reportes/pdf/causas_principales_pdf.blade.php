@@ -36,8 +36,10 @@
     </div>
 
     <div class="fecha">
-        <p><strong>Período:</strong> {{ $fechaTexto }}</p>
-        <p>Reporte generado: {{ now()->format('d/m/Y H:i:s') }}</p>
+        <p>
+            <strong>Período:</strong> {{ $fechaTexto }}
+            &nbsp;|&nbsp; Reporte generado: {{ now()->format('d/m/Y H:i:s') }}
+        </p>
     </div>
 
     @if(count($data) > 0)

@@ -61,26 +61,8 @@ class Cita extends Model
         );
     }
 
-    // Nuevas relaciones
     public function patologias()
     {
         return $this->belongsToMany(Patologia::class, 'cita_patologias')->withTimestamps();
-    }
-
-    public function referencias()
-    {
-        return $this->hasMany(CitaReferencia::class);
-    }
-
-    public function tratamientos()
-    {
-        return $this->hasMany(CitaTratamiento::class);
-    }
-
-    public function medicamentos()
-    {
-        return $this->belongsToMany(Medicamento::class, 'cita_tratamientos')
-            ->withPivot('dosis', 'duracion', 'indicaciones')
-            ->withTimestamps();
     }
 }

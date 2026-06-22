@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Cita;
 use App\Models\Patologia;
-use App\Models\Medicamento;
 use App\Models\Especialidad;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -144,19 +143,13 @@ class DiagnosticoController extends Controller
             'paciente',
             'medico.especialidad',
             'patologias',
-            'tratamientos.medicamento',
-            'referencias.especialidad'
         ])->findOrFail($id);
 
         $patologiasDisponibles = Patologia::where('especialidad_id', $cita->medico->especialidad_id)->get();
-        $medicamentos = Medicamento::all();
-        $especialidades = Especialidad::where('estado', true)->get();
 
         return response()->json([
             'cita' => $cita,
             'patologias_disponibles' => $patologiasDisponibles,
-            'medicamentos' => $medicamentos,
-            'especialidades' => $especialidades,
         ]);
     }
 
@@ -166,21 +159,6 @@ class DiagnosticoController extends Controller
             'diagnostico_libre' => 'nullable|string',
             'patologias' => 'array',
             'patologias.*' => 'exists:patologias,id',
-            'medicamentos' => 'array',
-            'medicamentos.*.id' => 'nullable|exists:medicamentos,id',
-            'medicamentos.*.dosis' => 'required_if:medicamentos.*.id,!=,|nullable|numeric|min:0',
-            'medicamentos.*.duracion' => 'required_if:medicamentos.*.id,!=,|nullable|integer|min:1',
-            'medicamentos.*.indicaciones' => 'required_if:medicamentos.*.id,!=,|nullable|string|min:3',
-            'referencias' => 'array',
-            'referencias.*.especialidad_id' => 'nullable|exists:especialidades,id',
-            'referencias.*.observaciones' => 'required_if:referencias.*.especialidad_id,!=,|nullable|string|min:3',
-            'referencias.*.fecha_referencia' => 'nullable|date',
-        ], [
-            'medicamentos.*.dosis.required_if' => 'La dosis es obligatoria cuando selecciona un medicamento.',
-            'medicamentos.*.duracion.required_if' => 'La duración es obligatoria cuando selecciona un medicamento.',
-            'medicamentos.*.indicaciones.required_if' => 'Las indicaciones son obligatorias cuando selecciona un medicamento.',
-            'referencias.*.observaciones.required_if' => 'Las observaciones son obligatorias cuando selecciona una especialidad.',
-            'referencias.*.observaciones.min' => 'Las observaciones deben tener al menos 3 caracteres.',
         ]);
 
         DB::beginTransaction();
@@ -189,33 +167,6 @@ class DiagnosticoController extends Controller
             $cita->update(['diagnostico_libre' => $request->diagnostico_libre]);
             $cita->patologias()->sync($request->patologias ?? []);
 
-            // Medicamentos
-            $medicamentosValidos = array_filter($request->medicamentos ?? [], function ($med) {
-                return !empty($med['id']);
-            });
-            $cita->tratamientos()->delete();
-            foreach ($medicamentosValidos as $med) {
-                $cita->tratamientos()->create([
-                    'medicamento_id' => $med['id'],
-                    'dosis' => $med['dosis'] ?? null,
-                    'duracion' => $med['duracion'] ?? null,
-                    'indicaciones' => $med['indicaciones'] ?? null,
-                ]);
-            }
-
-            // Referencias
-            $referenciasValidas = array_filter($request->referencias ?? [], function ($ref) {
-                return !empty($ref['especialidad_id']);
-            });
-            $cita->referencias()->delete();
-            foreach ($referenciasValidas as $ref) {
-                $cita->referencias()->create([
-                    'especialidad_id' => $ref['especialidad_id'],
-                    'observaciones' => $ref['observaciones'] ?? null,
-                    'fecha_referencia' => $ref['fecha_referencia'] ?? null,
-                ]);
-            }
-
             DB::commit();
             Alert::success('Diagnóstico actualizado correctamente.');
         } catch (\Exception $e) {
@@ -223,7 +174,8 @@ class DiagnosticoController extends Controller
             Alert::error('Error', 'No se pudo actualizar el diagnóstico: ' . $e->getMessage());
         }
 
-        return redirect()->route('diagnosticos.index');
+        $redirect = $request->query('redirect_to', 'diagnosticos.index');
+        return redirect()->route($redirect);
     }
 
    /* public function destroy($id)
@@ -240,8 +192,6 @@ class DiagnosticoController extends Controller
             'paciente',
             'medico.especialidad',
             'patologias',
-            'tratamientos.medicamento',
-            'referencias.especialidad',
             'atendidoPor'
         ])->findOrFail($id);
         return response()->json($cita);
@@ -255,10 +205,8 @@ class DiagnosticoController extends Controller
         }
 
         $patologias = Patologia::where('especialidad_id', $cita->medico->especialidad_id)->get();
-        $medicamentos = Medicamento::all();
-        $especialidades = \App\Models\Especialidad::where('estado', true)->get();
 
-        return view('morbilidad.pendientes', compact('cita', 'patologias', 'medicamentos', 'especialidades'));
+        return view('morbilidad.pendientes', compact('cita', 'patologias'));
     }
 
     public function store(Request $request, Cita $cita)
@@ -267,21 +215,6 @@ class DiagnosticoController extends Controller
             'diagnostico_libre' => 'nullable|string',
             'patologias' => 'array',
             'patologias.*' => 'exists:patologias,id',
-            'medicamentos' => 'array',
-            'medicamentos.*.id' => 'nullable|exists:medicamentos,id',
-            'medicamentos.*.dosis' => 'required_if:medicamentos.*.id,!=,|nullable|numeric|min:0',
-            'medicamentos.*.duracion' => 'required_if:medicamentos.*.id,!=,|nullable|integer|min:1',
-            'medicamentos.*.indicaciones' => 'required_if:medicamentos.*.id,!=,|nullable|string|min:3',
-            'referencias' => 'array',
-            'referencias.*.especialidad_id' => 'nullable|exists:especialidades,id',
-            'referencias.*.observaciones' => 'required_if:referencias.*.especialidad_id,!=,|nullable|string|min:3',
-            'referencias.*.fecha_referencia' => 'nullable|date',
-        ], [
-            'medicamentos.*.dosis.required_if' => 'La dosis es obligatoria cuando selecciona un medicamento.',
-            'medicamentos.*.duracion.required_if' => 'La duración es obligatoria cuando selecciona un medicamento.',
-            'medicamentos.*.indicaciones.required_if' => 'Las indicaciones son obligatorias cuando selecciona un medicamento.',
-            'referencias.*.observaciones.required_if' => 'Las observaciones son obligatorias cuando selecciona una especialidad.',
-            'referencias.*.observaciones.min' => 'Las observaciones deben tener al menos 3 caracteres.',
         ]);
 
         if ($cita->estado === 'Atendida') {
@@ -299,29 +232,6 @@ class DiagnosticoController extends Controller
 
             if ($request->has('patologias')) {
                 $cita->patologias()->sync($request->patologias);
-            }
-
-            $medicamentosValidos = array_filter($request->medicamentos ?? [], function ($med) {
-                return !empty($med['id']);
-            });
-            foreach ($medicamentosValidos as $med) {
-                $cita->tratamientos()->create([
-                    'medicamento_id' => $med['id'],
-                    'dosis' => $med['dosis'] ?? null,
-                    'duracion' => $med['duracion'] ?? null,
-                    'indicaciones' => $med['indicaciones'] ?? null,
-                ]);
-            }
-
-            $referenciasValidas = array_filter($request->referencias ?? [], function ($ref) {
-                return !empty($ref['especialidad_id']);
-            });
-            foreach ($referenciasValidas as $ref) {
-                $cita->referencias()->create([
-                    'especialidad_id' => $ref['especialidad_id'],
-                    'observaciones' => $ref['observaciones'] ?? null,
-                    'fecha_referencia' => $ref['fecha_referencia'] ?? null,
-                ]);
             }
 
             DB::commit();
