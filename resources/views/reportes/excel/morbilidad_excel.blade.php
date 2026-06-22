@@ -1,19 +1,40 @@
 <table>
     <tr>
-        <td colspan="7" style="font-size: 18px; font-weight: bold; text-align: center; padding: 12px; background-color: #1B5E20; color: #FFFFFF; border: none;">
-            Morbilidad
+        <td colspan="8" style="font-size: 18px; font-weight: bold; text-align: center; padding: 12px; background-color: #1B5E20; color: #FFFFFF; border: none;">
+            Reporte de Citas
         </td>
     </tr>
     <tr>
-        <td colspan="7" style="font-size: 11px; padding: 8px 12px; background-color: #E8F5E9; border: none;">
+        <td colspan="8" style="font-size: 11px; padding: 8px 12px; background-color: #E8F5E9; border: none;">
             @if($especialidad)
-                <strong>Especialidad:</strong> {{ $especialidad }} &nbsp;|&nbsp;
+                <strong> Especialidad: </strong> {{ $especialidad }} &nbsp;|&nbsp;
             @endif
-            <strong>Período:</strong> {{ \Carbon\Carbon::parse($fecha_desde)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fecha_hasta)->format('d/m/Y') }}
+            @if($tipo_paciente)
+                <strong> Tipo: </strong> {{ $tipo_paciente === 'primera_vez' ? 'Primera Vez' : 'Sucesiva' }} &nbsp;|&nbsp;
+            @endif
+            @if($estado)
+                <strong> Estado: </strong> {{ $estado }} &nbsp;|&nbsp;
+            @endif
+            <strong> Fecha de la Cita: </strong>
+            @if($fecha_desde && $fecha_hasta)
+                {{ \Carbon\Carbon::parse($fecha_desde)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fecha_hasta)->format('d/m/Y') }}
+            @else
+                Todos los Registros
+            @endif
+            @if($fecha_registro_desde || $fecha_registro_hasta)
+                &nbsp;|&nbsp; <strong> Fecha de Registro: </strong>
+                @if($fecha_registro_desde && $fecha_registro_hasta)
+                    {{ \Carbon\Carbon::parse($fecha_registro_desde)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fecha_registro_hasta)->format('d/m/Y') }}
+                @elseif($fecha_registro_desde)
+                    Desde {{ \Carbon\Carbon::parse($fecha_registro_desde)->format('d/m/Y') }}
+                @elseif($fecha_registro_hasta)
+                    Hasta {{ \Carbon\Carbon::parse($fecha_registro_hasta)->format('d/m/Y') }}
+                @endif
+            @endif
         </td>
     </tr>
     <tr>
-        <td colspan="7" style="font-size: 9px; padding: 4px 12px; color: #666666; border: none;">
+        <td colspan="8" style="font-size: 9px; padding: 4px 12px; color: #666666; border: none;">
             Reporte generado: {{ now()->format('d/m/Y H:i:s') }}
         </td>
     </tr>
@@ -24,6 +45,7 @@
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Especialidad</th>
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Médico</th>
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Diagnóstico</th>
+        <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Fecha Registro</th>
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Observaciones</th>
     </tr>
     @foreach($morbilidades as $index => $m)
@@ -47,6 +69,7 @@
             @endphp
             {{ $diag }}
         </td>
+        <td style="padding: 8px; text-align: center; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ \Carbon\Carbon::parse($m->created_at)->format('d/m/Y') }}</td>
         <td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ $m->cita_observacion ?: 'Asistió' }}</td>
     </tr>
     @endforeach

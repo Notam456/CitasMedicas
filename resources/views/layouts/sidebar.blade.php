@@ -26,10 +26,6 @@
             <a href="{{ route('patologias.index') }}" class="nav-item nav-link"><i class="bi bi-file-medical-fill me-2"></i>Patologias</a>
             @endcan
 
-            @can('Medicamentos')
-            <a href="{{ route('medicamentos.index') }}" class="nav-item nav-link"><i class="bi bi-heart-fill me-2"></i>Medicamentos</a>
-            @endcan
-
             @can('Paciente')
             <a href="{{ route('paciente.index') }}" class="nav-item nav-link"><i class="bi bi-person-fill me-2"></i>Paciente</a>
             @endcan
@@ -56,11 +52,11 @@
                 <div class="dropdown-menu bg-transparent border-0">
                     @can('Citas')
                     <a href="{{ route('Citas.create') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-plus-circle me-2"></i>Agendar Citas</a>
-                    <a href="{{ route('Citas.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-list-check me-2"></i>Citas Agendadas</a>
+                    <!-- <a href="{{ route('Citas.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-list-check me-2"></i>Citas Agendadas</a> -->
                     @endcan
                     @can('Morbilidad')
                     <a href="{{ route('morbilidad.pendientes') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-person-check-fill me-2"></i>Atender Citas</a>
-                    <a href="{{ route('diagnosticos.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-check2-all me-2"></i>Citas Atendidas</a>
+                   <!-- <a href="{{ route('diagnosticos.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-check2-all me-2"></i>Citas Atendidas</a> -->
                     
                     <a href="{{ route('morbilidad.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-file-earmark-text me-2"></i>Reporte de Citas</a>
                     @endcan

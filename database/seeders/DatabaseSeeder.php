@@ -18,7 +18,6 @@ class DatabaseSeeder extends Seeder
             CalendarioSeeder::class,
             UserSeeder::class,
             CitaSeeder::class,
-            MedicamentoSeeder::class,
             PatologiaDiagnosticoSeeder::class,
             NotificationSeeder::class,
         ]);
