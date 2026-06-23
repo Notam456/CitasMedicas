@@ -201,7 +201,7 @@ document.addEventListener('click', async function(event) {
             spanMedico.innerHTML = 'Dr. ' + data.calendario.medico.nombre + ' ' + data.calendario.medico.apellido;
             spanEspecialidad.innerHTML = data.calendario.medico.especialidad.nombre;
             spanFecha.innerHTML = new Date(data.fecha_cita).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            spanTipo.innerHTML = data.tipo_paciente == 'primera_vez' ? 'Primera vez' : 'Control';
+            spanTipo.innerHTML = data.tipo_paciente == 'primera_vez' ? 'Primera vez' : data.tipo_paciente == 'control' ? 'Control' : 'Orden Médica';
             spanEstado.innerHTML = data.estado;
             spanFechaRegistro.innerHTML = data.fecha_registro ? new Date(data.fecha_registro).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
             spanReagendada.innerHTML = data.reagendada_contador + ' / 2';

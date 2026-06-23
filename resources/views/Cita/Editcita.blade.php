@@ -84,10 +84,11 @@
                 </div>
                 <div class="col-md-4 fw-bold small text-uppercase text-muted">
                     <label class="form-label">Tipo de atención</label>
-                    <select name="tipo_paciente" id="tipo_paciente" class="form-select" disabled>
-                        <option value="primera_vez" {{ $cita->tipo_paciente == 'primera_vez' ? 'selected' : '' }}>Primera vez</option>
-                        <option value="control" {{ $cita->tipo_paciente == 'control' ? 'selected' : '' }}>Control / Sucesivo</option>
-                    </select>
+                        <select name="tipo_paciente" id="tipo_paciente" class="form-select" disabled>
+                            <option value="primera_vez" {{ $cita->tipo_paciente == 'primera_vez' ? 'selected' : '' }}>Primera vez</option>
+                            <option value="control" {{ $cita->tipo_paciente == 'control' ? 'selected' : '' }}>Control / Sucesivo</option>
+                            <option value="orden_medica" {{ $cita->tipo_paciente == 'orden_medica' ? 'selected' : '' }}>Orden Médica</option>
+                        </select>
                 </div>
             </div>
             <br>

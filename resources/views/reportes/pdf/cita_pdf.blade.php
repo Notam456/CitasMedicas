@@ -43,7 +43,7 @@
         <tr><td>Especialidad</td><td>{{ $cita->medico->especialidad->nombre }}</td></tr>
         <tr><td>Médico</td><td>Dr. {{ $cita->medico->nombre }} {{ $cita->medico->apellido }}</td></tr>
         <tr><td>Estado</td><td>{{ $cita->estado }}</td></tr>
-        <tr><td>Tipo de Paciente</td><td>{{ $cita->tipo_paciente === 'primera_vez' ? 'Primera Vez' : 'Sucesiva' }}</td></tr>
+        <tr><td>Tipo de Paciente</td><td>{{ $cita->tipo_paciente === 'primera_vez' ? 'Primera Vez' : ($cita->tipo_paciente === 'control' ? 'Control' : 'Orden Médica') }}</td></tr>
         <tr><td>Observaciones</td><td>{{ $cita->observacion ?? 'Ninguna' }}</td></tr>
     </table>
 

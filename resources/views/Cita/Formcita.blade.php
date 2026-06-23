@@ -189,6 +189,7 @@
                             <option value="">Seleccione una opción</option>
                             <option value="primera_vez">Primera vez</option>
                             <option value="control">Control / Sucesivo</option>
+                            <option value="orden_medica">Orden Médica</option>
                         </select>
                     </div>
                 </div>
@@ -533,14 +534,23 @@
                 div.innerHTML = `<span class="fw-bold d-block text-start">${dia}</span>`;
 
                 if (ev && fechaCelda >= hoy) {
-                    if (ev.disponibles > 0) {
+                    if (ev.disponibles > 0 || ev.tipo === 'orden_medica') {
                         div.style.cursor = 'pointer';
                         div.classList.add('bg-white', 'calendar-day-available');
-                        div.innerHTML += `
+
+                        if (ev.tipo === 'orden_medica') {
+                            div.innerHTML += `
+                                <div class="text-center mt-1 px-1 py-1 rounded border border-purple border-opacity-25 calendar-slot" style="border-color: #6f42c1 !important;">
+                                    <div class="fw-bold text-purple" style="font-size:0.75rem; line-height:1.2; color: #6f42c1;">Disponible (O.M.)</div>
+                                    <div class="text-muted" style="font-size:0.6rem; line-height:1.1;">${ev.hora_inicio.substring(0, 5)} - ${ev.hora_fin.substring(0, 5)}</div>
+                                </div>`;
+                        } else {
+                            div.innerHTML += `
                                 <div class="text-center mt-1 px-1 py-1 rounded border border-success border-opacity-25 calendar-slot">
                                     <div class="fw-bold text-success" style="font-size:0.75rem; line-height:1.2;">${ev.disponibles} Cupo${ev.disponibles !== 1 ? 's' : ''}</div>
                                     <div class="text-muted" style="font-size:0.6rem; line-height:1.1;">${ev.hora_inicio.substring(0, 5)} - ${ev.hora_fin.substring(0, 5)}</div>
                                 </div>`;
+                        }
 
                         div.onclick = () => seleccionarDia(fechaStr, ev.id);
                     } else {

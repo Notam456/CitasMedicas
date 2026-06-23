@@ -76,7 +76,7 @@ function populateShowModal(cita, pdfUrl) {
     document.getElementById('show_especialidad').innerText = cita.medico.especialidad.nombre;
     document.getElementById('show_fecha_cita').innerText = new Date(cita.fecha_cita).toLocaleDateString();
     document.getElementById('show_estado').innerText = cita.estado;
-    document.getElementById('show_tipo').innerText = cita.tipo_paciente === 'primera_vez' ? 'Primera Vez' : 'Sucesiva';
+    document.getElementById('show_tipo').innerText = cita.tipo_paciente === 'primera_vez' ? 'Primera Vez' : cita.tipo_paciente === 'control' ? 'Control' : 'Orden Médica';
     document.getElementById('show_observaciones').innerText = cita.observacion || 'Ninguna';
     document.getElementById('show_diagnostico_libre').innerText = cita.diagnostico_libre || 'No registrado';
     document.getElementById('show_atendido_por').innerText = cita.atendido_por ? cita.atendido_por.name : 'No asignado';
