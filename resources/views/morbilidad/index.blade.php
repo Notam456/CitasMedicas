@@ -17,9 +17,14 @@
         <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                     <h3 class="mb-0">Reporte de Citas</h3>
-                    <a href="{{ route('morbilidad.pendientes') }}" class="btn btn-primary">
-                        <i class="fas fa-clinic-medical me-1"></i> Citas por Atender
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('Citas.create') }}" class="btn btn-success">
+                            <i class="fas fa-plus-circle me-1"></i> Agendar Cita
+                        </a>
+                        <a href="{{ route('morbilidad.pendientes') }}" class="btn btn-primary">
+                            <i class="fas fa-clinic-medical me-1"></i> Citas por Atender
+                        </a>
+                    </div>
                 </div>
              </div>
             </div>
@@ -27,12 +32,14 @@
                 <form method="GET" id="filtroForm" class="row g-3 mb-4 align-items-end">
                     <div class="col-md-2">
                         <label class="form-label fw-bold small text-uppercase text-muted">Especialidad</label>
-                        <x-searchable-select
-                            name="especialidad_id"
-                            id="especialidad_id"
-                            :options="$especialidades->pluck('nombre', 'id')"
-                            :selected="request('especialidad_id')"
-                            placeholder="Todas las especialidades" />
+                        <select name="especialidad_id" id="especialidad_id" class="form-select shadow-none">
+                            <option value="">Todas las especialidades</option>
+                            @foreach($especialidades as $especialidad)
+                                <option value="{{ $especialidad->id }}" {{ request('especialidad_id') == $especialidad->id ? 'selected' : '' }}>
+                                    {{ $especialidad->nombre }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label fw-bold small text-uppercase text-muted">Tipo de Cita</label>
@@ -40,6 +47,7 @@
                             <option value="">Todos</option>
                             <option value="primera_vez" {{ request('tipo_paciente') == 'primera_vez' ? 'selected' : '' }}>Primera Vez</option>
                             <option value="control" {{ request('tipo_paciente') == 'control' ? 'selected' : '' }}>Sucesiva</option>
+                            <option value="orden_medica" {{ request('tipo_paciente') == 'orden_medica' ? 'selected' : '' }}>Orden Médica</option>
                         </select>
                     </div>
                     <div class="col-md-2">

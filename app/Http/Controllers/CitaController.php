@@ -25,16 +25,11 @@ class CitaController extends Controller
      */
     public function index(Request $request)
     {
-
         if ($request->ajax() && $request->has('draw')) {
             return $this->dataTableResponse($request);
         }
 
-        $title = '¿Estas seguro de que deseas cancelar esta cita?';
-        $texrt = 'La cita será marcada como cancelada.';
-        confirmDelete($title, $texrt);
-
-        return view('Cita.index');
+        return redirect()->route('morbilidad.index');
     }
 
     private function buildBaseQuery(Request $request)
@@ -321,7 +316,7 @@ class CitaController extends Controller
 
             Alert::success('¡Éxito!', 'Cita registrada correctamente.');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -329,11 +324,11 @@ class CitaController extends Controller
             if ($e->getCode() == '23505') {
                 Alert::error('Error', 'Este paciente ya tiene una cita en ese horario.');
 
-                return redirect()->route('Citas.index');
+                return redirect()->route('morbilidad.index');
             }
             Alert::error('Error', 'No se pudo registrar la cita. Intente de nuevo.');
             
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
         }
     }
 
@@ -355,13 +350,13 @@ class CitaController extends Controller
         if (trim($cita->estado) !== 'Agendada') {
             Alert::error('Error', 'Solo se pueden reagendar citas con estado "Agendada".');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
         }
 
         if ($cita->reagendada_contador >= 2) {
             Alert::error('Límite alcanzado', 'Esta cita ya ha sido reagendada el máximo de 2 veces.');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
         }
 
         $cita->load('paciente', 'calendario.medico.especialidad');
@@ -378,13 +373,13 @@ class CitaController extends Controller
         if (trim($cita->estado) !== 'Agendada') {
             Alert::error('Error', 'Solo se pueden reagendar citas agendadas.');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
         }
 
         if ($cita->reagendada_contador >= 2) {
             Alert::error('Límite alcanzado', 'Esta cita ya ha sido reagendada el máximo de 2 veces.');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
         }
 
         $fechaOriginal = $cita->fecha_cita;
@@ -411,12 +406,12 @@ class CitaController extends Controller
             DB::commit();
             Alert::success('¡Éxito!', 'Cita reagendada correctamente.');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
         } catch (\Exception $e) {
             DB::rollBack();
             Alert::error('Error', 'No se pudo reagendar la cita. Intente de nuevo.');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
 
         }
     }
@@ -435,6 +430,6 @@ class CitaController extends Controller
 
         Alert::success('¡Éxito!', 'Cita cancelada correctamente.');
 
-        return redirect()->route('Citas.index');
+        return redirect()->route('morbilidad.index');
     }
 }

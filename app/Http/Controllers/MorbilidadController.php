@@ -186,9 +186,12 @@ class MorbilidadController extends Controller
         $data = $query->skip($start)->take($length)->get();
         $dataFormatted = [];
         foreach ($data as $row) {
-            $tipoBadge = $row->tipo_paciente === 'primera_vez'
-                ? '<span class="badge bg-info">Primera Vez</span>'
-                : '<span class="badge bg-warning text-dark">Sucesiva</span>';
+            $tipoBadge = match ($row->tipo_paciente) {
+                'primera_vez' => '<span class="badge bg-info">Primera Vez</span>',
+                'control'     => '<span class="badge bg-warning text-dark">Sucesiva</span>',
+                'orden_medica' => '<span class="badge bg-secondary">Orden Médica</span>',
+                default       => '<span class="badge bg-light text-dark">'.e($row->tipo_paciente).'</span>',
+            };
 
             $estadoBadge = match ($row->estado) {
                 'Atendida' => '<span class="badge bg-primary">Atendida</span>',
