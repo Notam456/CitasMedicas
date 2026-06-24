@@ -114,6 +114,7 @@ class MedicoController extends Controller
             'cedula',
             'telefono',
             'especialidad_id',
+            'horario',
         ]));
 
         Notification::send(User::all(), new NuevoMedico($medico));
@@ -140,20 +141,42 @@ class MedicoController extends Controller
             'especialidad_id' => 'required|exists:especialidades,id',
         ]);
 
+        $nuevoHorario = $request->input('horario');
+        $conflictos = 0;
+
+        if ($nuevoHorario) {
+            $diasPermitidos = array_map('intval', $nuevoHorario);
+            // 1 (Lunes) a 7 (Domingo)
+            
+            $planificaciones = $medico->calendarios()->where('fecha', '>=', now()->toDateString())->get();
+            foreach ($planificaciones as $plan) {
+                $diaSemana = Carbon::parse($plan->fecha)->dayOfWeekIso;
+                if (!in_array($diaSemana, $diasPermitidos)) {
+                    $conflictos++;
+                }
+            }
+        }
+
         $medico->update($request->only([
             'nombre',
             'apellido',
             'cedula',
             'telefono',
             'especialidad_id',
+            'horario',
         ]));
+
+        if ($conflictos > 0) {
+            alert()->warning('Médico actualizado', "Se detectaron $conflictos cupos planificados en días que ahora no están permitidos en su nuevo horario.")->persistent();
+        } else {
+            alert()->success('Médico actualizado exitosamente.');
+        }
 
         if (!auth()->user()->hasRole('administrador')) {
             $admins = User::role('administrador')->get();
             Notification::send($admins, new MedicoModificado($medico, auth()->user()));
         }
 
-        alert()->success('Médico actualizado exitosamente.');
         return redirect()->route('medicos.index');
     }
 

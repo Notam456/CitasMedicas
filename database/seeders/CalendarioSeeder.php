@@ -25,6 +25,13 @@ class CalendarioSeeder extends Seeder
                 continue;
             }
             foreach ($medicos as $medico) {
+                // Verificar si el médico tiene horario y si el día actual está permitido
+                if ($medico->horario && count($medico->horario) > 0) {
+                    if (!in_array($date->dayOfWeekIso, array_map('intval', $medico->horario))) {
+                        continue;
+                    }
+                }
+
                 // 60% de probabilidad de tener cupos ese día
                 if ($isToday || rand(1, 100) <= 60) {
                     Calendario::updateOrCreate(
