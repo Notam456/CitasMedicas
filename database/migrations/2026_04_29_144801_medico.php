@@ -18,6 +18,7 @@ return new class extends Migration
     $table->string('apellido');
     $table->string('cedula')->unique();
     $table->string('telefono');
+    $table->json('horario')->nullable();
     $table->timestamps();
     });
     }

@@ -236,6 +236,7 @@
     <script>
         let fechaNavegacion = new Date();
         let modalBS = null;
+        let horarioMedicoActual = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             modalBS = new bootstrap.Modal(document.getElementById('modalConfigurar'));
@@ -257,28 +258,53 @@
             });
         });
 
-        function actualizarMedicos(espId, targetId) {
+        async function actualizarMedicos(espId, targetId) {
             if (!espId) {
                 document.getElementById(targetId).innerHTML = '<option value="">Seleccione Médico</option>';
                 return;
             }
-            fetch(`/calendario/medicos/${espId}`)
-                .then(res => res.json())
-                .then(data => {
-                    const selectMed = document.getElementById(targetId);
-                    selectMed.innerHTML = '<option value="">Seleccione Médico</option>';
-                    data.forEach(m => {
-                        selectMed.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
-                    });
-                    if (targetId === 'select-medico') cargarCalendario();
-                });
+            const res = await fetch(`/calendario/medicos/${espId}`);
+            const data = await res.json();
+            const selectMed = document.getElementById(targetId);
+            selectMed.innerHTML = '<option value="">Seleccione Médico</option>';
+            data.forEach(m => {
+                const medicoJson = JSON.stringify(m).replace(/"/g, '&quot;');
+                selectMed.innerHTML += `<option value="${m.id}" data-full='${medicoJson}'>${m.nombre} ${m.apellido}</option>`;
+            });
+            if (targetId === 'select-medico') cargarCalendario();
         }
 
-        document.getElementById('select-medico').addEventListener('change', cargarCalendario);
-        document.getElementById('select-medico-masivo').addEventListener('change', function() {
-            document.getElementById('select-medico').value = this.value;
+        document.getElementById('select-medico').addEventListener('change', function() {
+            actualizarHorarioUI(this);
             cargarCalendario();
         });
+
+        document.getElementById('select-medico-masivo').addEventListener('change', function() {
+            document.getElementById('select-medico').value = this.value;
+            actualizarHorarioUI(this);
+            cargarCalendario();
+        });
+
+        function actualizarHorarioUI(selectElement) {
+            const option = selectElement.options[selectElement.selectedIndex];
+            if (option && option.dataset.full) {
+                const medico = JSON.parse(option.dataset.full);
+                horarioMedicoActual = medico.horario ? medico.horario.map(Number) : null;
+            } else {
+                horarioMedicoActual = null;
+            }
+
+            // Actualizar checkboxes masivos
+            document.querySelectorAll('input[name="dias_semana[]"]').forEach(cb => {
+                cb.disabled = false;
+                cb.parentElement.style.opacity = '1';
+                if (horarioMedicoActual && !horarioMedicoActual.includes(parseInt(cb.value))) {
+                    cb.disabled = true;
+                    cb.checked = false;
+                    cb.parentElement.style.opacity = '0.5';
+                }
+            });
+        }
 
         function cambiarMes(offset) {
             fechaNavegacion.setMonth(fechaNavegacion.getMonth() + offset);
@@ -340,11 +366,24 @@
                         `<div class="mt-3 text-center text-light"><i class="fas fa-plus-circle fa-2x"></i></div>`;
                 }
 
-                div.onclick = () => {
-                    const hoy = new Date();
-                    hoy.setHours(0, 0, 0, 0);
-                    const fechaSeleccionada = new Date(fechaStr + "T00:00:00");
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                const fechaSeleccionada = new Date(fechaStr + "T00:00:00");
+                const diaSemana = fechaSeleccionada.getDay() || 7; // ISO week day
 
+                let diaPermitido = true;
+                if (horarioMedicoActual && !horarioMedicoActual.includes(diaSemana)) {
+                    diaPermitido = false;
+                }
+
+                if (!diaPermitido) {
+                    div.style.backgroundColor = '#f8f9fa';
+                    div.style.opacity = '0.6';
+                    div.style.cursor = 'not-allowed';
+                    div.innerHTML += `<div class="position-absolute top-50 start-50 translate-middle text-muted small" style="transform: rotate(-45deg) !important; font-size: 0.7rem; white-space: nowrap;">No laboral</div>`;
+                }
+
+                div.onclick = () => {
                     if (fechaSeleccionada < hoy) {
                         Swal.fire({
                             title: 'Fecha no válida',
@@ -354,6 +393,17 @@
                         });
                         return;
                     }
+
+                    if (!diaPermitido) {
+                        Swal.fire({
+                            title: 'Día no permitido',
+                            text: 'Este médico no tiene permitido atender en este día de la semana según su horario.',
+                            icon: 'info',
+                            confirmButtonColor: '#0d6efd'
+                        });
+                        return;
+                    }
+
                     abrirConfigurador(fechaStr, ev);
                 };
                 grid.appendChild(div);

@@ -102,6 +102,20 @@
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
+
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold small text-muted text-uppercase mb-2">Horario de Atención (Días de la semana)</label>
+                                <div class="d-flex flex-wrap gap-3">
+                                    @php $dias = [1 => 'Lun', 2 => 'Mar', 3 => 'Mié', 4 => 'Jue', 5 => 'Vie', 6 => 'Sáb', 7 => 'Dom']; @endphp
+                                    @foreach($dias as $val => $nom)
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="horario[]" value="{{ $val }}" id="dia_reg_{{ $val }}" {{ is_array(old('horario')) && in_array($val, old('horario')) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="dia_reg_{{ $val }}">{{ $nom }}</label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <small class="text-muted mt-1 d-block">Si no selecciona ningún día, el médico podrá atender cualquier día.</small>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -186,6 +200,19 @@
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
+
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold small text-muted text-uppercase mb-2">Horario de Atención (Días de la semana)</label>
+                                <div class="d-flex flex-wrap gap-3" id="contenedorHorarioEditar">
+                                    @foreach($dias as $val => $nom)
+                                        <div class="form-check">
+                                            <input class="form-check-input check-horario-edit" type="checkbox" name="horario[]" value="{{ $val }}" id="dia_edit_{{ $val }}">
+                                            <label class="form-check-label" for="dia_edit_{{ $val }}">{{ $nom }}</label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <small class="text-muted mt-1 d-block">Si no selecciona ningún día, el médico podrá atender cualquier día.</small>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -230,6 +257,10 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Especialidad</label>
                             <p class="form-control-plaintext" id="mostrarEspecialidadMedico"></p>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">Horario de Atención</label>
+                            <p class="form-control-plaintext" id="mostrarHorarioMedico"></p>
                         </div>
                     </div>
                 </div>
@@ -324,6 +355,17 @@ document.addEventListener('click', async function(event) {
             inputEspecialidad.disabled = false;
             inputEspecialidad.value = data.especialidad_id;
 
+            // Limpiar y marcar horarios
+            document.querySelectorAll('.check-horario-edit').forEach(check => {
+                check.checked = false;
+                if (data.horario) {
+                    const horarioStr = data.horario.map(String);
+                    if (horarioStr.includes(check.value)) {
+                        check.checked = true;
+                    }
+                }
+            });
+
             const form = document.querySelector('#modalEditarMedico form');
             form.action = `/medicos/${data.id}`;
 
@@ -355,7 +397,7 @@ document.addEventListener('click', async function(event) {
             inputEspecialidad.innerHTML = "Cargando...";
 
             modalInstance.show();
-            const response = await fetch(`/medicos/${medicoId}/show`, {
+            const response = await fetch(`/medicos/${medicoId}`, {
                 method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
@@ -372,6 +414,15 @@ document.addEventListener('click', async function(event) {
             inputCedula.innerHTML = data.cedula;
             inputTelefono.innerHTML = data.telefono;
             inputEspecialidad.innerHTML = data.especialidad.nombre;
+
+            // Mostrar horario
+            const diasNombre = {1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo'};
+            if (data.horario && data.horario.length > 0) {
+                const horarioTexto = data.horario.map(d => diasNombre[d]).join(', ');
+                document.getElementById('mostrarHorarioMedico').innerHTML = horarioTexto;
+            } else {
+                document.getElementById('mostrarHorarioMedico').innerHTML = '<span class="text-muted">Sin horario restringido (Disponible todos los días)</span>';
+            }
 
         } catch (error) {
             console.error('Error:', error);

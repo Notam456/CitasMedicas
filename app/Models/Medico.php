@@ -14,6 +14,11 @@ class Medico extends Model
         'cedula',
         'telefono',
         'especialidad_id',
+        'horario',
+    ];
+
+    protected $casts = [
+        'horario' => 'array',
     ];
 
     public function especialidad()

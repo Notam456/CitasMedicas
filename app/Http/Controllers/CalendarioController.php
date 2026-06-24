@@ -89,7 +89,19 @@ class CalendarioController extends Controller
         }
 
         $request->validate([
-            'medico_id' => 'required|exists:medicos,id',
+            'medico_id' => [
+                'required',
+                'exists:medicos,id',
+                function ($attribute, $value, $fail) use ($request) {
+                    $medico = Medico::find($value);
+                    if ($medico && $medico->horario && count($medico->horario) > 0) {
+                        $diaSemana = Carbon::parse($request->fecha)->dayOfWeekIso;
+                        if (!in_array($diaSemana, array_map('intval', $medico->horario))) {
+                            $fail('El médico no tiene permitido atender en este día de la semana según su horario.');
+                        }
+                    }
+                }
+            ],
             'fecha' => 'required|date|after_or_equal:today',
             'hora_inicio' => 'required|date_format:H:i',
             'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
@@ -140,7 +152,22 @@ class CalendarioController extends Controller
     private function storeMasivo(Request $request)
     {
         $request->validate([
-            'medico_id' => 'required|exists:medicos,id',
+            'medico_id' => [
+                'required',
+                'exists:medicos,id',
+                function ($attribute, $value, $fail) use ($request) {
+                    $medico = Medico::find($value);
+                    if ($medico && $medico->horario && count($medico->horario) > 0) {
+                        $diasPermitidos = array_map('intval', $medico->horario);
+                        foreach ($request->dias_semana as $diaSeleccionado) {
+                            if (!in_array((int)$diaSeleccionado, $diasPermitidos)) {
+                                $fail('Uno o más días seleccionados no están permitidos en el horario del médico.');
+                                break;
+                            }
+                        }
+                    }
+                }
+            ],
             'fecha_inicio' => 'required|date|after_or_equal:today',
             'duracion_rango' => 'required|in:1_week,1_month,3_months,6_months',
             'dias_semana' => 'required|array',
