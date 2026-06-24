@@ -25,16 +25,11 @@ class CitaController extends Controller
      */
     public function index(Request $request)
     {
-
         if ($request->ajax() && $request->has('draw')) {
             return $this->dataTableResponse($request);
         }
 
-        $title = '¿Estas seguro de que deseas cancelar esta cita?';
-        $texrt = 'La cita será marcada como cancelada.';
-        confirmDelete($title, $texrt);
-
-        return view('Cita.index');
+        return redirect()->route('morbilidad.index');
     }
 
     private function buildBaseQuery(Request $request)
@@ -109,9 +104,12 @@ class CitaController extends Controller
         $dataFormatted = [];
         foreach ($data as $row) {
 
-            $tipoPacienteBadge = $row->tipo_paciente == 'primera_vez'
-                ? '<span class="badge bg-info">Primera vez</span>'
-                : '<span class="badge bg-warning">Control</span>';
+            $tipoPacienteBadge = match ($row->tipo_paciente) {
+                'primera_vez' => '<span class="badge bg-info">Primera vez</span>',
+                'control'     => '<span class="badge bg-warning">Control</span>',
+                'orden_medica' => '<span class="badge bg-secondary">Orden Médica</span>',
+                default       => '<span class="badge bg-light text-dark">'.e($row->tipo_paciente).'</span>',
+            };
 
             if ($row->estado == 'Agendada') {
                 $estadoBadge = '<span class="badge bg-success">Agendada</span>';
@@ -174,7 +172,7 @@ class CitaController extends Controller
         try {
             $mes = $request->mes;
             $anio = $request->anio;
-            $tipo_paciente = $request->tipo_paciente; // Recibe 'primera_vez' o 'control'
+            $tipo_paciente = $request->tipo_paciente;
 
             // 1. Obtener las planificaciones del médico para ese mes
             $calendarios = Calendario::where('medico_id', $medico_id)
@@ -185,6 +183,19 @@ class CitaController extends Controller
 
             // 2. Mapear y calcular cupos libres
             $eventos = $calendarios->map(function ($cal) use ($tipo_paciente) {
+
+                // Orden Médica: mostrar todos los slots sin verificar cupos
+                if ($tipo_paciente === 'orden_medica') {
+                    return [
+                        'id' => $cal->id,
+                        'fecha' => $cal->fecha,
+                        'hora_inicio' => $cal->hora_inicio,
+                        'hora_fin' => $cal->hora_fin,
+                        'disponibles' => 999,
+                        'total' => $cal->cupos_primera_vez + $cal->cupos_sucesivos,
+                        'tipo' => 'orden_medica',
+                    ];
+                }
 
                 // Contamos las citas existentes filtrando por el valor exacto del HTML
                 $ocupados = Cita::where('calendario_id', $cal->id)
@@ -241,7 +252,7 @@ class CitaController extends Controller
             'fecha_cita' => 'required|date|after_or_equal:today',
             'observacion' => 'nullable|string',
             'especialidad_id' => 'required|exists:especialidades,id',
-            'tipo_paciente' => 'required|string|in:primera_vez,control',
+            'tipo_paciente' => 'required|string|in:primera_vez,control,orden_medica',
         ]);
 
         try {
@@ -255,20 +266,22 @@ class CitaController extends Controller
                 return redirect()->back()->withInput();
             }
 
-            $ocupados = Cita::where('calendario_id', $calendario->id)
-                ->where('tipo_paciente', $request->tipo_paciente)
-                ->whereIn('estado', ['Agendada', 'Atendida'])
-                ->count();
+            if ($request->tipo_paciente !== 'orden_medica') {
+                $ocupados = Cita::where('calendario_id', $calendario->id)
+                    ->where('tipo_paciente', $request->tipo_paciente)
+                    ->whereIn('estado', ['Agendada', 'Atendida'])
+                    ->count();
 
-            $capacidad_maxima = ($request->tipo_paciente === 'primera_vez')
-            ? $calendario->cupos_primera_vez
-            : $calendario->cupos_sucesivos;
+                $capacidad_maxima = ($request->tipo_paciente === 'primera_vez')
+                ? $calendario->cupos_primera_vez
+                : $calendario->cupos_sucesivos;
 
-            if ($ocupados >= $capacidad_maxima) {
-                DB::rollBack();
-                Alert::error('Sin Cupos', 'Lo sentimos, los cupos para este día se acaban de agotar.');
+                if ($ocupados >= $capacidad_maxima) {
+                    DB::rollBack();
+                    Alert::error('Sin Cupos', 'Lo sentimos, los cupos para este día se acaban de agotar.');
 
-                return redirect()->back()->withInput();
+                    return redirect()->back()->withInput();
+                }
             }
 
             $cedulaCompleta = $request->cedula_tipo.'-'.$request->cedula;
@@ -303,7 +316,7 @@ class CitaController extends Controller
 
             Alert::success('¡Éxito!', 'Cita registrada correctamente.');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -311,11 +324,11 @@ class CitaController extends Controller
             if ($e->getCode() == '23505') {
                 Alert::error('Error', 'Este paciente ya tiene una cita en ese horario.');
 
-                return redirect()->route('Citas.index');
+                return redirect()->route('morbilidad.index');
             }
             Alert::error('Error', 'No se pudo registrar la cita. Intente de nuevo.');
             
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
         }
     }
 
@@ -337,13 +350,13 @@ class CitaController extends Controller
         if (trim($cita->estado) !== 'Agendada') {
             Alert::error('Error', 'Solo se pueden reagendar citas con estado "Agendada".');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
         }
 
         if ($cita->reagendada_contador >= 2) {
             Alert::error('Límite alcanzado', 'Esta cita ya ha sido reagendada el máximo de 2 veces.');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
         }
 
         $cita->load('paciente', 'calendario.medico.especialidad');
@@ -360,13 +373,13 @@ class CitaController extends Controller
         if (trim($cita->estado) !== 'Agendada') {
             Alert::error('Error', 'Solo se pueden reagendar citas agendadas.');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
         }
 
         if ($cita->reagendada_contador >= 2) {
             Alert::error('Límite alcanzado', 'Esta cita ya ha sido reagendada el máximo de 2 veces.');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
         }
 
         $fechaOriginal = $cita->fecha_cita;
@@ -393,12 +406,12 @@ class CitaController extends Controller
             DB::commit();
             Alert::success('¡Éxito!', 'Cita reagendada correctamente.');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
         } catch (\Exception $e) {
             DB::rollBack();
             Alert::error('Error', 'No se pudo reagendar la cita. Intente de nuevo.');
 
-            return redirect()->route('Citas.index');
+            return redirect()->route('morbilidad.index');
 
         }
     }
@@ -417,6 +430,6 @@ class CitaController extends Controller
 
         Alert::success('¡Éxito!', 'Cita cancelada correctamente.');
 
-        return redirect()->route('Citas.index');
+        return redirect()->route('morbilidad.index');
     }
 }
