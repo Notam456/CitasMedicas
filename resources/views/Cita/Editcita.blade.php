@@ -78,7 +78,11 @@
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
                         <select id="select-medico" class="form-select shadow-none" disabled>
-                            <option value="{{ $cita->calendario->medico_id }}" selected>Dr. {{ $cita->calendario->medico->nombre }} {{ $cita->calendario->medico->apellido }}</option>
+                            @if($cita->calendario->medico_id)
+                                <option value="{{ $cita->calendario->medico_id }}" selected>Dr. {{ $cita->calendario->medico->nombre }} {{ $cita->calendario->medico->apellido }}</option>
+                            @else
+                                <option value="any" selected>Cualquier Médico</option>
+                            @endif
                         </select>
                     </div>
                 </div>
@@ -147,7 +151,8 @@
 
 <script>
     let fechaNavegacion = new Date();
-    const medicoId = '{{ $cita->calendario->medico_id }}';
+    const medicoId = '{{ $cita->calendario->medico_id ?? "any" }}';
+    const especialidadId = '{{ $cita->calendario->especialidad_id }}';
     const tipoPaciente = '{{ $cita->tipo_paciente }}';
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -181,7 +186,7 @@
         grid.innerHTML = '<div class="col-12 py-5 text-center text-primary"><i class="bi bi-arrow-repeat bi-spin fs-1"></i></div>';
 
         try {
-            const res = await fetch(`/api/medicos/${medicoId}/disponibilidad?mes=${mes}&anio=${anio}&tipo_paciente=${tipoPaciente}`);
+            const res = await fetch(`/api/medicos/${medicoId}/disponibilidad?mes=${mes}&anio=${anio}&tipo_paciente=${tipoPaciente}&especialidad_id=${especialidadId}`);
             const eventos = await res.json();
             renderizarGrid(eventos);
         } catch (error) {

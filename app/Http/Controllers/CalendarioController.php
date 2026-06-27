@@ -37,11 +37,13 @@ class CalendarioController extends Controller
             }]);
 
         if ($medicoId) {
-            $query->where('medico_id', $medicoId);
+            $medico_id_value = $medicoId === 'any' ? null : $medicoId;
+            $query->where('medico_id', $medico_id_value);
+            if ($especialidadId) {
+                $query->where('especialidad_id', $especialidadId);
+            }
         } elseif ($especialidadId) {
-            $query->whereHas('medico', function ($q) use ($especialidadId) {
-                $q->where('especialidad_id', $especialidadId);
-            });
+            $query->where('especialidad_id', $especialidadId);
         }
 
         $disponibilidad = $query->get();
@@ -51,7 +53,19 @@ class CalendarioController extends Controller
 
     public function getMedicos($especialidad_id)
     {
-        $medicos = Medico::where('especialidad_id', $especialidad_id)->get();
+        $medicos_query = Medico::where('especialidad_id', $especialidad_id)->get();
+        $medicos_count = $medicos_query->count();
+        $medicos = $medicos_query->toArray();
+        
+        if ($medicos_count > 1) {
+            array_unshift($medicos, [
+                'id' => 'any',
+                'nombre' => 'Cualquier',
+                'apellido' => 'Médico',
+                'especialidad_id' => $especialidad_id,
+                'horario' => null
+            ]);
+        }
 
         return response()->json($medicos);
     }
@@ -91,10 +105,14 @@ class CalendarioController extends Controller
         $request->validate([
             'medico_id' => [
                 'required',
-                'exists:medicos,id',
                 function ($attribute, $value, $fail) use ($request) {
+                    if ($value === 'any') return;
                     $medico = Medico::find($value);
-                    if ($medico && $medico->horario && count($medico->horario) > 0) {
+                    if (!$medico) {
+                        $fail('El médico seleccionado no es válido.');
+                        return;
+                    }
+                    if ($medico->horario && count($medico->horario) > 0) {
                         $diaSemana = Carbon::parse($request->fecha)->dayOfWeekIso;
                         if (!in_array($diaSemana, array_map('intval', $medico->horario))) {
                             $fail('El médico no tiene permitido atender en este día de la semana según su horario.');
@@ -102,6 +120,7 @@ class CalendarioController extends Controller
                     }
                 }
             ],
+            'especialidad_id' => 'required|exists:especialidades,id',
             'fecha' => 'required|date|after_or_equal:today',
             'hora_inicio' => 'required|date_format:H:i',
             'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
@@ -123,8 +142,9 @@ class CalendarioController extends Controller
         ]);
         DB::beginTransaction();
         try {
+        $medico_id = $request->medico_id === 'any' ? null : $request->medico_id;
         Calendario::updateOrCreate(
-            ['medico_id' => $request->medico_id, 'fecha' => $request->fecha],
+            ['medico_id' => $medico_id, 'fecha' => $request->fecha, 'especialidad_id' => $request->especialidad_id],
             [
                 'hora_inicio' => $request->hora_inicio,
                 'hora_fin' => $request->hora_fin,
@@ -133,11 +153,16 @@ class CalendarioController extends Controller
             ]
         );
 
-        $medico = Medico::with('especialidad')->find($request->medico_id);
-        Notification::send(User::all(), new PlanificacionCreada(
-            $medico,
-            "disponibilidad para el {$request->fecha}",
-        ));
+        if ($medico_id) {
+            $medico = Medico::with('especialidad')->find($medico_id);
+            Notification::send(User::all(), new PlanificacionCreada(
+                $medico,
+                "disponibilidad para el {$request->fecha}",
+            ));
+        } else {
+            $especialidad = Especialidad::find($request->especialidad_id);
+        
+        }
         DB::commit();
         return response()->json(['success' => true, 'message' => 'Cupos actualizados correctamente.']);
         } catch(\Exception $e) {
@@ -154,10 +179,14 @@ class CalendarioController extends Controller
         $request->validate([
             'medico_id' => [
                 'required',
-                'exists:medicos,id',
                 function ($attribute, $value, $fail) use ($request) {
+                    if ($value === 'any') return;
                     $medico = Medico::find($value);
-                    if ($medico && $medico->horario && count($medico->horario) > 0) {
+                    if (!$medico) {
+                        $fail('El médico seleccionado no es válido.');
+                        return;
+                    }
+                    if ($medico->horario && count($medico->horario) > 0) {
                         $diasPermitidos = array_map('intval', $medico->horario);
                         foreach ($request->dias_semana as $diaSeleccionado) {
                             if (!in_array((int)$diaSeleccionado, $diasPermitidos)) {
@@ -168,6 +197,7 @@ class CalendarioController extends Controller
                     }
                 }
             ],
+            'especialidad_id' => 'required|exists:especialidades,id',
             'fecha_inicio' => 'required|date|after_or_equal:today',
             'duracion_rango' => 'required|in:1_week,1_month,3_months,6_months',
             'dias_semana' => 'required|array',
@@ -217,6 +247,7 @@ class CalendarioController extends Controller
         try {
             $count = 0;
             $overwritten = 0;
+            $medico_id = $request->medico_id === 'any' ? null : $request->medico_id;
 
             foreach ($period as $date) {
                 $dayOfWeek = $date->format('N');
@@ -224,7 +255,8 @@ class CalendarioController extends Controller
                 if (in_array($dayOfWeek, $request->dias_semana)) {
                     $fechaStr = $date->format('Y-m-d');
 
-                    $exists = Calendario::where('medico_id', $request->medico_id)
+                    $exists = Calendario::where('medico_id', $medico_id)
+                        ->where('especialidad_id', $request->especialidad_id)
                         ->where('fecha', $fechaStr)
                         ->exists();
 
@@ -233,7 +265,7 @@ class CalendarioController extends Controller
                     }
 
                     Calendario::updateOrCreate(
-                        ['medico_id' => $request->medico_id, 'fecha' => $fechaStr],
+                        ['medico_id' => $medico_id, 'fecha' => $fechaStr, 'especialidad_id' => $request->especialidad_id],
                         [
                             'hora_inicio' => $request->hora_inicio,
                             'hora_fin' => $request->hora_fin,
@@ -250,11 +282,13 @@ class CalendarioController extends Controller
                 $message .= " Se sobrescribieron $overwritten configuraciones existentes.";
             }
 
-            $medico = Medico::with('especialidad')->find($request->medico_id);
-            Notification::send(User::all(), new PlanificacionCreada(
-                $medico,
-                "disponibilidad para {$count} días.",
-            ));
+            if ($medico_id) {
+                $medico = Medico::with('especialidad')->find($medico_id);
+                Notification::send(User::all(), new PlanificacionCreada(
+                    $medico,
+                    "disponibilidad para {$count} días.",
+                ));
+            }
 
             Alert::success($message);
 

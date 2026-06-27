@@ -37,8 +37,8 @@ class CitaController extends Controller
         return Cita::query()
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
-            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
-            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->leftJoin('medicos', 'calendarios.medico_id', '=', 'medicos.id')
+            ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
             ->select(
                 'citas.id',
                 'citas.fecha_cita',
@@ -111,6 +111,10 @@ class CitaController extends Controller
                 default       => '<span class="badge bg-light text-dark">'.e($row->tipo_paciente).'</span>',
             };
 
+            $medicoNombreFull = $row->medico_nombre 
+                ? 'Dr. ' . $row->medico_nombre . ' ' . $row->medico_apellido 
+                : 'Cualquier médico';
+
             if ($row->estado == 'Agendada') {
                 $estadoBadge = '<span class="badge bg-success">Agendada</span>';
             } elseif ($row->estado == 'Atendida') {
@@ -135,7 +139,7 @@ class CitaController extends Controller
             $dataFormatted[] = [
                 $row->paciente_nombre.' '.$row->paciente_apellido,
                 $row->paciente_cedula,
-                'Dr. '.$row->medico_nombre.' '.$row->medico_apellido,
+                $medicoNombreFull,
                 $row->especialidad_nombre,
                 Carbon::parse($row->fecha_cita)->format('d/m/Y'),
                 $tipoPacienteBadge,
@@ -162,7 +166,31 @@ class CitaController extends Controller
 
     public function getMedicosPorEspecialidad($id)
     {
-        $medicos = Medico::where('especialidad_id', $id)->get();
+      
+        $medicos = Medico::where('especialidad_id', $id)
+            ->whereHas('calendarios', function($q) {
+                $q->whereDate('fecha', '>=', now()->toDateString());
+            })
+            ->get()
+            ->toArray();
+
+        $hasAnyDoctorPlanning = Calendario::where('especialidad_id', $id)
+            ->whereNull('medico_id')
+            ->whereDate('fecha', '>=', now()->toDateString())
+            ->exists();
+
+        $medicos_count = Medico::where('especialidad_id', $id)->count();
+
+        // Add "Any Doctor" option if it has planning AND specialty has more than one doctor
+        if ($hasAnyDoctorPlanning && $medicos_count > 1) {
+            array_unshift($medicos, [
+                'id' => 'any',
+                'nombre' => 'Cualquier',
+                'apellido' => 'Médico',
+                'especialidad_id' => $id,
+                'horario' => null
+            ]);
+        }
 
         return response()->json($medicos);
     }
@@ -173,13 +201,21 @@ class CitaController extends Controller
             $mes = $request->mes;
             $anio = $request->anio;
             $tipo_paciente = $request->tipo_paciente;
+            $especialidad_id = $request->especialidad_id;
+
+            $medico_id_value = $medico_id === 'any' ? null : $medico_id;
 
             // 1. Obtener las planificaciones del médico para ese mes
-            $calendarios = Calendario::where('medico_id', $medico_id)
+            $query = Calendario::where('medico_id', $medico_id_value)
                 ->whereYear('fecha', $anio)
                 ->whereMonth('fecha', $mes)
-                ->whereDate('fecha', '>=', now()->toDateString())
-                ->get();
+                ->whereDate('fecha', '>=', now()->toDateString());
+
+            if ($especialidad_id) {
+                $query->where('especialidad_id', $especialidad_id);
+            }
+
+            $calendarios = $query->get();
 
             // 2. Mapear y calcular cupos libres
             $eventos = $calendarios->map(function ($cal) use ($tipo_paciente) {

@@ -11,6 +11,7 @@ class CalendarioSeeder extends Seeder
     public function run()
     {
         $medicos = Medico::all();
+        $especialidades = \App\Models\Especialidad::all();
         $startDate = now()->startOfDay()->subDay();
         $endDate = now()->addDays(90)->endOfDay();
         $hoy = now()->format('Y-m-d');
@@ -20,12 +21,34 @@ class CalendarioSeeder extends Seeder
             $fechaFormateada = $date->format('Y-m-d');
             $isToday = ($fechaFormateada === $hoy);
 
-            // No todos los médicos trabajan todos los días, solo algunos días laborales (lunes a viernes)
             if ($date->isWeekend() && ! $isToday) {
                 continue;
             }
+
+            foreach ($especialidades as $especialidad) {
+                $allowsAnyDoctor = ($especialidad->id % 2 == 0); 
+
+                if ($allowsAnyDoctor && rand(1, 100) <= 20) {
+                    Calendario::updateOrCreate(
+                        [
+                            'medico_id' => null,
+                            'especialidad_id' => $especialidad->id,
+                            'fecha' => $fechaFormateada,
+                        ],
+                        [
+                            'hora_inicio' => '08:00:00',
+                            'hora_fin' => '12:00:00',
+                            'cupos_primera_vez' => rand(10, 20),
+                            'cupos_sucesivos' => rand(10, 20),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]
+                    );
+                }
+            }
+
             foreach ($medicos as $medico) {
-                // Verificar si el médico tiene horario y si el día actual está permitido
+
                 if ($medico->horario && count($medico->horario) > 0) {
                     if (!in_array($date->dayOfWeekIso, array_map('intval', $medico->horario))) {
                         continue;
@@ -37,6 +60,7 @@ class CalendarioSeeder extends Seeder
                     Calendario::updateOrCreate(
                         [
                             'medico_id' => $medico->id,
+                            'especialidad_id' => $medico->especialidad_id,
                             'fecha' => $fechaFormateada,
                         ],
                         [

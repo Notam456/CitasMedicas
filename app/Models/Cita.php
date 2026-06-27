@@ -51,14 +51,7 @@ class Cita extends Model
 
     public function especialidad()
     {
-        return $this->hasOneThrough(
-            Especialidad::class,
-            Calendario::class,
-            'id',             
-            'id',             
-            'calendario_id',  
-            'medico_id'      
-        );
+        return $this->hasOneThrough(Especialidad::class, Calendario::class, 'id', 'id', 'calendario_id', 'especialidad_id');
     }
 
     public function patologias()

@@ -26,7 +26,7 @@
                             <label class="form-label text-muted fw-bold small">Especialidad *</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-stethoscope"></i></span>
-                                <select id="select-especialidad-masivo" class="form-select border-secondary-subtle"
+                                <select id="select-especialidad-masivo" name="especialidad_id" class="form-select border-secondary-subtle"
                                     required>
                                     <option value="">Seleccione Especialidad</option>
                                     @foreach ($especialidades as $e)
@@ -202,6 +202,7 @@
                         </div>
                         <div class="row g-3">
                             <input type="hidden" name="medico_id" id="input-medico-id">
+                                <input type="hidden" name="especialidad_id" id="input-especialidad-id">
                             <input type="hidden" name="fecha" id="input-fecha">
                             <div class="col-md-6">
                                 <label class="form-label text-muted fw-bold small">Hora Inicio *</label>
@@ -315,6 +316,7 @@
             const mes = fechaNavegacion.getMonth() + 1;
             const anio = fechaNavegacion.getFullYear();
             const medId = document.getElementById('select-medico').value;
+            const espId = document.getElementById('select-especialidad').value;
 
             document.getElementById('mes-actual').innerText = fechaNavegacion.toLocaleDateString('es-ES', {
                 month: 'long',
@@ -326,7 +328,7 @@
                 return;
             }
 
-            fetch(`/calendario/eventos?mes=${mes}&anio=${anio}&medico_id=${medId}`)
+            fetch(`/calendario/eventos?mes=${mes}&anio=${anio}&medico_id=${medId}&especialidad_id=${espId}`)
                 .then(res => res.json())
                 .then(eventos => renderizarGrid(eventos));
         }
@@ -412,6 +414,7 @@
 
         function abrirConfigurador(fecha, evento) {
             const medId = document.getElementById('select-medico').value;
+            const espId = document.getElementById('select-especialidad').value;
             const medNombre = document.getElementById('select-medico').options[document.getElementById('select-medico')
                 .selectedIndex].text;
 
@@ -433,6 +436,7 @@
             });
             document.getElementById('display-medico').innerText = "Médico: " + medNombre;
             document.getElementById('input-medico-id').value = medId;
+            document.getElementById('input-especialidad-id').value = espId;
             document.getElementById('input-fecha').value = fecha;
 
             document.getElementById('input-inicio').value = evento ? evento.hora_inicio.substring(0, 5) : "08:00";
