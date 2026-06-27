@@ -471,6 +471,7 @@
         // 3. Cargar la disponibilidad desde el backend
         async function cargarCalendario() {
             const medicoId = document.getElementById('select-medico').value;
+            const especialidadId = document.getElementById('select-especialidad').value;
             const tipoPaciente = document.getElementById('tipo_paciente').value;
             const grid = document.getElementById('calendario-grid');
 
@@ -487,7 +488,7 @@
             grid.innerHTML = '<div class="col-12 py-5 text-center text-primary"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
 
             try {
-                const res = await fetch(`/api/medicos/${medicoId}/disponibilidad?mes=${mes}&anio=${anio}&tipo_paciente=${tipoPaciente}`);
+                const res = await fetch(`/api/medicos/${medicoId}/disponibilidad?mes=${mes}&anio=${anio}&tipo_paciente=${tipoPaciente}&especialidad_id=${especialidadId}`);
                 const eventos = await res.json();
                 renderizarGrid(eventos);
             } catch (error) {

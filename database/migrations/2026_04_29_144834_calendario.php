@@ -13,7 +13,8 @@ return new class extends Migration
     {
     Schema::create('calendarios', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('medico_id')->constrained('medicos')->cascadeOnDelete();
+    $table->foreignId('medico_id')->nullable()->constrained('medicos')->cascadeOnDelete();
+    $table->foreignId('especialidad_id')->constrained('especialidades')->cascadeOnDelete();
     $table->date('fecha')->index();
     $table->time('hora_inicio');
     $table->time('hora_fin');

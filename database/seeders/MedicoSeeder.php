@@ -15,7 +15,7 @@ class MedicoSeeder extends Seeder
         $especialidades = Especialidad::all();
 
         foreach ($especialidades as $especialidad) {
-            $numMedicos = rand(1, 2);
+            $numMedicos = rand(1, 3);
             for ($i = 0; $i < $numMedicos; $i++) {
                 $horario = null;
                 if (rand(1, 100) <= 70) {
