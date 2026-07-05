@@ -6,7 +6,7 @@ use App\Models\Cita;
 use App\Models\Especialidad;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf as Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MorbilidadExport;
 use Carbon\Carbon;
@@ -37,6 +37,8 @@ class MorbilidadController extends Controller
             $fecha_registro_hasta = $request->fecha_registro_hasta;
 
             if ($request->has('export_excel')) {
+                ini_set('memory_limit', '512M');
+                ini_set('max_execution_time', 300);
                 $morbilidades = $query->lazy();
                 return Excel::download(
                     new MorbilidadExport($morbilidades, $especialidad, $fecha_desde, $fecha_hasta, $tipo_paciente, $estado, $fecha_registro_desde, $fecha_registro_hasta),
@@ -46,14 +48,15 @@ class MorbilidadController extends Controller
 
             if ($request->has('export_pdf')) {
                 $total = $query->count();
-                $limite = 1000;
-                if ($total > $limite) {
-                    return back()->with('error', "El PDF no puede generar {$total} registros. Límite {$limite}.");
+                $limiteAdvertencia = 5000;
+                if ($total > $limiteAdvertencia) {
+                    session()->flash('warning', "El PDF contiene {$total} registros. Puede consumir mucha memoria y tiempo. Considere aplicar filtros más específicos.");
                 }
                 ini_set('memory_limit', '1024M');
                 ini_set('max_execution_time', 300);
+                ini_set('pcre.backtrack_limit', '10000000');
+                $membrete = $this->getMembreteBase64();
                 $morbilidades = $query->get();
-                $membrete = public_path('assets/img/membreteMPPS2.png');
                 $pdf = Pdf::loadView('reportes.pdf.morbilidad_pdf', compact('morbilidades', 'membrete', 'especialidad', 'fecha_desde', 'fecha_hasta', 'tipo_paciente', 'estado', 'fecha_registro_desde', 'fecha_registro_hasta'));
                 return $pdf->stream('morbilidades.pdf');
             }
@@ -93,7 +96,7 @@ class MorbilidadController extends Controller
             'atendidoPor',
         ])->findOrFail($id);
 
-        $membrete = public_path('assets/img/membreteMPPS2.png');
+        $membrete = $this->getMembreteBase64();
         $pdf = Pdf::loadView('reportes.pdf.cita_pdf', compact('cita', 'membrete'));
         return $pdf->stream('cita_' . $id . '.pdf');
     }
@@ -105,6 +108,7 @@ class MorbilidadController extends Controller
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
             ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
             ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->leftJoin(DB::raw("(SELECT cp.cita_id, STRING_AGG(p.nombre, ', ' ORDER BY p.nombre) as patologias_nombres FROM cita_patologias cp JOIN patologias p ON p.id = cp.patologia_id GROUP BY cp.cita_id) as pats"), 'pats.cita_id', '=', 'citas.id')
             ->select(
                 'citas.id',
                 'pacientes.nombre as paciente_nombre',
@@ -119,7 +123,7 @@ class MorbilidadController extends Controller
                 'citas.estado',
                 'citas.tipo_paciente',
                 'citas.created_at',
-                DB::raw("(SELECT STRING_AGG(p.nombre, ', ') FROM cita_patologias cp JOIN patologias p ON p.id = cp.patologia_id WHERE cp.cita_id = citas.id) as patologias_nombres")
+                'pats.patologias_nombres'
             );
 
         if ($request->filled('especialidad_id')) {
@@ -309,5 +313,14 @@ class MorbilidadController extends Controller
             'recordsFiltered' => $filteredRecords,
             'data' => $dataFormatted,
         ]);
+    }
+
+    private function getMembreteBase64(): string
+    {
+        $ruta = public_path('assets/img/membreteMPPS2.png');
+        if (file_exists($ruta)) {
+            return 'data:image/png;base64,' . base64_encode(file_get_contents($ruta));
+        }
+        return '';
     }
 }

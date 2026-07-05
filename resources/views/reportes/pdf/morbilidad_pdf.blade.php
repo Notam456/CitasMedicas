@@ -10,13 +10,12 @@
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #ddd; padding: 6px 4px; text-align: left; vertical-align: top; }
         th { background-color: #f2f2f2; font-weight: bold; }
-        thead { display: table-row-group; }
         tr { page-break-inside: avoid; }
         .fecha { text-align: center; font-size: 10px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    @if(isset($membrete) && file_exists($membrete))
+    @if(!empty($membrete))
         <img src="{{ $membrete }}" style="width: 100%;">
     @endif
 
@@ -57,21 +56,18 @@
         </p>
     </div>
 
-    @if($morbilidades->count())
     <table>
-        <thead>
-            <tr>
-                <th>Paciente</th>
-                <th>Cédula</th>
-                <th>Fecha Cita</th>
-                <th>Especialidad</th>
-                <th>Médico</th>
-                <th>Diagnóstico</th>
-                <th>Fecha Registro</th>
-                <th>Observaciones</th>
-            </tr>
-        </thead>
         <tbody>
+            <tr style="background-color:#f2f2f2;font-weight:bold;">
+                <td><strong>Paciente</strong></td>
+                <td><strong>Cédula</strong></td>
+                <td><strong>Fecha Cita</strong></td>
+                <td><strong>Especialidad</strong></td>
+                <td><strong>Médico</strong></td>
+                <td><strong>Diagnóstico</strong></td>
+                <td><strong>Fecha Registro</strong></td>
+                <td><strong>Observaciones</strong></td>
+            </tr>
             @foreach($morbilidades as $m)
             <tr>
                 <td>{{ $m->paciente_nombre }} {{ $m->paciente_apellido }}</td>
@@ -99,8 +95,5 @@
             @endforeach
         </tbody>
     </table>
-    @else
-        <p>No hay registros de morbilidad.</p>
-    @endif
 </body>
 </html>

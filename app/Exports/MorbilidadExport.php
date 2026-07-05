@@ -3,12 +3,11 @@
 namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Illuminate\Contracts\View\View;
 
-class MorbilidadExport implements FromView, ShouldAutoSize, WithEvents
+class MorbilidadExport implements FromView, WithEvents
 {
     protected $data;
     protected $especialidad;
@@ -56,6 +55,15 @@ class MorbilidadExport implements FromView, ShouldAutoSize, WithEvents
                 $sheet->getRowDimension(2)->setRowHeight(28);
                 $sheet->getRowDimension(3)->setRowHeight(20);
                 $sheet->getRowDimension(4)->setRowHeight(35);
+
+                $sheet->getColumnDimension('A')->setWidth(35);
+                $sheet->getColumnDimension('B')->setWidth(15);
+                $sheet->getColumnDimension('C')->setWidth(14);
+                $sheet->getColumnDimension('D')->setWidth(22);
+                $sheet->getColumnDimension('E')->setWidth(28);
+                $sheet->getColumnDimension('F')->setWidth(40);
+                $sheet->getColumnDimension('G')->setWidth(14);
+                $sheet->getColumnDimension('H')->setWidth(18);
 
                 if ($highestRow >= 4) {
                     $sheet->setAutoFilter('A4:H' . $highestRow);
