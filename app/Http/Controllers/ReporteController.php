@@ -10,7 +10,7 @@ use App\Models\Parroquia;
 use App\Models\Municipio;
 use App\Models\Distrito;
 use App\Models\CitaPatologia;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf as Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Exports\MedicosPorEspecialidadExport;
