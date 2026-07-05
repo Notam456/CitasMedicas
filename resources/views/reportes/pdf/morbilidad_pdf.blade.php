@@ -15,7 +15,7 @@
     </style>
 </head>
 <body>
-    @if(isset($membrete) && file_exists($membrete))
+    @if(!empty($membrete))
         <img src="{{ $membrete }}" style="width: 100%;">
     @endif
 
@@ -56,7 +56,6 @@
         </p>
     </div>
 
-    @if($morbilidades->count())
     <table>
         <tbody>
             <tr style="background-color:#f2f2f2;font-weight:bold;">
@@ -96,8 +95,5 @@
             @endforeach
         </tbody>
     </table>
-    @else
-        <p>No hay registros de morbilidad.</p>
-    @endif
 </body>
 </html>

@@ -17,7 +17,7 @@
     </style>
 </head>
 <body>
-    @if(isset($membrete) && file_exists($membrete))
+    @if(!empty($membrete))
         <img src="{{ $membrete }}" style="width: 100%;">
     @endif
 

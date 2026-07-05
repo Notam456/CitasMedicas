@@ -54,8 +54,9 @@ class MorbilidadController extends Controller
                 }
                 ini_set('memory_limit', '1024M');
                 ini_set('max_execution_time', 300);
+                ini_set('pcre.backtrack_limit', '10000000');
+                $membrete = $this->getMembreteBase64();
                 $morbilidades = $query->get();
-                $membrete = public_path('assets/img/membreteMPPS2.png');
                 $pdf = Pdf::loadView('reportes.pdf.morbilidad_pdf', compact('morbilidades', 'membrete', 'especialidad', 'fecha_desde', 'fecha_hasta', 'tipo_paciente', 'estado', 'fecha_registro_desde', 'fecha_registro_hasta'));
                 return $pdf->stream('morbilidades.pdf');
             }
@@ -95,7 +96,7 @@ class MorbilidadController extends Controller
             'atendidoPor',
         ])->findOrFail($id);
 
-        $membrete = public_path('assets/img/membreteMPPS2.png');
+        $membrete = $this->getMembreteBase64();
         $pdf = Pdf::loadView('reportes.pdf.cita_pdf', compact('cita', 'membrete'));
         return $pdf->stream('cita_' . $id . '.pdf');
     }
@@ -309,5 +310,14 @@ class MorbilidadController extends Controller
             'recordsFiltered' => $filteredRecords,
             'data' => $dataFormatted,
         ]);
+    }
+
+    private function getMembreteBase64(): string
+    {
+        $ruta = public_path('assets/img/membreteMPPS2.png');
+        if (file_exists($ruta)) {
+            return 'data:image/png;base64,' . base64_encode(file_get_contents($ruta));
+        }
+        return '';
     }
 }
