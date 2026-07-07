@@ -21,6 +21,7 @@ use App\Http\Controllers\PatologiaController;
 
 use function PHPUnit\Framework\returnValue;
 use App\Http\Controllers\NotificacionController;
+use App\Http\Controllers\ExpedienteController;
 
 //Ruta de inicio
 Route::get('/', function () {
@@ -104,6 +105,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/notificaciones/{id}/leida', [NotificacionController::class, 'markAsRead'])->name('notificaciones.markAsRead');
     Route::put('/notificaciones/leer-todas', [NotificacionController::class, 'markAllAsRead'])->name('notificaciones.markAllAsRead');
     Route::delete('/notificaciones/{id}', [NotificacionController::class, 'destroy'])->name('notificaciones.destroy');
+});
+
+// Expedientes (N° Historia)
+Route::middleware('auth')->group(function () {
+    Route::post('/expedientes/asignar', [ExpedienteController::class, 'asignarNumero'])->name('expedientes.asignar');
 });
 
 // Dashboard y Reportes Yajure

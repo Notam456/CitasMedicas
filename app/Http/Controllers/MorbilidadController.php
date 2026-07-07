@@ -240,15 +240,18 @@ class MorbilidadController extends Controller
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
             ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
             ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->leftJoin('expedientes', 'pacientes.id', '=', 'expedientes.paciente_id')
             ->select(
                 'citas.id',
+                'citas.paciente_id',
                 'pacientes.nombre as paciente_nombre',
                 'pacientes.apellido as paciente_apellido',
                 'pacientes.cedula as paciente_cedula',
                 'citas.fecha_cita',
                 'medicos.nombre as medico_nombre',
                 'medicos.apellido as medico_apellido',
-                'especialidades.nombre as especialidad_nombre'
+                'especialidades.nombre as especialidad_nombre',
+                'expedientes.numero_expediente'
             )
             ->where('citas.estado', 'Agendada')
             ->whereDate('citas.fecha_cita', Carbon::today());
@@ -279,9 +282,10 @@ class MorbilidadController extends Controller
         $columns = [
             0 => 'pacientes.nombre',
             1 => 'pacientes.cedula',
-            2 => 'citas.fecha_cita',
-            3 => 'especialidades.nombre',
-            4 => 'medicos.nombre',
+            2 => 'expedientes.numero_expediente',
+            3 => 'citas.fecha_cita',
+            4 => 'especialidades.nombre',
+            5 => 'medicos.nombre',
         ];
         if (isset($columns[$orderColumn])) {
             $query->orderBy($columns[$orderColumn], $orderDir);
@@ -294,13 +298,25 @@ class MorbilidadController extends Controller
         $dataFormatted = [];
         foreach ($data as $row) {
             $btnAtender = '<button type="button" data-id="'.$row->id.'" class="btn-atender btn btn-xs btn-square btn-primary" data-bs-toggle="modal" data-bs-target="#modalAtender"><i class="bi bi-clipboard-plus"></i></button>';
+
+            if ($row->numero_expediente) {
+                $expedienteBadge = '<span class="badge bg-success">' . e($row->numero_expediente) . '</span>';
+                $btnHistoria = '';
+            } else {
+                $expedienteBadge = '<span class="badge bg-secondary">Sin asignar</span>';
+                $btnHistoria = '<button type="button" data-paciente-id="'.$row->paciente_id.'" data-paciente-nombre="'.e($row->paciente_nombre.' '.$row->paciente_apellido).'" data-paciente-cedula="'.e($row->paciente_cedula).'" class="btn-asignar-historia btn btn-xs btn-square btn-info"><i class="bi bi-file-earmark-plus"></i></button>';
+            }
+
+            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnHistoria . $btnAtender . '</div>';
+
             $dataFormatted[] = [
                 $row->paciente_nombre . ' ' . $row->paciente_apellido,
                 $row->paciente_cedula,
+                $expedienteBadge,
                 Carbon::parse($row->fecha_cita)->format('d/m/Y'),
                 $row->especialidad_nombre,
                 'Dr. ' . $row->medico_nombre . ' ' . $row->medico_apellido,
-                $btnAtender,
+                $acciones,
             ];
         }
         return response()->json([

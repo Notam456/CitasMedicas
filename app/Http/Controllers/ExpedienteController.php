@@ -4,62 +4,42 @@ namespace App\Http\Controllers;
 
 use App\Models\Expediente;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ExpedienteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function asignarNumero(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'paciente_id' => 'required|exists:pacientes,id',
+            'numero_expediente' => 'required|string|max:255|unique:expedientes,numero_expediente',
+        ]);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        $exists = Expediente::where('paciente_id', $request->paciente_id)->exists();
+        if ($exists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El paciente ya tiene un número de historia asignado.',
+            ], 422);
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        try {
+            $expediente = Expediente::create([
+                'paciente_id' => $request->paciente_id,
+                'numero_expediente' => $request->numero_expediente,
+                'fecha_apertura' => now(),
+            ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Expediente $expediente)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Expediente $expediente)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Expediente $expediente)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Expediente $expediente)
-    {
-        //
+            return response()->json([
+                'success' => true,
+                'message' => 'Número de historia asignado correctamente.',
+                'numero_expediente' => $expediente->numero_expediente,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al asignar el número de historia: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }
