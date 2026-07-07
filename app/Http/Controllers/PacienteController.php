@@ -93,7 +93,7 @@ class PacienteController extends Controller
      */
     public function buscarPorCedula($cedula)
     {
-        $paciente = Paciente::with(['parroquia.municipio.estado'])->where('cedula', $cedula)->first();
+        $paciente = Paciente::with(['parroquia.municipio.estado', 'expediente'])->where('cedula', $cedula)->first();
 
         if ($paciente) {
             return response()->json(['encontrado' => true, 'datos' => $paciente]);
@@ -119,7 +119,7 @@ class PacienteController extends Controller
             'cedula_tipo' => 'required|in:V,E',
             'cedula' => 'required|string|min:7|max:20',
             'cedula_completa' => 'required|string|unique:pacientes,cedula',
-            'rif' => 'required|string|max:20',
+            'rif' => 'nullable|string|max:20',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'required|string|min:7|max:15',
             'parroquia_id' => 'required|exists:parroquias,id',
@@ -129,7 +129,7 @@ class PacienteController extends Controller
 
         $paciente = Paciente::create([
             'cedula' => $request->cedula_completa,
-            'rif' => 'J-' . $request->rif,
+            'rif' => $request->rif ? 'J-' . $request->rif : '',
             'nombre' => $request->nombre,
             'apellido' => $request->apellido,
             'fecha_nacimiento' => $request->fecha_nacimiento,
@@ -180,7 +180,7 @@ class PacienteController extends Controller
             'cedula_tipo' => 'required|in:V,E',
             'cedula_completa' => 'required|string|unique:pacientes,cedula,' . $id,
             'cedula' => 'required|string|min:7|max:20',
-            'rif' => 'required|string|max:20',
+            'rif' => 'nullable|string|max:20',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'required|string|min:7|max:15',
             'parroquia_id' => 'required|exists:parroquias,id',
@@ -191,7 +191,7 @@ class PacienteController extends Controller
         $paciente = Paciente::findOrFail($id);
         $paciente->update([
             'cedula' => $request->cedula_completa,
-            'rif' => 'J-' . $request->rif,
+            'rif' => $request->rif ? 'J-' . $request->rif : '',
             'nombre' => $request->nombre,
             'apellido' => $request->apellido,
             'fecha_nacimiento' => $request->fecha_nacimiento,

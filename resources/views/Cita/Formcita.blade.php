@@ -27,9 +27,14 @@
             <h2 class="fw-bold text-primary border-bottom pb-2">Agendar Cita</h2>
         </div>
 
+        @php
+            $old_estado = old('estado_id');
+            $old_municipio = old('municipio_id');
+        @endphp
+
         <form action="{{ route('Citas.store') }}" method="POST" class="card shadow-sm border-0" id="form-cita">
             @csrf
-            <input type="hidden" name="especialidad_id" id="input_especialidad_id" value="{{ $id ?? '' }}">
+            <input type="hidden" name="especialidad_id" id="input_especialidad_id" value="{{ old('especialidad_id', $id ?? '') }}">
 
             <div class="card-body p-4">
 
@@ -40,11 +45,11 @@
                         <label class="form-label fw-bold">Cédula del Paciente *</label>
                         <div class="input-group">
                             <select name="cedula_tipo" id="input_cedula_tipo" class="form-select" style="max-width: 60px;">
-                                <option value="V">V</option>
-                                <option value="E">E</option>
+                                <option value="V" {{ old('cedula_tipo') == 'E' ? '' : 'selected' }}>V</option>
+                                <option value="E" {{ old('cedula_tipo') == 'E' ? 'selected' : '' }}>E</option>
                             </select>
                             <input type="text" name="cedula" id="input_cedula" class="form-control" placeholder="12345678"
-                                required>
+                                value="{{ old('cedula') }}" required>
                             <button type="button" class="btn btn-secondary" id="btn_buscar_cedula">Buscar</button>
                         </div>
                         <small id="mensaje_cedula" class="form-text mt-1 text-primary" aria-live="polite">Ingrese cédula para buscar.</small>
@@ -65,19 +70,6 @@
                             class="form-control @error('apellido') is-invalid @enderror" value="{{ old('apellido') }}"
                             required>
                         @error('apellido')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Rif</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light fw-bold">J</span>
-                            <input type="text" name="rif" id="input_rif"
-                                class="form-control @error('rif') is-invalid @enderror" value="{{ old('rif') }}"
-                                placeholder="123456789">
-                        </div>
-                        @error('rif')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -107,14 +99,34 @@
                         <div class="d-flex gap-3 pt-2">
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="sexo" id="input_sexo_m"
-                                    value="Masculino">
+                                    value="Masculino" {{ old('sexo') == 'Masculino' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="input_sexo_m">Masculino</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="sexo" id="input_sexo_f" value="Femenino">
+                                <input class="form-check-input" type="radio" name="sexo" id="input_sexo_f" value="Femenino"
+                                    {{ old('sexo') == 'Femenino' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="input_sexo_f">Femenino</label>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Rif</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light fw-bold">J</span>
+                            <input type="text" name="rif" id="input_rif"
+                                class="form-control @error('rif') is-invalid @enderror" value="{{ old('rif') }}"
+                                placeholder="123456789">
+                        </div>
+                        @error('rif')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">N° Expediente</label>
+                        <input type="text" id="input_expediente" class="form-control bg-light" readonly
+                            placeholder="Sin asignar">
                     </div>
 
                     <h6 class="text-secondary border-bottom pb-2">Ubicación del Paciente</h6>
@@ -122,10 +134,11 @@
                     <!-- Estado -->
                     <div class="col-md-4">
                         <label class="form-label" for="select-estado">Estado</label>
-                        <select id="select-estado" class="form-select">
+                        <select name="estado_id" id="select-estado" class="form-select">
                             <option value="">Seleccione Estado</option>
                             @foreach($estados as $estado)
-                                <option value="{{ $estado->id }}" {{ old('estado_id') == $estado->id ? 'selected' : '' }}>
+                                <option value="{{ $estado->id }}"
+                                    {{ $old_estado == $estado->id ? 'selected' : (!$old_estado && isset($defaultEstadoId) && $estado->id == $defaultEstadoId ? 'selected' : '') }}>
                                     {{ $estado->nombre }}
                                 </option>
                             @endforeach
@@ -135,7 +148,7 @@
                     <!-- Municipio -->
                     <div class="col-md-4">
                         <label class="form-label" for="select-municipio">Municipio</label>
-                        <select id="select-municipio" class="form-select">
+                        <select name="municipio_id" id="select-municipio" class="form-select">
                             <option value="">Seleccione Municipio</option>
                         </select>
                     </div>
@@ -166,10 +179,10 @@
                         <label class="form-label fw-bold small text-uppercase text-muted">Especialidad</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-stethoscope"></i></span>
-                            <select id="select-especialidad" class="form-select shadow-none">
+                            <select name="especialidad_id" id="select-especialidad" class="form-select shadow-none">
                                 <option value="">Seleccione Especialidad</option>
                                 @foreach ($especialidades as $e)
-                                    <option value="{{ $e->id }}">{{ $e->nombre }}</option>
+                                    <option value="{{ $e->id }}" {{ old('especialidad_id') == $e->id ? 'selected' : '' }}>{{ $e->nombre }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -178,7 +191,7 @@
                         <label class="form-label fw-bold small text-uppercase text-muted">Médico</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-user-md"></i></span>
-                            <select id="select-medico" class="form-select shadow-none">
+                            <select name="medico_id" id="select-medico" class="form-select shadow-none">
                                 <option value="">Seleccione Médico</option>
                             </select>
                         </div>
@@ -187,9 +200,9 @@
                         <label class="form-label">Tipo de atención</label>
                         <select name="tipo_paciente" id="tipo_paciente" class="form-select" required>
                             <option value="">Seleccione una opción</option>
-                            <option value="primera_vez">Primera vez</option>
-                            <option value="control">Control / Sucesivo</option>
-                            <option value="orden_medica">Orden Médica</option>
+                            <option value="primera_vez" {{ old('tipo_paciente') == 'primera_vez' ? 'selected' : '' }}>Primera vez</option>
+                            <option value="control" {{ old('tipo_paciente') == 'control' ? 'selected' : '' }}>Control / Sucesivo</option>
+                            <option value="orden_medica" {{ old('tipo_paciente') == 'orden_medica' ? 'selected' : '' }}>Orden Médica</option>
                         </select>
                     </div>
                 </div>
@@ -233,16 +246,32 @@
                     <div class="col-md-4 fw-bold small text-uppercase text-muted">
                         <label class="form-label">Fecha de Cita</label>
                         <input type="date" name="fecha_cita" id="input_fecha_cita"
-                            class="form-control @error('fecha_cita') is-invalid @enderror" required readonly>
+                            class="form-control @error('fecha_cita') is-invalid @enderror" required readonly
+                            value="{{ old('fecha_cita') }}">
                         @error('fecha_cita')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
-                        <input type="hidden" name="calendario_id" id="input_calendario_id" required>
+                        <input type="hidden" name="calendario_id" id="input_calendario_id" required
+                            value="{{ old('calendario_id') }}">
+                        <span id="old-data"
+                            data-especialidad="{{ old('especialidad_id') }}"
+                            data-estado="{{ old('estado_id') }}"
+                            data-municipio="{{ old('municipio_id') }}"
+                            data-parroquia="{{ old('parroquia_id') }}"
+                            data-medico="{{ old('medico_id') }}"
+                            data-tipo="{{ old('tipo_paciente') }}"
+                            data-fecha="{{ old('fecha_cita') }}"
+                            data-calendario="{{ old('calendario_id') }}"></span>
+                        @isset($defaultEstadoId)
+                            <span id="default-location"
+                                data-default-estado="{{ $defaultEstadoId }}"
+                                data-default-municipio="{{ $defaultMunicipioId }}"></span>
+                        @endisset
                     </div>
                     <div class="col-md-8 fw-bold small text-uppercase text-muted">
                         <label class="form-label">Observación</label>
                         <textarea name="observacion" class="form-control" rows="1"
-                            placeholder="Síntomas o nota..."></textarea>
+                            placeholder="Síntomas o nota...">{{ old('observacion') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -279,6 +308,7 @@
 
                         const rifParts = data.datos.rif ? data.datos.rif.split('-') : [];
                         document.getElementById('input_rif').value = rifParts.length > 1 ? rifParts.slice(1).join('-') : '';
+                        document.getElementById('input_expediente').value = data.datos?.expediente?.numero_expediente || '';
                         document.getElementById('input_nombre').value = data.datos.nombre;
                         document.getElementById('input_apellido').value = data.datos.apellido;
                         document.getElementById('input_fecha').value = data.datos.fecha_nacimiento;
@@ -320,6 +350,7 @@
                         document.getElementById('input_cedula_tipo').disabled = false;
                         document.getElementById('input_cedula').readOnly = false;
                         document.getElementById('input_rif').value = '';
+                        document.getElementById('input_expediente').value = '';
                         document.getElementById('input_nombre').value = '';
                         document.getElementById('input_apellido').value = '';
                         document.getElementById('input_fecha').value = '';
@@ -433,17 +464,15 @@
             selectMedico.addEventListener('change', cargarCalendario);
             selectTipoPaciente.addEventListener('change', cargarCalendario);
 
-            // 3. Pre-seleccionar especialidad si se pasó un id desde la vista anterior
-            const especialidadId = document.getElementById('input_especialidad_id').value;
-            if (especialidadId) {
-                selectEspecialidad.value = especialidadId;
-                document.getElementById('input_especialidad_id').value = especialidadId;
-                selectEspecialidad.dispatchEvent(new Event('change'));
-            }
-
-            // 4. Navegación de meses
+            // 3. Navegación de meses
             document.getElementById('btn-mes-anterior').addEventListener('click', () => cambiarMes(-1));
             document.getElementById('btn-mes-siguiente').addEventListener('click', () => cambiarMes(1));
+
+            // 4. Preseleccionar ubicación por defecto (Yaracuy, San Felipe)
+            setDefaultLocation();
+
+            // 5. Restaurar datos de validación previa (old input) — sobrescribe defaults si existe
+            restoreForm();
 
             // 5. Habilitar selects deshabilitados al enviar el formulario
             document.getElementById('form-cita').addEventListener('submit', function () {
@@ -571,7 +600,127 @@
             grid.appendChild(fragment);
         }
 
-        // 5. Rellenar inputs al hacer clic en un cupo disponible
+        // 5. Preseleccionar ubicación por defecto (Yaracuy, San Felipe)
+        async function setDefaultLocation() {
+            const el = document.getElementById('default-location');
+            if (!el) return;
+
+            const estadoId = el.dataset.defaultEstado;
+            const municipioId = el.dataset.defaultMunicipio;
+            if (!estadoId) return;
+
+            const selectEst = document.getElementById('select-estado');
+            selectEst.value = estadoId;
+
+            try {
+                const res = await fetch(`/api/municipios/${estadoId}`);
+                const municipios = await res.json();
+                const selectMun = document.getElementById('select-municipio');
+                selectMun.innerHTML = '<option value="">Seleccione Municipio</option>';
+                municipios.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = m.nombre;
+                    selectMun.appendChild(opt);
+                });
+                if (municipioId) {
+                    selectMun.value = municipioId;
+                }
+            } catch (err) {
+                console.error('Error cargando municipios por defecto:', err);
+            }
+        }
+
+        // 6. Restaurar formulario tras error de validación
+        async function restoreForm() {
+            const oldData = document.getElementById('old-data');
+            if (!oldData) return;
+
+            const espId = oldData.dataset.especialidad;
+            const estId = oldData.dataset.estado;
+            const munId = oldData.dataset.municipio;
+            const parId = oldData.dataset.parroquia;
+            const medId = oldData.dataset.medico;
+            const tipo = oldData.dataset.tipo;
+
+            // Restaurar solo si hay algún dato guardado
+            if (!espId && !estId && !medId && !tipo) return;
+
+            // --- Restaurar cascada Estado → Municipio → Parroquia ---
+            if (estId) {
+                const selectEst = document.getElementById('select-estado');
+                selectEst.value = estId;
+
+                if (munId) {
+                    const res1 = await fetch(`/api/municipios/${estId}`);
+                    const municipios = await res1.json();
+                    const selectMun = document.getElementById('select-municipio');
+                    selectMun.innerHTML = '<option value="">Seleccione Municipio</option>';
+                    municipios.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m.id;
+                        opt.textContent = m.nombre;
+                        selectMun.appendChild(opt);
+                    });
+                    selectMun.value = munId;
+
+                    if (parId) {
+                        const res2 = await fetch(`/api/parroquias/${munId}`);
+                        const parroquias = await res2.json();
+                        const selectPar = document.getElementById('select-parroquia');
+                        selectPar.innerHTML = '<option value="">Seleccione Parroquia</option>';
+                        parroquias.forEach(p => {
+                            const opt = document.createElement('option');
+                            opt.value = p.id;
+                            opt.textContent = p.nombre;
+                            selectPar.appendChild(opt);
+                        });
+                        selectPar.value = parId;
+                    }
+                }
+            }
+
+            // --- Restaurar cascada Especialidad → Médico → Calendario ---
+            if (espId) {
+                const selectEsp = document.getElementById('select-especialidad');
+                selectEsp.value = espId;
+                document.getElementById('input_especialidad_id').value = espId;
+
+                if (medId) {
+                    const res = await fetch(`/api/especialidades/${espId}/medicos`);
+                    const medicos = await res.json();
+                    const selectMed = document.getElementById('select-medico');
+                    selectMed.innerHTML = '<option value="">Seleccione Médico</option>';
+                    medicos.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m.id;
+                        opt.textContent = m.nombre + ' ' + m.apellido;
+                        selectMed.appendChild(opt);
+                    });
+                    selectMed.value = medId;
+
+                    await cargarCalendario();
+                }
+            }
+
+            // --- Restaurar tipo_paciente ---
+            if (tipo) {
+                const selectTipo = document.getElementById('tipo_paciente');
+                selectTipo.value = tipo;
+                if (!espId || !medId) {
+                    await cargarCalendario();
+                }
+            }
+
+            // --- Restaurar fecha / calendario (seleccionar el día) ---
+            const fecha = oldData.dataset.fecha;
+            const calendario = oldData.dataset.calendario;
+            if (fecha && calendario) {
+                seleccionarDia(fecha, calendario);
+            }
+        }
+
+        // 7. Rellenar inputs al hacer clic en un cupo disponible
         let fechaSeleccionadaAnterior = null;
 
         function seleccionarDia(fecha, calendario_id) {
