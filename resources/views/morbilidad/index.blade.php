@@ -182,7 +182,7 @@ $(document).ready(function() {
         table.ajax.reload();
     });
 
-    $('#btnExcel').on('click', function() {
+    function confirmarExportacion(formato) {
         var params = $.param({
             especialidad_id: $('#especialidad_id').val(),
             fecha_desde: $('#fecha_desde').val(),
@@ -190,25 +190,22 @@ $(document).ready(function() {
             tipo_paciente: $('#tipo_paciente').val(),
             estado: $('#estado').val(),
             fecha_registro_desde: $('#fecha_registro_desde').val(),
-            fecha_registro_hasta: $('#fecha_registro_hasta').val(),
-            export_excel: 1
+            fecha_registro_hasta: $('#fecha_registro_hasta').val()
         });
-        window.location.href = "{{ route('morbilidad.index') }}?" + params;
-    });
+        var extra = formato === 'pdf' ? '&export_pdf=1' : '&export_excel=1';
+        var url = "{{ route('morbilidad.index') }}?" + params + extra;
 
-    $('#btnPdf').on('click', function() {
-        var params = $.param({
-            especialidad_id: $('#especialidad_id').val(),
-            fecha_desde: $('#fecha_desde').val(),
-            fecha_hasta: $('#fecha_hasta').val(),
-            tipo_paciente: $('#tipo_paciente').val(),
-            estado: $('#estado').val(),
-            fecha_registro_desde: $('#fecha_registro_desde').val(),
-            fecha_registro_hasta: $('#fecha_registro_hasta').val(),
-            export_pdf: 1
-        });
-        window.open("{{ route('morbilidad.index') }}?" + params, '_blank');
-    });
+        var msg = 'El Sistema está solicitando su confirmación para generar el reporte ' +
+                  formato.toUpperCase() + '.\n\n¿Desea continuar?';
+
+        if (confirm(msg)) {
+            if (formato === 'pdf') window.open(url, '_blank');
+            else window.location.href = url;
+        }
+    }
+
+    $('#btnExcel').on('click', function() { confirmarExportacion('excel'); });
+    $('#btnPdf').on('click', function() { confirmarExportacion('pdf'); });
 
     // Mostrar cita en modal
     $(document).on('click', '.btn-show-cita', async function() {
