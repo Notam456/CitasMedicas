@@ -51,6 +51,7 @@
                         <tr>
                             <th>Paciente</th>
                             <th>Cédula</th>
+                            <th>N° Historia</th>
                             <th>Fecha Cita</th>
                             <th>Especialidad</th>
                             <th>Médico</th>
@@ -125,6 +126,47 @@
     </div>
 </div>
 
+<!-- Modal para Asignar Número de Historia -->
+<div class="modal fade" id="modalAsignarHistoria" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-plus me-2"></i>Asignar Número de Historia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formAsignarHistoria">
+                @csrf
+                <input type="hidden" name="paciente_id" id="historia_paciente_id">
+                <div class="modal-body">
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title text-info">Datos del Paciente</h6>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p class="mb-1"><strong>Nombre:</strong> <span id="historia_paciente_nombre"></span></p>
+                                    <p class="mb-0"><strong>Cédula:</strong> <span id="historia_paciente_cedula"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="numero_expediente" class="form-label fw-bold">Número de Historia <span class="text-danger">*</span></label>
+                        <input type="text" name="numero_expediente" id="numero_expediente" class="form-control" placeholder="Ingrese el número de historia" required>
+                        <div class="form-text">Este número será asignado al paciente y no podrá ser modificado.</div>
+                        <div class="invalid-feedback" id="historia_error"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-info text-white" id="btnGuardarHistoria">
+                        <i class="bi bi-check-lg me-1"></i> Asignar Número
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @include('layouts.footer')
 @endsection
 
@@ -146,14 +188,15 @@ $(document).ready(function() {
         columns: [
             { data: 0, name: 'paciente' },
             { data: 1, name: 'cedula' },
-            { data: 2, name: 'fecha_cita' },
-            { data: 3, name: 'especialidad' },
-            { data: 4, name: 'medico' },
-            { data: 5, name: 'accion', orderable: false, searchable: false, className: 'text-center' }
+            { data: 2, name: 'numero_expediente', orderable: false, searchable: false },
+            { data: 3, name: 'fecha_cita' },
+            { data: 4, name: 'especialidad' },
+            { data: 5, name: 'medico' },
+            { data: 6, name: 'accion', orderable: false, searchable: false, className: 'text-center' }
         ],
         language: { url: "{{ asset('vendor/datatables/es-ES.json') }}" },
         pageLength: 10,
-        order: [[2, 'asc']]
+        order: [[3, 'asc']]
     });
 
     $('#btnFiltrar').on('click', function() { table.ajax.reload(); });
@@ -266,6 +309,62 @@ $(document).ready(function() {
             error: function() { Swal.fire('Error', 'No se pudo cargar la información de la cita', 'error'); }
         });
         $('#modalAtender').modal('show');
+    });
+
+    // === Asignar Número de Historia ===
+    $('#tablaPendientes').on('click', '.btn-asignar-historia', function() {
+        var pacienteId = $(this).data('paciente-id');
+        var pacienteNombre = $(this).data('paciente-nombre');
+        var pacienteCedula = $(this).data('paciente-cedula');
+
+        $('#historia_paciente_id').val(pacienteId);
+        $('#historia_paciente_nombre').text(pacienteNombre);
+        $('#historia_paciente_cedula').text(pacienteCedula);
+        $('#numero_expediente').val('').removeClass('is-invalid');
+        $('#historia_error').text('');
+
+        $('#modalAsignarHistoria').modal('show');
+    });
+
+    $('#formAsignarHistoria').on('submit', function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var submitBtn = $('#btnGuardarHistoria');
+        submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Guardando...');
+
+        $.ajax({
+            url: "{{ route('expedientes.asignar') }}",
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                $('#tablaPendientes').DataTable().ajax.reload(null, true);
+                $('#modalAsignarHistoria').modal('hide');
+                Swal.fire('Éxito', response.message, 'success');
+            },
+            error: function(xhr) {
+                submitBtn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> Asignar Número');
+                if (xhr.status === 422) {
+                    var errors = xhr.responseJSON.errors;
+                    if (errors && errors.numero_expediente) {
+                        $('#numero_expediente').addClass('is-invalid');
+                        $('#historia_error').text(errors.numero_expediente[0]);
+                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                        Swal.fire('Error', xhr.responseJSON.message, 'error');
+                    }
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    Swal.fire('Error', xhr.responseJSON.message, 'error');
+                } else {
+                    Swal.fire('Error', 'Ocurrió un error al asignar el número de historia.', 'error');
+                }
+            }
+        });
+    });
+
+    $('#modalAsignarHistoria').on('hidden.bs.modal', function() {
+        $('#formAsignarHistoria')[0].reset();
+        $('#numero_expediente').removeClass('is-invalid');
+        $('#historia_error').text('');
+        $('#btnGuardarHistoria').prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> Asignar Número');
     });
 
     // Resetear formulario al cerrar modal

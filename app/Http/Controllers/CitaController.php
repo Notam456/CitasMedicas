@@ -6,6 +6,7 @@ use App\Models\Calendario;
 use App\Models\Cita;
 use App\Models\Especialidad;
 use App\Models\Estado;
+use App\Models\Municipio;
 use App\Models\Medico;
 use App\Models\Paciente;
 use App\Models\User;
@@ -161,7 +162,14 @@ class CitaController extends Controller
         $especialidades = Especialidad::all();
         $estados = Estado::all();
 
-        return view('Cita.Formcita', compact('especialidades', 'estados', 'id'));
+        $defaultEstadoId = Estado::where('nombre', 'Yaracuy')->value('id');
+        $defaultMunicipioId = $defaultEstadoId
+            ? Municipio::where('nombre', 'San Felipe')
+                ->where('estado_id', $defaultEstadoId)
+                ->value('id')
+            : null;
+
+        return view('Cita.Formcita', compact('especialidades', 'estados', 'id', 'defaultEstadoId', 'defaultMunicipioId'));
     }
 
     public function getMedicosPorEspecialidad($id)
@@ -275,7 +283,7 @@ class CitaController extends Controller
             // Datos del paciente
             'cedula_tipo' => 'required|in:V,E',
             'cedula' => 'required|string|min:7|max:20',
-            'rif' => 'required|string|max:20',
+            'rif' => 'nullable|string|max:20',
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
             'fecha_nacimiento' => 'required|date',
@@ -321,7 +329,7 @@ class CitaController extends Controller
             }
 
             $cedulaCompleta = $request->cedula_tipo.'-'.$request->cedula;
-            $rifCompleto = 'J-'.$request->rif;
+            $rifCompleto = $request->rif ? 'J-'.$request->rif : '';
 
             $paciente = Paciente::firstOrCreate(
                 ['cedula' => $cedulaCompleta],
