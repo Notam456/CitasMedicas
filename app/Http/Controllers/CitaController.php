@@ -277,6 +277,18 @@ class CitaController extends Controller
         }
     }
 
+    public function tieneCitasEnEspecialidad($paciente_id, $especialidad_id)
+    {
+        $tiene = Cita::where('paciente_id', $paciente_id)
+            ->whereHas('calendario.medico', function ($q) use ($especialidad_id) {
+                $q->where('especialidad_id', $especialidad_id);
+            })
+            ->whereIn('estado', ['Agendada', 'Atendida'])
+            ->exists();
+
+        return response()->json(['tieneCitas' => $tiene]);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -298,6 +310,26 @@ class CitaController extends Controller
             'especialidad_id' => 'required|exists:especialidades,id',
             'tipo_paciente' => 'required|string|in:primera_vez,control,orden_medica',
         ]);
+
+        if ($request->tipo_paciente === 'primera_vez') {
+            $cedulaCompleta = $request->cedula_tipo.'-'.$request->cedula;
+            $paciente = Paciente::where('cedula', $cedulaCompleta)->first();
+
+            if ($paciente) {
+                $tieneCitas = Cita::where('paciente_id', $paciente->id)
+                    ->whereHas('calendario.medico', function ($q) use ($request) {
+                        $q->where('especialidad_id', $request->especialidad_id);
+                    })
+                    ->whereIn('estado', ['Agendada', 'Atendida'])
+                    ->exists();
+
+                if ($tieneCitas) {
+                    return redirect()->back()->withInput()->withErrors([
+                        'tipo_paciente' => 'Este paciente ya tiene citas en esta especialidad. Seleccione "Control / Sucesivo".'
+                    ]);
+                }
+            }
+        }
 
         try {
             DB::beginTransaction();
@@ -344,6 +376,8 @@ class CitaController extends Controller
                     'sexo' => $request->sexo,
                 ]
             );
+
+            session()->flash('paciente_id', $paciente->id);
 
             Cita::create([
                 'paciente_id' => $paciente->id,

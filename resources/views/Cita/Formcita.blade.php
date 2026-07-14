@@ -44,21 +44,26 @@
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Cédula del Paciente *</label>
                         <div class="input-group">
-                            <select name="cedula_tipo" id="input_cedula_tipo" class="form-select" style="max-width: 60px;">
+                            <select name="cedula_tipo" id="input_cedula_tipo" class="form-select @error('cedula') is-invalid @enderror" style="max-width: 60px;">
                                 <option value="V" {{ old('cedula_tipo') == 'E' ? '' : 'selected' }}>V</option>
                                 <option value="E" {{ old('cedula_tipo') == 'E' ? 'selected' : '' }}>E</option>
                             </select>
-                            <input type="text" name="cedula" id="input_cedula" class="form-control" placeholder="12345678"
-                                value="{{ old('cedula') }}" required>
+                            <input type="tel" name="cedula" id="input_cedula" class="form-control @error('cedula') is-invalid @enderror" placeholder="12345678"
+                                value="{{ old('cedula') }}" required inputmode="numeric" pattern="[0-9]*" minlength="7" maxlength="20"
+                                oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                             <button type="button" class="btn btn-secondary" id="btn_buscar_cedula">Buscar</button>
                         </div>
                         <small id="mensaje_cedula" class="form-text mt-1 text-primary" aria-live="polite">Ingrese cédula para buscar.</small>
+                        @error('cedula')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label">Nombre</label>
                         <input type="text" name="nombre" id="input_nombre"
-                            class="form-control @error('nombre') is-invalid @enderror" value="{{ old('nombre') }}" required>
+                            class="form-control @error('nombre') is-invalid @enderror" value="{{ old('nombre') }}" required
+                            oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g,'')">
                         @error('nombre')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -68,7 +73,8 @@
                         <label class="form-label">Apellido</label>
                         <input type="text" name="apellido" id="input_apellido"
                             class="form-control @error('apellido') is-invalid @enderror" value="{{ old('apellido') }}"
-                            required>
+                            required
+                            oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g,'')">
                         @error('apellido')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -78,7 +84,7 @@
                         <label class="form-label">F. Nacimiento</label>
                         <input type="date" name="fecha_nacimiento" id="input_fecha"
                             class="form-control @error('fecha_nacimiento') is-invalid @enderror"
-                            value="{{ old('fecha_nacimiento') }}" required>
+                            value="{{ old('fecha_nacimiento') }}" required max="{{ date('Y-m-d') }}">
                         @error('fecha_nacimiento')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -95,7 +101,7 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Sexo</label>
+                        <label class="form-label">Sexo</label>
                         <div class="d-flex gap-3 pt-2">
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="sexo" id="input_sexo_m"
@@ -108,6 +114,9 @@
                                 <label class="form-check-label" for="input_sexo_f">Femenino</label>
                             </div>
                         </div>
+                        @error('sexo')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="col-md-6">
@@ -169,7 +178,10 @@
                     <div class="col-md-12">
                         <label class="form-label">Dirección exacta</label>
                         <input type="text" name="direccion" id="input_direccion" value="{{ old('direccion') }}"
-                            class="form-control">
+                            class="form-control @error('direccion') is-invalid @enderror">
+                        @error('direccion')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
 
@@ -179,12 +191,15 @@
                         <label class="form-label fw-bold small text-uppercase text-muted">Especialidad</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-stethoscope"></i></span>
-                            <select name="especialidad_id" id="select-especialidad" class="form-select shadow-none">
+                            <select name="especialidad_id" id="select-especialidad" class="form-select shadow-none @error('especialidad_id') is-invalid @enderror">
                                 <option value="">Seleccione Especialidad</option>
                                 @foreach ($especialidades as $e)
                                     <option value="{{ $e->id }}" {{ old('especialidad_id') == $e->id ? 'selected' : '' }}>{{ $e->nombre }}</option>
                                 @endforeach
                             </select>
+                            @error('especialidad_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -198,12 +213,15 @@
                     </div>
                     <div class="col-md-4 fw-bold small text-uppercase text-muted">
                         <label class="form-label">Tipo de atención</label>
-                        <select name="tipo_paciente" id="tipo_paciente" class="form-select" required>
+                        <select name="tipo_paciente" id="tipo_paciente" class="form-select @error('tipo_paciente') is-invalid @enderror" required>
                             <option value="">Seleccione una opción</option>
                             <option value="primera_vez" {{ old('tipo_paciente') == 'primera_vez' ? 'selected' : '' }}>Primera vez</option>
                             <option value="control" {{ old('tipo_paciente') == 'control' ? 'selected' : '' }}>Control / Sucesivo</option>
                             <option value="orden_medica" {{ old('tipo_paciente') == 'orden_medica' ? 'selected' : '' }}>Orden Médica</option>
                         </select>
+                        @error('tipo_paciente')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 <br>
@@ -261,7 +279,8 @@
                             data-medico="{{ old('medico_id') }}"
                             data-tipo="{{ old('tipo_paciente') }}"
                             data-fecha="{{ old('fecha_cita') }}"
-                            data-calendario="{{ old('calendario_id') }}"></span>
+                            data-calendario="{{ old('calendario_id') }}"
+                            data-paciente-id="{{ session('paciente_id') }}"></span>
                         @isset($defaultEstadoId)
                             <span id="default-location"
                                 data-default-estado="{{ $defaultEstadoId }}"
@@ -270,8 +289,11 @@
                     </div>
                     <div class="col-md-8 fw-bold small text-uppercase text-muted">
                         <label class="form-label">Observación</label>
-                        <textarea name="observacion" class="form-control" rows="1"
+                        <textarea name="observacion" class="form-control @error('observacion') is-invalid @enderror" rows="1"
                             placeholder="Síntomas o nota...">{{ old('observacion') }}</textarea>
+                        @error('observacion')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -289,7 +311,16 @@
             const cedulaCompleta = cedulaTipo + '-' + cedulaNum;
             const mensaje = document.getElementById('mensaje_cedula');
 
-            if (cedulaNum.length < 5) return;
+            if (!cedulaNum) {
+                mensaje.innerHTML = 'Ingrese un número de cédula.';
+                mensaje.className = 'form-text mt-1 text-danger fw-bold';
+                return;
+            }
+            if (cedulaNum.length < 7) {
+                mensaje.innerHTML = 'La cédula debe tener al menos 7 dígitos.';
+                mensaje.className = 'form-text mt-1 text-danger fw-bold';
+                return;
+            }
 
             mensaje.innerHTML = 'Buscando...';
             mensaje.className = 'form-text mt-1 text-warning';
@@ -344,6 +375,9 @@
 
                         document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = true);
 
+                        window.pacienteId = data.datos.id;
+                        actualizarTipoPaciente();
+
                         mensaje.innerHTML = 'Paciente encontrado. Datos autocompletados.';
                         mensaje.className = 'form-text mt-1 text-success fw-bold';
                     } else {
@@ -367,6 +401,9 @@
                         document.getElementById('select-parroquia').disabled = false;
 
                         document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = false);
+
+                        window.pacienteId = null;
+                        setDefaultLocation();
 
                         mensaje.innerHTML = 'Paciente nuevo. Por favor llene todos los campos.';
                         mensaje.className = 'form-text mt-1 text-primary fw-bold';
@@ -455,6 +492,7 @@
                     medicos.forEach(m => {
                         selectMedico.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
                     });
+                    actualizarTipoPaciente();
                 } catch (error) {
                     console.error("Error cargando médicos:", error);
                 }
@@ -526,7 +564,46 @@
             }
         }
 
-        // 4. Dibujar el calendario interactivo
+        // 4. Actualizar tipo de paciente según citas previas en la especialidad
+        async function actualizarTipoPaciente() {
+            const selectTipo = document.getElementById('tipo_paciente');
+            const selectEsp = document.getElementById('select-especialidad');
+            const espId = selectEsp?.value;
+            const id = window.pacienteId;
+
+            if (!id || !espId) {
+                selectTipo.innerHTML = `
+                    <option value="">Seleccione Tipo</option>
+                    <option value="primera_vez">Primera vez</option>
+                    <option value="control">Control / Sucesivo</option>
+                    <option value="orden_medica">Orden Médica</option>
+                `;
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/citas/paciente/${id}/especialidad/${espId}/tiene-citas`);
+                const data = await res.json();
+
+                if (data.tieneCitas) {
+                    selectTipo.innerHTML = `
+                        <option value="">Seleccione Tipo</option>
+                        <option value="control">Control / Sucesivo</option>
+                        <option value="orden_medica">Orden Médica</option>
+                    `;
+                } else {
+                    selectTipo.innerHTML = `
+                        <option value="">Seleccione Tipo</option>
+                        <option value="primera_vez">Primera vez</option>
+                        <option value="orden_medica">Orden Médica</option>
+                    `;
+                }
+            } catch (err) {
+                console.error('Error verificando citas:', err);
+            }
+        }
+
+        // 5. Dibujar el calendario interactivo
         function renderizarGrid(eventos = null) {
             const grid = document.getElementById('calendario-grid');
             grid.innerHTML = '';
@@ -601,7 +678,7 @@
             grid.appendChild(fragment);
         }
 
-        // 5. Preseleccionar ubicación por defecto (Yaracuy, San Felipe)
+        // 6. Preseleccionar ubicación por defecto (Yaracuy, San Felipe)
         async function setDefaultLocation() {
             const el = document.getElementById('default-location');
             if (!el) return;
@@ -626,13 +703,14 @@
                 });
                 if (municipioId) {
                     selectMun.value = municipioId;
+                    selectMun.dispatchEvent(new Event('change'));
                 }
             } catch (err) {
                 console.error('Error cargando municipios por defecto:', err);
             }
         }
 
-        // 6. Restaurar formulario tras error de validación
+        // 7. Restaurar formulario tras error de validación
         async function restoreForm() {
             const oldData = document.getElementById('old-data');
             if (!oldData) return;
@@ -677,6 +755,8 @@
                             selectPar.appendChild(opt);
                         });
                         selectPar.value = parId;
+                    } else {
+                        selectMun.dispatchEvent(new Event('change'));
                     }
                 }
             }
@@ -704,6 +784,13 @@
                 }
             }
 
+            // --- Restaurar pacienteId y actualizar tipo_paciente según citas ---
+            const pacienteId = oldData.dataset.pacienteId;
+            if (pacienteId) {
+                window.pacienteId = pacienteId;
+                await actualizarTipoPaciente();
+            }
+
             // --- Restaurar tipo_paciente ---
             if (tipo) {
                 const selectTipo = document.getElementById('tipo_paciente');
@@ -721,7 +808,7 @@
             }
         }
 
-        // 7. Rellenar inputs al hacer clic en un cupo disponible
+        // 8. Rellenar inputs al hacer clic en un cupo disponible
         let fechaSeleccionadaAnterior = null;
 
         function seleccionarDia(fecha, calendario_id) {

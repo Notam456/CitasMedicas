@@ -34,7 +34,7 @@ class PacienteController extends Controller
      */
     private function dataTableResponse(Request $request)
     {
-        $query = Paciente::with('parroquia.municipio.estado');
+        $query = Paciente::with('parroquia.municipio.estado', 'expediente');
 
         $totalRecords = $query->count();
 
@@ -43,7 +43,6 @@ class PacienteController extends Controller
                 $q->where('nombre', 'ILIKE', "%{$search}%")
                     ->orWhere('apellido', 'ILIKE', "%{$search}%")
                     ->orWhere('cedula', 'ILIKE', "%{$search}%")
-                    ->orWhere('rif', 'ILIKE', "%{$search}%")
                     ->orWhere('direccion', 'ILIKE', "%{$search}%");
             });
         }
@@ -52,7 +51,7 @@ class PacienteController extends Controller
 
         $orderColumn = $request->get('order')[0]['column'] ?? 0;
         $orderDir = $request->get('order')[0]['dir'] ?? 'asc';
-        $columns = ['nombre', 'apellido', 'cedula', 'rif', 'direccion'];
+        $columns = ['nombre', 'apellido', 'cedula', 'direccion'];
         if (isset($columns[$orderColumn])) {
             $query->orderBy($columns[$orderColumn], $orderDir);
         } else {
@@ -74,7 +73,6 @@ class PacienteController extends Controller
                 $row->nombre,
                 $row->apellido,
                 $row->cedula,
-                $row->rif ?? '',
                 $row->direccion ?? '',
                 $acciones,
             ];
@@ -151,7 +149,7 @@ class PacienteController extends Controller
      */
     public function show(int $id)
     {
-        $pacienteToShow = Paciente::with('parroquia.municipio.estado')->findOrFail($id);
+        $pacienteToShow = Paciente::with('parroquia.municipio.estado', 'expediente')->findOrFail($id);
         return response()->json($pacienteToShow);
     }
 
@@ -160,7 +158,7 @@ class PacienteController extends Controller
      */
     public function edit(Paciente $paciente)
     {
-        $paciente->load('parroquia.municipio.estado');
+        $paciente->load('parroquia.municipio.estado', 'expediente');
         return response()->json($paciente);
     }
 
