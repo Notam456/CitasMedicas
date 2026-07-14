@@ -17,7 +17,6 @@
                     <th>Nombres</th>
                     <th>Apellidos</th>
                     <th>Cédula</th>
-                    <th>RIF</th>
                     <th>Dirección</th>
                     <th class="text-end">Acciones</th>
                 </tr>
@@ -63,6 +62,10 @@
                             @error('rif')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small fw-bold">N° Expediente</label>
+                            <input type="text" class="form-control bg-light" id="editarExpedientePaciente" readonly placeholder="Sin asignar">
                         </div>
 
                             <div class="col-md-6 mb-3">
@@ -187,8 +190,8 @@
                             <p class="form-control" id="mostrarCedulaPaciente"></p>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="fw-bold">RIF</label>
-                            <p class="form-control" id="mostrarRifPaciente"></p>
+                            <label class="fw-bold">N° Expediente</label>
+                            <p class="form-control" id="mostrarExpedientePaciente"></p>
                         </div>
 
                         <div class="col-md-6 mb-3">
@@ -213,7 +216,10 @@
                             <label class="fw-bold">Sexo</label>
                             <p class="form-control" id="mostrarSexoPaciente"></p>
                         </div>
-                        <div class="col-md-6 mb-3"></div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">RIF</label>
+                            <p class="form-control" id="mostrarRifPaciente"></p>
+                        </div>
 
                         <div class="col-md-6 mb-3">
                             <label class="fw-bold">Estado</label>
@@ -258,9 +264,8 @@ $(document).ready(function() {
                 { data: 0, name: 'nombre' },
                 { data: 1, name: 'apellido' },
                 { data: 2, name: 'cedula' },
-                { data: 3, name: 'rif' },
-                { data: 4, name: 'direccion' },
-                { data: 5, name: 'action', orderable: false, searchable: false, className: 'text-end' }
+                { data: 3, name: 'direccion' },
+                { data: 4, name: 'action', orderable: false, searchable: false, className: 'text-end' }
             ],
         language: { url: "{{ asset('vendor/datatables/es-ES.json') }}" },
         pageLength: 10,
@@ -278,6 +283,7 @@ document.addEventListener('click', async function(event) {
 
     if (btn) {
         const pacienteId = btn.getAttribute('data-id');
+        var inputExpediente = document.getElementById('editarExpedientePaciente');
         var inputRif = document.getElementById('editarRifPaciente');
         var inputNombre = document.getElementById('editarNombrePaciente');
         var inputApellido = document.getElementById('editarApellidoPaciente');
@@ -286,7 +292,7 @@ document.addEventListener('click', async function(event) {
         var inputFechaNacimiento = document.getElementById('editarFechaNacimientoPaciente');
         var inputTelefono = document.getElementById('editarTelefonoPaciente');
         var inputDireccion = document.getElementById('editarDireccionPaciente');
-       
+        
         var selectEstado = document.getElementById('select-estado-edit');
         var selectMunicipio = document.getElementById('select-municipio-edit');
         var selectParroquia = document.getElementById('select-parroquia-edit');
@@ -298,6 +304,7 @@ document.addEventListener('click', async function(event) {
                 modalInstance = new bootstrap.Modal(modalElement);
             }
 
+            inputExpediente.value = "";
             inputRif.disabled = true;
             inputRif.value = "Cargando...";
             inputNombre.disabled = true;
@@ -352,6 +359,7 @@ document.addEventListener('click', async function(event) {
             inputRif.disabled = false;
             const rifParts = data.rif ? data.rif.split('-') : [];
             inputRif.value = rifParts.length > 1 ? rifParts.slice(1).join('-') : '';
+            inputExpediente.value = data.expediente?.numero_expediente;
             inputNombre.value = data.nombre;
             inputNombre.disabled = false;
             inputApellido.disabled = false;
@@ -423,6 +431,7 @@ document.addEventListener('click', async function(event) {
     if (btnShow) {
         const pacienteId = btnShow.getAttribute('data-id');
         var inputRif = document.getElementById('mostrarRifPaciente');
+        var inputExpediente = document.getElementById('mostrarExpedientePaciente');
         var inputNombre = document.getElementById('mostrarNombrePaciente');
         var inputApellido = document.getElementById('mostrarApellidoPaciente');
         var inputCedula = document.getElementById('mostrarCedulaPaciente');
@@ -442,6 +451,7 @@ document.addEventListener('click', async function(event) {
             }
 
             inputRif.innerHTML = "Cargando...";
+            inputExpediente.innerHTML = "Cargando...";
             inputNombre.innerHTML = "Cargando...";
             inputApellido.innerHTML = "Cargando...";
             inputCedula.innerHTML = "Cargando...";
@@ -467,6 +477,7 @@ document.addEventListener('click', async function(event) {
             const data = await response.json();
 
             inputRif.innerHTML = data.rif || '';
+            inputExpediente.innerHTML = data.expediente?.numero_expediente || 'Sin asignar';
             inputNombre.innerHTML = data.nombre;
             inputApellido.innerHTML = data.apellido;
             inputCedula.innerHTML = data.cedula;
