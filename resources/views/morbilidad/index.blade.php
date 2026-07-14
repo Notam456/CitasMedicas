@@ -127,6 +127,7 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('vendor/sweetalert/sweetalert.all.js') }}"></script>
 <link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
 <script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
 
@@ -206,6 +207,27 @@ $(document).ready(function() {
 
     $('#btnExcel').on('click', function() { confirmarExportacion('excel'); });
     $('#btnPdf').on('click', function() { confirmarExportacion('pdf'); });
+
+    // Cancelar cita
+    $(document).on('submit', '.form-delete-cita', function(e) {
+        e.preventDefault();
+        var form = this;
+        Swal.fire({
+            title: '¿Cancelar cita?',
+            text: 'La cita pasará al estado "Cancelada".',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Cancelar cita',
+            cancelButtonText: 'No, mantener',
+            confirmButtonColor: '#dc3545',
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
 
     // Mostrar cita en modal
     $(document).on('click', '.btn-show-cita', async function() {
