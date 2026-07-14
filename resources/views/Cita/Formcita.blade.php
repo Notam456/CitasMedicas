@@ -279,7 +279,8 @@
                             data-medico="{{ old('medico_id') }}"
                             data-tipo="{{ old('tipo_paciente') }}"
                             data-fecha="{{ old('fecha_cita') }}"
-                            data-calendario="{{ old('calendario_id') }}"></span>
+                            data-calendario="{{ old('calendario_id') }}"
+                            data-paciente-id="{{ session('paciente_id') }}"></span>
                         @isset($defaultEstadoId)
                             <span id="default-location"
                                 data-default-estado="{{ $defaultEstadoId }}"
@@ -374,6 +375,9 @@
 
                         document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = true);
 
+                        window.pacienteId = data.datos.id;
+                        actualizarTipoPaciente();
+
                         mensaje.innerHTML = 'Paciente encontrado. Datos autocompletados.';
                         mensaje.className = 'form-text mt-1 text-success fw-bold';
                     } else {
@@ -398,6 +402,7 @@
 
                         document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = false);
 
+                        window.pacienteId = null;
                         setDefaultLocation();
 
                         mensaje.innerHTML = 'Paciente nuevo. Por favor llene todos los campos.';
@@ -487,6 +492,7 @@
                     medicos.forEach(m => {
                         selectMedico.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
                     });
+                    actualizarTipoPaciente();
                 } catch (error) {
                     console.error("Error cargando médicos:", error);
                 }
@@ -557,7 +563,46 @@
             }
         }
 
-        // 4. Dibujar el calendario interactivo
+        // 4. Actualizar tipo de paciente según citas previas en la especialidad
+        async function actualizarTipoPaciente() {
+            const selectTipo = document.getElementById('tipo_paciente');
+            const selectEsp = document.getElementById('select-especialidad');
+            const espId = selectEsp?.value;
+            const id = window.pacienteId;
+
+            if (!id || !espId) {
+                selectTipo.innerHTML = `
+                    <option value="">Seleccione Tipo</option>
+                    <option value="primera_vez">Primera vez</option>
+                    <option value="control">Control / Sucesivo</option>
+                    <option value="orden_medica">Orden Médica</option>
+                `;
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/citas/paciente/${id}/especialidad/${espId}/tiene-citas`);
+                const data = await res.json();
+
+                if (data.tieneCitas) {
+                    selectTipo.innerHTML = `
+                        <option value="">Seleccione Tipo</option>
+                        <option value="control">Control / Sucesivo</option>
+                        <option value="orden_medica">Orden Médica</option>
+                    `;
+                } else {
+                    selectTipo.innerHTML = `
+                        <option value="">Seleccione Tipo</option>
+                        <option value="primera_vez">Primera vez</option>
+                        <option value="orden_medica">Orden Médica</option>
+                    `;
+                }
+            } catch (err) {
+                console.error('Error verificando citas:', err);
+            }
+        }
+
+        // 5. Dibujar el calendario interactivo
         function renderizarGrid(eventos = null) {
             const grid = document.getElementById('calendario-grid');
             grid.innerHTML = '';
@@ -632,7 +677,7 @@
             grid.appendChild(fragment);
         }
 
-        // 5. Preseleccionar ubicación por defecto (Yaracuy, San Felipe)
+        // 6. Preseleccionar ubicación por defecto (Yaracuy, San Felipe)
         async function setDefaultLocation() {
             const el = document.getElementById('default-location');
             if (!el) return;
@@ -664,7 +709,7 @@
             }
         }
 
-        // 6. Restaurar formulario tras error de validación
+        // 7. Restaurar formulario tras error de validación
         async function restoreForm() {
             const oldData = document.getElementById('old-data');
             if (!oldData) return;
@@ -738,6 +783,13 @@
                 }
             }
 
+            // --- Restaurar pacienteId y actualizar tipo_paciente según citas ---
+            const pacienteId = oldData.dataset.pacienteId;
+            if (pacienteId) {
+                window.pacienteId = pacienteId;
+                await actualizarTipoPaciente();
+            }
+
             // --- Restaurar tipo_paciente ---
             if (tipo) {
                 const selectTipo = document.getElementById('tipo_paciente');
@@ -755,7 +807,7 @@
             }
         }
 
-        // 7. Rellenar inputs al hacer clic en un cupo disponible
+        // 8. Rellenar inputs al hacer clic en un cupo disponible
         let fechaSeleccionadaAnterior = null;
 
         function seleccionarDia(fecha, calendario_id) {

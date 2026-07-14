@@ -84,6 +84,7 @@ Route::middleware(['auth', 'can:Citas'])->group(function () {
     Route::get('api/paciente/buscar/{cedula}', [PacienteController::class, 'buscarPorCedula'])->name('paciente.buscar')->middleware('auth');
     Route::get('/api/especialidades/{id}/medicos', [CitaController::class, 'getMedicosPorEspecialidad']);
     Route::get('/api/medicos/{medico_id}/disponibilidad', [CitaController::class, 'disponibilidadMes']);
+    Route::get('/api/citas/paciente/{paciente_id}/especialidad/{especialidad_id}/tiene-citas', [CitaController::class, 'tieneCitasEnEspecialidad']);
 
     //Rutas resource
     Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita']);
