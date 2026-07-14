@@ -211,7 +211,12 @@ class MorbilidadController extends Controller
                 ? '<a href="' . route('Citas.edit', $row->id) . '" target="_blank" class="btn btn-xs btn-square btn-neutral text-info-hover border-info-hover" title="Reagendar"><i class="bi bi-calendar2-week"></i></a>'
                 : '';
             $btnDelete = $row->estado !== 'Cancelada'
-                ? '<a href="' . route('Citas.destroy', $row->id) . '" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true" title="Cancelar Cita"><i class="bi bi-trash"></i></a>'
+                ? '<form action="' . route('Citas.destroy', $row->id) . '" method="POST" style="display:inline" class="form-delete-cita">
+                    ' . csrf_field() . method_field('DELETE') . '
+                    <button type="submit" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" title="Cancelar Cita">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                   </form>'
                 : '';
 
             $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . $btnReagendar . $btnDelete . '</div>';
