@@ -28,7 +28,7 @@
     <!-- Modal Editar Paciente -->
     <div class="modal fade" id="modalEditarPaciente" tabindex="-1" aria-labelledby="modalEditarPacienteLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalEditarPacienteLabel">Editar Paciente</h5>
@@ -40,79 +40,66 @@
                     <div class="modal-body">
                         <input type="hidden" id="id">
                         <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-muted small fw-bold">Cédula</label>
-                            <div class="input-group">
-                                <select name="cedula_tipo" id="editarCedulaTipoPaciente" class="form-select" style="max-width: 60px;">
-                                    <option value="V">V</option>
-                                    <option value="E">E</option>
-                                </select>
-                                <input type="text" class="form-control" id="editarCedulaPaciente" name="cedula" placeholder="12345678" required>
-                            </div>
-                            @error('cedula')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-muted small fw-bold">RIF</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light fw-bold">J</span>
-                                <input type="text" class="form-control" id="editarRifPaciente" name="rif" placeholder="123456789">
-                            </div>
-                            @error('rif')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-muted small fw-bold">N° Expediente</label>
-                            <input type="text" class="form-control bg-light" id="editarExpedientePaciente" readonly placeholder="Sin asignar">
-                        </div>
-
-                            <div class="col-md-6 mb-3">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editarNombrePaciente" name="nombre"
-                                        placeholder="Nombres del paciente" required>
-                                    <label for="editarNombrePaciente">Nombres</label>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">Cédula</label>
+                                <div class="input-group">
+                                    <select name="cedula_tipo" id="editarCedulaTipoPaciente" class="form-select" style="max-width: 60px;">
+                                        <option value="V">V</option>
+                                        <option value="E">E</option>
+                                    </select>
+                                    <input type="text" class="form-control" id="editarCedulaPaciente" name="cedula" placeholder="12345678" required>
                                 </div>
+                                @error('cedula')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">RIF</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light fw-bold">J</span>
+                                    <input type="text" class="form-control" id="editarRifPaciente" name="rif" placeholder="123456789">
+                                </div>
+                                @error('rif')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">N° Expediente</label>
+                                <input type="text" class="form-control bg-light" id="editarExpedientePaciente" readonly placeholder="Sin asignar">
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">Nombres</label>
+                                <input type="text" class="form-control" id="editarNombrePaciente" name="nombre" placeholder="Nombres del paciente" required>
                                 @error('nombre')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editarApellidoPaciente" name="apellido"
-                                        placeholder="Apellidos del paciente" required>
-                                    <label for="editarApellidoPaciente">Apellidos</label>
-                                </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">Apellidos</label>
+                                <input type="text" class="form-control" id="editarApellidoPaciente" name="apellido" placeholder="Apellidos del paciente" required>
                                 @error('apellido')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
-
-                            <div class="col-md-6 mb-3">
-                                <div class="form-floating">
-                                    <input type="date" class="form-control" id="editarFechaNacimientoPaciente"
-                                        name="fecha_nacimiento" placeholder="Fecha de nacimiento" required>
-                                    <label for="editarFechaNacimientoPaciente">Fecha de Nacimiento</label>
-                                </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">Fecha de Nacimiento</label>
+                                <input type="date" class="form-control" id="editarFechaNacimientoPaciente" name="fecha_nacimiento" required>
                                 @error('fecha_nacimiento')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editarTelefonoPaciente" name="telefono"
-                                        placeholder="Teléfono del paciente" required>
-                                    <label for="editarTelefonoPaciente">Teléfono</label>
-                                </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">Teléfono</label>
+                                <input type="text" class="form-control" id="editarTelefonoPaciente" name="telefono" placeholder="Teléfono del paciente" required>
                                 @error('telefono')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
-
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label text-muted small fw-bold">Sexo</label>
-                                <div class="d-flex gap-3">
+                                <div class="d-flex gap-3 pt-2">
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="sexo" id="editarSexoM" value="Masculino">
                                         <label class="form-check-label" for="editarSexoM">Masculino</label>
@@ -123,7 +110,13 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-3"></div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-muted small fw-bold">Dirección exacta</label>
+                                <input type="text" class="form-control" id="editarDireccionPaciente" name="direccion" placeholder="Dirección del paciente" required>
+                                @error('direccion')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
 
                             <div class="col-12">
                                 <h6 class="text-secondary border-bottom pb-2 mt-2">Ubicación del Paciente</h6>
@@ -135,14 +128,12 @@
                                     <option value="">Seleccione Estado</option>
                                 </select>
                             </div>
-
                             <div class="col-md-4 mb-3">
                                 <label class="form-label text-muted small fw-bold">Municipio</label>
                                 <select id="select-municipio-edit" class="form-select">
                                     <option value="">Seleccione Municipio</option>
                                 </select>
                             </div>
-
                             <div class="col-md-4 mb-3">
                                 <label class="form-label text-muted small fw-bold">Parroquia</label>
                                 <select name="parroquia_id" id="select-parroquia-edit"
@@ -151,17 +142,6 @@
                                 </select>
                                 @error('parroquia_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-12 mb-3">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editarDireccionPaciente"
-                                        name="direccion" placeholder="Dirección del paciente" required>
-                                    <label for="editarDireccionPaciente">Dirección exacta</label>
-                                </div>
-                                @error('direccion')
-                                    <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
                         </div>
@@ -177,7 +157,7 @@
 
     <div class="modal fade" id="modalShowPaciente" tabindex="-1" aria-labelledby="modalShowPacienteLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalShowPacienteLabel">Datos del Paciente</h5>
@@ -185,56 +165,54 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="fw-bold">Cédula</label>
                             <p class="form-control" id="mostrarCedulaPaciente"></p>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="fw-bold">N° Expediente</label>
                             <p class="form-control" id="mostrarExpedientePaciente"></p>
                         </div>
-
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="fw-bold">Nombres</label>
                             <p class="form-control" id="mostrarNombrePaciente"></p>
                         </div>
-                        <div class="col-md-6 mb-3">
+
+                        <div class="col-md-4 mb-3">
                             <label class="fw-bold">Apellidos</label>
                             <p class="form-control" id="mostrarApellidoPaciente"></p>
                         </div>
-
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="fw-bold">Fecha de Nacimiento</label>
                             <p class="form-control" id="mostrarFechaNacimientoPaciente"></p>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="fw-bold">Teléfono</label>
                             <p class="form-control" id="mostrarTelefonoPaciente"></p>
                         </div>
 
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="fw-bold">Sexo</label>
                             <p class="form-control" id="mostrarSexoPaciente"></p>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="fw-bold">RIF</label>
                             <p class="form-control" id="mostrarRifPaciente"></p>
                         </div>
-
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="fw-bold">Estado</label>
                             <p class="form-control" id="mostrarEstadoPaciente"></p>
                         </div>
-                        <div class="col-md-6 mb-3">
+
+                        <div class="col-md-4 mb-3">
                             <label class="fw-bold">Municipio</label>
                             <p class="form-control" id="mostrarMunicipioPaciente"></p>
                         </div>
-
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="fw-bold">Parroquia</label>
                             <p class="form-control" id="mostrarParroquiaPaciente"></p>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="fw-bold">Dirección</label>
                             <p class="form-control" id="mostrarDireccionPaciente"></p>
                         </div>
@@ -476,7 +454,7 @@ document.addEventListener('click', async function(event) {
 
             const data = await response.json();
 
-            inputRif.innerHTML = data.rif || '';
+            inputRif.innerHTML = data.rif || 'Sin rif registrado';
             inputExpediente.innerHTML = data.expediente?.numero_expediente || 'Sin asignar';
             inputNombre.innerHTML = data.nombre;
             inputApellido.innerHTML = data.apellido;
