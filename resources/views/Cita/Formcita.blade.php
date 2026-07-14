@@ -95,7 +95,7 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Sexo</label>
+                        <label class="form-label">Sexo</label>
                         <div class="d-flex gap-3 pt-2">
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="sexo" id="input_sexo_m"
@@ -625,6 +625,7 @@
                 });
                 if (municipioId) {
                     selectMun.value = municipioId;
+                    selectMun.dispatchEvent(new Event('change'));
                 }
             } catch (err) {
                 console.error('Error cargando municipios por defecto:', err);
@@ -676,6 +677,8 @@
                             selectPar.appendChild(opt);
                         });
                         selectPar.value = parId;
+                    } else {
+                        selectMun.dispatchEvent(new Event('change'));
                     }
                 }
             }
