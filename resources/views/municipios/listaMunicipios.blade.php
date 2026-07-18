@@ -141,28 +141,27 @@
     <!-- Modal Mostrar Municipio -->
     <div class="modal fade" id="modalShowMunicipio" tabindex="-1" aria-labelledby="modalShowMunicipioLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Datos del Municipio</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <p class="form-control-plaintext" id="mostrarMunicipioNombre"></p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Nombre</label>
+                            <p class="form-control" id="mostrarMunicipioNombre"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Estado</label>
+                            <p class="form-control" id="mostrarMunicipioEstado"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Distrito</label>
+                            <p class="form-control" id="mostrarMunicipioDistrito"></p>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Estado</label>
-                        <p class="form-control-plaintext" id="mostrarMunicipioEstado"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Distrito</label>
-                        <p class="form-control-plaintext" id="mostrarMunicipioDistrito"></p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -286,7 +285,7 @@
                     spanDistrito.innerHTML = "Cargando...";
 
                     modalInstance.show();
-                    const response = await fetch(`/municipios/${municipioId}/show`, {
+                    const response = await fetch(`/municipios/${municipioId}`, {
                         method: 'GET',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',

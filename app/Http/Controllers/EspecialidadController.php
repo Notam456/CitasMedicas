@@ -83,6 +83,7 @@ class EspecialidadController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge(['nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8'))]);
         $request->validate([
             'nombre' => 'required|string|max:255|unique:especialidades,nombre|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
         ]);
@@ -103,6 +104,7 @@ class EspecialidadController extends Controller
 
     public function update(Request $request, int $id)
     {
+        $request->merge(['nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8'))]);
         $request->validate([
             'nombre' => 'required|string|max:255|unique:especialidades,nombre,' . $id . '|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
         ]);

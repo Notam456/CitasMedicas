@@ -100,11 +100,15 @@ class MedicoController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8')),
+            'apellido' => ucfirst(mb_strtolower(trim($request->apellido), 'UTF-8')),
+        ]);
         $request->validate([
             'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'cedula' => 'required|string|unique:medicos,cedula',
-            'telefono' => 'required|string|max:20',
+            'telefono' => 'required|string|max:20|regex:/^[\d\-\(\)\s\+]+$/',
             'especialidad_id' => 'required|exists:especialidades,id',
         ]);
 
@@ -133,11 +137,15 @@ class MedicoController extends Controller
     {
         $medico = Medico::findOrFail($id);
 
+        $request->merge([
+            'nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8')),
+            'apellido' => ucfirst(mb_strtolower(trim($request->apellido), 'UTF-8')),
+        ]);
         $request->validate([
             'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'cedula' => 'required|string|unique:medicos,cedula,' . $id,
-            'telefono' => 'required|string|max:20',
+            'telefono' => 'required|string|max:20|regex:/^[\d\-\(\)\s\+]+$/',
             'especialidad_id' => 'required|exists:especialidades,id',
         ]);
 

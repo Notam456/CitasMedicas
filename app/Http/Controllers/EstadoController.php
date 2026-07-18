@@ -74,6 +74,7 @@ class EstadoController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge(['nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8'))]);
         $request->validate([
             'nombre' => 'required|string|max:255|unique:estados,nombre|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
         ]);
@@ -93,6 +94,7 @@ class EstadoController extends Controller
     public function update(Request $request, $id)
     {
         $estado = Estado::findOrFail($id);
+        $request->merge(['nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8'))]);
         $request->validate([
             'nombre' => 'required|string|max:255|unique:estados,nombre,' . $id . '|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
         ]);

@@ -87,22 +87,21 @@
         </div>
     </div>
 
-    <!-- Modal Mostrar Estado (sin cambios) -->
+    <!-- Modal Mostrar Estado -->
     <div class="modal fade" id="modalShowEstado" tabindex="-1" aria-labelledby="modalShowEstadoLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalShowEstadoLabel">Datos del Estado</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <p class="form-control-plaintext" id="mostrarEstadoNombre"></p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Nombre</label>
+                            <p class="form-control" id="mostrarEstadoNombre"></p>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -179,7 +178,7 @@ document.addEventListener('click', async function(event) {
             }
             inputNombre.innerHTML = "Cargando...";
             modalInstance.show();
-            const response = await fetch(`/estados/${estadoId}/show`, {
+            const response = await fetch(`/estados/${estadoId}`, {
                 method: 'GET',
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
             });

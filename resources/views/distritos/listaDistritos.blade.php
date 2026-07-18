@@ -73,20 +73,24 @@
     </div>
 
     <!-- Modal Mostrar -->
-    <div class="modal fade" id="modalShowDistrito" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="modal fade" id="modalShowDistrito" tabindex="-1" aria-labelledby="modalShowDistritoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5>Datos del Distrito</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="modalShowDistritoLabel">Datos del Distrito</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p><strong>ID:</strong> <span id="show_id"></span></p>
-                    <p><strong>Nombre:</strong> <span id="show_nombre"></span></p>
-                    <p><strong>Municipios:</strong></p>
-                    <ul id="show_municipios"></ul>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Nombre</label>
+                            <p class="form-control" id="show_nombre"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Municipios</label>
+                            <p class="form-control" id="show_municipios"></p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -158,15 +162,8 @@
                             }
                         });
                         const data = await res.json();
-                        document.getElementById('show_id').innerText = data.id;
                         document.getElementById('show_nombre').innerText = data.nombre;
-                        const ul = document.getElementById('show_municipios');
-                        ul.innerHTML = '';
-                        (data.municipios || []).forEach(m => {
-                            const li = document.createElement('li');
-                            li.textContent = m;
-                            ul.appendChild(li);
-                        });
+                        document.getElementById('show_municipios').innerText = (data.municipios || []).join(', ') || 'Ninguno';
                         new bootstrap.Modal(document.getElementById('modalShowDistrito')).show();
                     } catch {
                         Swal.fire('Error', 'No se pudo cargar', 'error');

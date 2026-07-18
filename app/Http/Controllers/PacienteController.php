@@ -105,6 +105,10 @@ class PacienteController extends Controller
      */
     public function store(Request $request)
     {
+        $request->merge([
+            'nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8')),
+            'apellido' => ucfirst(mb_strtolower(trim($request->apellido), 'UTF-8')),
+        ]);
 
         if ($request->has(['cedula_tipo', 'cedula'])) {
             $request->merge([
@@ -112,14 +116,14 @@ class PacienteController extends Controller
             ]);
         }
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'apellido' => 'required|string|max:255',
+            'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
+            'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'cedula_tipo' => 'required|in:V,E',
-            'cedula' => 'required|string|min:7|max:20',
+            'cedula' => 'required|string|min:7|max:20|regex:/^[0-9]+$/',
             'cedula_completa' => 'required|string|unique:pacientes,cedula',
             'rif' => 'nullable|string|max:20',
             'fecha_nacimiento' => 'required|date',
-            'telefono' => 'required|string|min:7|max:15',
+            'telefono' => 'required|string|min:7|max:15|regex:/^[\d\-\(\)\s\+]+$/',
             'parroquia_id' => 'required|exists:parroquias,id',
             'direccion' => 'nullable|string|max:255',
             'sexo' => 'required|in:Masculino,Femenino',
@@ -167,20 +171,25 @@ class PacienteController extends Controller
      */
     public function update(Request $request, int $id)
     {
+        $request->merge([
+            'nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8')),
+            'apellido' => ucfirst(mb_strtolower(trim($request->apellido), 'UTF-8')),
+        ]);
+
         if ($request->has(['cedula_tipo', 'cedula'])) {
             $request->merge([
                 'cedula_completa' => $request->cedula_tipo . '-' . $request->cedula
             ]);
         }
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'apellido' => 'required|string|max:255',
+            'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
+            'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'cedula_tipo' => 'required|in:V,E',
             'cedula_completa' => 'required|string|unique:pacientes,cedula,' . $id,
-            'cedula' => 'required|string|min:7|max:20',
+            'cedula' => 'required|string|min:7|max:20|regex:/^[0-9]+$/',
             'rif' => 'nullable|string|max:20',
             'fecha_nacimiento' => 'required|date',
-            'telefono' => 'required|string|min:7|max:15',
+            'telefono' => 'required|string|min:7|max:15|regex:/^[\d\-\(\)\s\+]+$/',
             'parroquia_id' => 'required|exists:parroquias,id',
             'direccion' => 'nullable|string|max:255',
             'sexo' => 'required|in:Masculino,Femenino',

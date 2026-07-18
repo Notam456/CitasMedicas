@@ -138,7 +138,7 @@
                 </div>
                 <div class="col-md-8 fw-bold small text-uppercase text-muted">
                     <label class="form-label">Observación</label>
-                    <textarea name="observacion" class="form-control" rows="1" placeholder="Motivo del reagendamiento...">{{ old('observacion', $cita->observacion) }}</textarea>
+                    <textarea name="observacion" class="form-control" rows="1" placeholder="Motivo del reagendamiento..." maxlength="5000">{{ old('observacion', $cita->observacion) }}</textarea>
                 </div>
             </div>
         </div>

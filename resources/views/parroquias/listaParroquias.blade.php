@@ -128,28 +128,27 @@
     <!-- Modal Mostrar Parroquia -->
     <div class="modal fade" id="modalShowParroquia" tabindex="-1" aria-labelledby="modalShowParroquiaLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Datos de la Parroquia</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <p class="form-control-plaintext" id="mostrarNombreParroquia"></p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Nombre</label>
+                            <p class="form-control" id="mostrarNombreParroquia"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Municipio</label>
+                            <p class="form-control" id="mostrarMunicipioParroquia"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Estado</label>
+                            <p class="form-control" id="mostrarEstadoParroquia"></p>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Municipio</label>
-                        <p class="form-control-plaintext" id="mostrarMunicipioParroquia"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Estado</label>
-                        <p class="form-control-plaintext" id="mostrarEstadoParroquia"></p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -318,7 +317,7 @@
                     inputEstado.innerHTML = "Cargando...";
 
                     modalInstance.show();
-                    const response = await fetch(`/parroquias/${parroquiaId}/show`, {
+                    const response = await fetch(`/parroquias/${parroquiaId}`, {
                         method: 'GET',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',

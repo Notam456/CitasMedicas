@@ -15,13 +15,13 @@ class PermissionSeeder extends Seeder
 
         $permissions = [
             'Dashboard',
-            'Usuarios',
-            'Médicos',
+            'Usuario',
+            'Medico',
             'Especialidad',
             'Paciente',
             'Procedencia',
             'Planificación',
-            'Citas',
+            'Cita',
             'Reportes',
             'Morbilidad',
             'Patologia',
@@ -35,7 +35,7 @@ class PermissionSeeder extends Seeder
         $role->givePermissionTo(Permission::all());
 
         $role = Role::create(['name' => 'usuario']);
-        $role->givePermissionTo(['Dashboard', 'Citas']);
+        $role->givePermissionTo(['Dashboard', 'Cita']);
 
     }
 }

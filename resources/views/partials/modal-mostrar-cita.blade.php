@@ -53,14 +53,13 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                @if($showPdf ?? false)
+            @if($showPdf ?? false)
+            <div class="text-end px-3 pb-3">
                 <a href="#" id="btnPdfCita" class="btn btn-danger" target="_blank">
                     <i class="fas fa-file-pdf me-1"></i> Reporte PDF
                 </a>
-                @endif
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
+            @endif
         </div>
     </div>
 </div>

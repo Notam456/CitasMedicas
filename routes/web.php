@@ -39,7 +39,7 @@ Route::middleware('throttle:10,1')->group(function () {
 Route::post('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout');
 
 //Ruta user
-Route::middleware(['auth', 'can:Usuarios'])->group(function () {
+Route::middleware(['auth', 'can:Usuario'])->group(function () {
     Route::resource('users', UserController::class);
     Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
     Route::put('/roles/{role:name}', [RoleController::class, 'update'])->name('roles.update');
@@ -55,7 +55,7 @@ Route::middleware(['auth', 'can:Especialidad'])->group(function () {
     Route::resource('especialidades', EspecialidadController::class);
 });
 
-Route::middleware(['auth', 'can:Médicos'])->group(function () {
+Route::middleware(['auth', 'can:Medico'])->group(function () {
     Route::resource('medicos', MedicoController::class);
 });
 
@@ -75,12 +75,12 @@ Route::middleware(['auth', 'can:Procedencia'])->group(function () {
 
 // Rutas de API
 
-Route::middleware(['auth', 'can:Citas,Pacientes'])->group(function () {
+Route::middleware(['auth', 'can:Cita,Pacientes'])->group(function () {
     Route::get('/api/municipios/{estado_id}', [MunicipioController::class, 'getMunicipios']);
     Route::get('/api/parroquias/{municipio_id}', [ParroquiaController::class, 'getParroquias']);
 });
 
-Route::middleware(['auth', 'can:Citas'])->group(function () {
+Route::middleware(['auth', 'can:Cita'])->group(function () {
     Route::get('api/paciente/buscar/{cedula}', [PacienteController::class, 'buscarPorCedula'])->name('paciente.buscar')->middleware('auth');
     Route::get('/api/especialidades/{id}/medicos', [CitaController::class, 'getMedicosPorEspecialidad']);
     Route::get('/api/medicos/{medico_id}/disponibilidad', [CitaController::class, 'disponibilidadMes']);

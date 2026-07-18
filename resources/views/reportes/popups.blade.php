@@ -21,8 +21,8 @@
         @slot('modal_title', 'Reporte de Morbilidad Mensual')
         @slot('form_action', '#')
         <div class="mb-3">
-            <label for="mes" class="form-label">Seleccione el Mes</label>
-            <input type="month" name="mes" id="mes" class="form-control" required>
+            <label for="mes_morbilidad" class="form-label">Seleccione el Mes</label>
+            <input type="month" name="mes" id="mes_morbilidad" class="form-control" required>
         </div>
     @endcomponent
 
@@ -238,8 +238,8 @@
         @slot('modal_title', 'Rango de Fecha Consultas Aro')
         @slot('form_action', '#')
         <div class="mb-3">
-            <label for="mes" class="form-label">Seleccione el Mes</label>
-            <input type="month" name="mes" id="mes" class="form-control" required>
+            <label for="mes_consulta_aro" class="form-label">Seleccione el Mes</label>
+            <input type="month" name="mes" id="mes_consulta_aro" class="form-control" required>
         </div>
     @endcomponent
 
@@ -259,8 +259,8 @@
         @slot('modal_title', 'Mes')
         @slot('form_action', '#')
         <div class="mb-3">
-            <label for="mes" class="form-label">Seleccione el Mes</label>
-            <input type="month" name="mes" id="mes" class="form-control" required>
+            <label for="mes_inasistencia_medicos" class="form-label">Seleccione el Mes</label>
+            <input type="month" name="mes" id="mes_inasistencia_medicos" class="form-control" required>
         </div>
     @endcomponent
 
