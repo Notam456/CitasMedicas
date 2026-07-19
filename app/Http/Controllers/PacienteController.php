@@ -74,6 +74,7 @@ class PacienteController extends Controller
                 $row->apellido,
                 $row->cedula,
                 $row->direccion ?? '',
+                $row->expediente->numero_expediente ?? 'Sin asignar',
                 $acciones,
             ];
         }

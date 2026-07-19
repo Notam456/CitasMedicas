@@ -18,6 +18,7 @@
                     <th>Apellidos</th>
                     <th>Cédula</th>
                     <th>Dirección</th>
+                    <th>N° Historia</th>
                     <th class="text-end">Acciones</th>
                 </tr>
             </thead>
@@ -243,7 +244,8 @@ $(document).ready(function() {
                 { data: 1, name: 'apellido' },
                 { data: 2, name: 'cedula' },
                 { data: 3, name: 'direccion' },
-                { data: 4, name: 'action', orderable: false, searchable: false, className: 'text-end' }
+                { data: 4, name: 'expediente' },
+                { data: 5, name: 'action', orderable: false, searchable: false, className: 'text-end' }
             ],
         language: { url: "{{ asset('vendor/datatables/es-ES.json') }}" },
         pageLength: 10,
