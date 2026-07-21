@@ -275,3 +275,322 @@
     background: var(--dark);
     border-color: var(--primary);
 }
+
+
+/*** Login ***/
+body.login-page {
+    background: #f0f4f8;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.login-wrapper {
+    display: flex;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.login-brand {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-brand .carousel.slide {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.login-brand .carousel-item {
+    height: 100vh;
+}
+
+.login-brand .carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.carousel-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, rgba(0, 119, 221, 0.80) 0%, rgba(0, 156, 255, 0.70) 40%, rgba(0, 180, 255, 0.60) 100%);
+    z-index: 1;
+}
+
+.carousel-caption-custom {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    padding: 2rem;
+    text-align: center;
+    pointer-events: none;
+}
+
+.carousel-icon {
+    width: 90px;
+    height: 90px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: loginFadeInDown 0.8s ease-out;
+}
+
+.carousel-icon i {
+    font-size: 2.5rem;
+    color: #fff;
+}
+
+.carousel-caption-custom h3 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.75rem;
+    animation: loginFadeInUp 0.8s ease-out 0.2s both;
+}
+
+.carousel-caption-custom p {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1.05rem;
+    max-width: 380px;
+    line-height: 1.6;
+    animation: loginFadeInUp 0.8s ease-out 0.4s both;
+}
+
+.login-brand .carousel-indicators {
+    position: absolute;
+    bottom: 5.5rem;
+    z-index: 3;
+    margin-bottom: 0;
+}
+
+.login-brand .carousel-indicators [data-bs-target] {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.4);
+    border: none;
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+.login-brand .carousel-indicators [data-bs-target].active {
+    background-color: #fff;
+    width: 28px;
+    border-radius: 5px;
+}
+
+.login-brand .carousel-control-prev,
+.login-brand .carousel-control-next {
+    z-index: 5;
+}
+
+.brand-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 1.5rem 2rem;
+    z-index: 3;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.25) 0%, transparent 100%);
+}
+
+.brand-footer .brand-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 4px;
+}
+
+.brand-footer .brand-tagline {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.8rem;
+    margin-top: 0.35rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+@keyframes loginFadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes loginFadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.login-form-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    animation: loginFadeIn 0.6s ease-out 0.3s both;
+}
+
+.login-card h2 {
+    font-weight: 700;
+    color: #191C24;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.login-card .subtitle {
+    color: #6c757d;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+}
+
+.login-input {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 0.85rem 1rem 0.85rem 3rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: #fff;
+    height: 52px;
+    padding-left: 3rem !important;
+}
+
+.form-control.login-input {
+    padding-left: 3rem !important;
+}
+
+.login-input::placeholder {
+    opacity: 0.5;
+}
+
+.login-input:focus {
+    border-color: #009CFF;
+    box-shadow: 0 0 0 4px rgba(0, 156, 255, 0.1);
+    outline: none;
+}
+
+.input-group-login {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
+
+.input-group-login .input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+    z-index: 5;
+    transition: color 0.3s ease;
+    font-size: 1rem;
+    pointer-events: none;
+    width: 1rem;
+    text-align: center;
+}
+
+.input-group-login:focus-within .input-icon {
+    color: #009CFF;
+}
+
+.btn-toggle-password {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0.25rem;
+    z-index: 2;
+    transition: color 0.3s ease;
+}
+
+.btn-toggle-password:hover {
+    color: #009CFF;
+}
+
+.btn-login {
+    background: linear-gradient(135deg, #00b4ff 0%, #009CFF 50%, #0077dd 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 0.9rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff !important;
+    width: 100%;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.5px;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 156, 255, 0.35);
+    background: linear-gradient(135deg, #00c4ff 0%, #0088e6 50%, #0066b3 100%);
+    color: #ffffff !important;
+}
+
+.btn-login:active {
+    transform: translateY(0);
+    color: #ffffff !important;
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 2rem;
+    color: #adb5bd;
+    font-size: 0.8rem;
+}
+
+.login-error {
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+    color: #c53030;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: loginFadeIn 0.3s ease-out;
+}
+
+.login-error i {
+    font-size: 1.1rem;
+}
+
+@keyframes loginFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (max-width: 991px) {
+    .login-brand {
+        display: none;
+    }
+    body.login-page {
+        overflow: auto;
+    }
+}

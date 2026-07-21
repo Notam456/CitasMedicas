@@ -94,7 +94,7 @@ class MedicoController extends Controller
 
     public function show(int $id)
     {
-        $medicoToShow = Medico::with('especialidad')->findOrFail($id);
+        $medicoToShow = Medico::with('especialidad', 'horarios')->findOrFail($id);
         return response()->json($medicoToShow);
     }
 
@@ -110,6 +110,16 @@ class MedicoController extends Controller
             'cedula' => 'required|string|unique:medicos,cedula',
             'telefono' => 'required|string|max:20|regex:/^[\d\-\(\)\s\+]+$/',
             'especialidad_id' => 'required|exists:especialidades,id',
+            'horarios' => 'nullable|array',
+            'horarios.*.checked' => 'nullable|in:1',
+            'horarios.*.hora_entrada' => 'required_if:horarios.*.checked,1|nullable|date_format:H:i',
+            'horarios.*.hora_salida' => 'required_if:horarios.*.checked,1|nullable|date_format:H:i|after:horarios.*.hora_entrada',
+        ], [
+            'horarios.*.hora_entrada.required_if' => 'La hora de entrada es obligatoria para los días seleccionados.',
+            'horarios.*.hora_salida.required_if' => 'La hora de salida es obligatoria para los días seleccionados.',
+            'horarios.*.hora_salida.after' => 'La hora de salida debe ser posterior a la hora de entrada.',
+            'horarios.*.hora_entrada.date_format' => 'El formato de la hora de entrada debe ser HH:MM.',
+            'horarios.*.hora_salida.date_format' => 'El formato de la hora de salida debe ser HH:MM.',
         ]);
 
         $medico = Medico::create($request->only([
@@ -118,8 +128,19 @@ class MedicoController extends Controller
             'cedula',
             'telefono',
             'especialidad_id',
-            'horario',
         ]));
+
+        if ($request->has('horarios')) {
+            foreach ($request->input('horarios') as $dia => $h) {
+                if (isset($h['checked']) && $h['checked'] == '1') {
+                    $medico->horarios()->create([
+                        'dia_semana' => $dia,
+                        'hora_entrada' => $h['hora_entrada'],
+                        'hora_salida' => $h['hora_salida'],
+                    ]);
+                }
+            }
+        }
 
         Notification::send(User::all(), new NuevoMedico($medico));
 
@@ -129,7 +150,7 @@ class MedicoController extends Controller
 
     public function edit(int $id)
     {
-        $medicoToEdit = Medico::with('especialidad')->findOrFail($id);
+        $medicoToEdit = Medico::with('especialidad', 'horarios')->findOrFail($id);
         return response()->json($medicoToEdit);
     }
 
@@ -147,19 +168,45 @@ class MedicoController extends Controller
             'cedula' => 'required|string|unique:medicos,cedula,' . $id,
             'telefono' => 'required|string|max:20|regex:/^[\d\-\(\)\s\+]+$/',
             'especialidad_id' => 'required|exists:especialidades,id',
+            'horarios' => 'nullable|array',
+            'horarios.*.checked' => 'nullable|in:1',
+            'horarios.*.hora_entrada' => 'required_if:horarios.*.checked,1|nullable|date_format:H:i',
+            'horarios.*.hora_salida' => 'required_if:horarios.*.checked,1|nullable|date_format:H:i|after:horarios.*.hora_entrada',
+        ], [
+            'horarios.*.hora_entrada.required_if' => 'La hora de entrada es obligatoria para los días seleccionados.',
+            'horarios.*.hora_salida.required_if' => 'La hora de salida es obligatoria para los días seleccionados.',
+            'horarios.*.hora_salida.after' => 'La hora de salida debe ser posterior a la hora de entrada.',
+            'horarios.*.hora_entrada.date_format' => 'El formato de la hora de entrada debe ser HH:MM.',
+            'horarios.*.hora_salida.date_format' => 'El formato de la hora de salida debe ser HH:MM.',
         ]);
 
-        $nuevoHorario = $request->input('horario');
         $conflictos = 0;
+        $horariosInput = $request->input('horarios', []);
+        $diasPermitidos = [];
+        foreach ($horariosInput as $dia => $h) {
+            if (isset($h['checked']) && $h['checked'] == '1') {
+                $diasPermitidos[$dia] = [
+                    'entrada' => $h['hora_entrada'],
+                    'salida' => $h['hora_salida'],
+                ];
+            }
+        }
 
-        if ($nuevoHorario) {
-            $diasPermitidos = array_map('intval', $nuevoHorario);
-            
+        if (!empty($diasPermitidos)) {
             $planificaciones = $medico->calendarios()->where('fecha', '>=', now()->toDateString())->get();
             foreach ($planificaciones as $plan) {
                 $diaSemana = Carbon::parse($plan->fecha)->dayOfWeekIso;
-                if (!in_array($diaSemana, $diasPermitidos)) {
+                if (!isset($diasPermitidos[$diaSemana])) {
                     $conflictos++;
+                } else {
+                    $planInicio = Carbon::parse($plan->hora_inicio)->format('H:i');
+                    $planFin = Carbon::parse($plan->hora_fin)->format('H:i');
+                    $limiteInicio = Carbon::parse($diasPermitidos[$diaSemana]['entrada'])->format('H:i');
+                    $limiteFin = Carbon::parse($diasPermitidos[$diaSemana]['salida'])->format('H:i');
+
+                    if ($planInicio < $limiteInicio || $planFin > $limiteFin) {
+                        $conflictos++;
+                    }
                 }
             }
         }
@@ -170,11 +217,21 @@ class MedicoController extends Controller
             'cedula',
             'telefono',
             'especialidad_id',
-            'horario',
         ]));
 
+        $medico->horarios()->delete();
+        if (!empty($diasPermitidos)) {
+            foreach ($diasPermitidos as $dia => $h) {
+                $medico->horarios()->create([
+                    'dia_semana' => $dia,
+                    'hora_entrada' => $h['entrada'],
+                    'hora_salida' => $h['salida'],
+                ]);
+            }
+        }
+
         if ($conflictos > 0) {
-            alert()->warning('Médico actualizado', "Se detectaron $conflictos cupos planificados en días que ahora no están permitidos en su nuevo horario.")->persistent();
+            alert()->warning('Médico actualizado', "Se detectaron $conflictos cupos planificados en días/horas que ahora no están permitidos en su nuevo horario.")->persistent();
         } else {
             alert()->success('Médico actualizado exitosamente.');
         }

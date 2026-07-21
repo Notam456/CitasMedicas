@@ -7,7 +7,7 @@
     @include('layouts.navbar')
 
     <div class="container py-4">
-        
+
         @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
                 <div class="d-flex align-items-center">
@@ -77,7 +77,7 @@
                     </div>
 
                     <div id="calendario-grid" class="row g-0 bg-white" style="min-height: 400px;">
-                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -87,8 +87,10 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel"><i class="fas fa-info-circle me-2"></i>Resumen de Disponibilidad</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="modalLabel"><i class="fas fa-info-circle me-2"></i>Resumen de Disponibilidad
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="d-flex align-items-center mb-3">
@@ -104,9 +106,9 @@
                 </div>
                 <div class="modal-footer bg-light border-top-0">
                     <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cerrar</button>
-                    <button id="btn-agendar-global" class="btn btn-success px-4 shadow-sm">
-                        <i class="fas fa-calendar-check me-1"></i> Agendar Cita
-                    </button>
+                    <!--<button id="btn-agendar-global" class="btn btn-success px-4 shadow-sm">
+                            <i class="fas fa-calendar-check me-1"></i> Agendar Cita
+                        </button>-->
                 </div>
             </div>
         </div>
@@ -136,7 +138,8 @@
                 .then(data => {
                     selectMed.innerHTML = '<option value="">Todos los médicos</option>';
                     data.forEach(m => {
-                        selectMed.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
+                        selectMed.innerHTML +=
+                            `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
                     });
 
                     if (data.length === 1) {
@@ -163,7 +166,10 @@
                 return;
             }
 
-            const opciones = { month: 'long', year: 'numeric' };
+            const opciones = {
+                month: 'long',
+                year: 'numeric'
+            };
             document.getElementById('mes-actual').innerText = fechaActual.toLocaleDateString('es-ES', opciones);
 
             fetch(`/calendario/eventos?mes=${mes}&anio=${anio}&especialidad_id=${espId}&medico_id=${medId}`)
@@ -181,15 +187,19 @@
             const ultimoDiaMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0).getDate();
 
             for (let i = 0; i < primerDiaSemana; i++) {
-                grid.innerHTML += `<div class="col p-2 border-end border-bottom bg-light" style="flex: 0 0 14.28%; height: 100px;"></div>`;
+                grid.innerHTML +=
+                    `<div class="col p-2 border-end border-bottom bg-light" style="flex: 0 0 14.28%; height: 100px;"></div>`;
             }
 
             for (let dia = 1; dia <= ultimoDiaMes; dia++) {
-                const fechaStr = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+                const fechaStr =
+                    `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
                 const eventosDia = eventos.filter(e => e.fecha === fechaStr);
 
-                const totalCuposConfigurados = eventosDia.reduce((sum, e) => sum + e.cupos_primera_vez + e.cupos_sucesivos, 0);
-                const totalCuposAsignados = eventosDia.reduce((sum, e) => sum + e.citas_primera_vez_count + e.citas_sucesivas_count, 0);
+                const totalCuposConfigurados = eventosDia.reduce((sum, e) => sum + e.cupos_primera_vez + e.cupos_sucesivos,
+                    0);
+                const totalCuposAsignados = eventosDia.reduce((sum, e) => sum + e.citas_primera_vez_count + e
+                    .citas_sucesivas_count, 0);
                 const cuposDisponibles = totalCuposConfigurados - totalCuposAsignados;
 
                 let porcentajeOcupacion = 0;
@@ -207,8 +217,12 @@
                 const divDia = document.createElement('div');
                 divDia.className = 'col p-2 border-end border-bottom calendar-day bg-white text-dark';
                 divDia.style.cssText = 'flex: 0 0 14.28%; height: 110px; cursor: pointer; transition: background 0.2s;';
-                divDia.onmouseover = function() { this.style.background = '#f8f9fa'; };
-                divDia.onmouseout = function() { this.style.background = 'white'; };
+                divDia.onmouseover = function() {
+                    this.style.background = '#f8f9fa';
+                };
+                divDia.onmouseout = function() {
+                    this.style.background = 'white';
+                };
 
                 divDia.onclick = () => abrirResumen(fechaStr, eventosDia);
                 grid.appendChild(divDia);
@@ -256,7 +270,8 @@
                         <div class="card mb-3 border-start border-4 ${dispMed > 0 ? 'border-primary' : 'border-warning'} shadow-sm">
                             <div class="card-body py-3">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="mb-0 fw-bold text-primary">Dr. ${ev.medico.nombre} ${ev.medico.apellido}</h6>
+                                    
+                                    <h6 class="mb-0 fw-bold text-primary">${ev.medico ? `Dr. ${ev.medico.nombre} ${ev.medico.apellido}`  : 'Cualquier médico'}</h6>
                                     <span class="badge ${dispMed > 0 ? 'bg-info' : 'bg-warning'} text-dark fw-bold">
                                         ${dispMed} / ${totalMed} Disponibles
                                     </span>
@@ -268,6 +283,7 @@
                                             <small class="text-muted d-block">Primera Vez</small>
                                             <span class="fw-bold text-dark">${ev.citas_primera_vez_count}</span> 
                                             <span class="text-muted">/ ${ev.cupos_primera_vez}</span>
+                                            <small class="text-muted d-block">(${ev.cupos_primera_vez - ev.citas_primera_vez_count} cupos disponibles)</small>
                                         </div>
                                     </div>
                                     <div class="col-6">
@@ -275,6 +291,7 @@
                                             <small class="text-muted d-block">Control (Sucesivos)</small>
                                             <span class="fw-bold text-dark">${ev.citas_sucesivas_count}</span> 
                                             <span class="text-muted">/ ${ev.cupos_sucesivos}</span>
+                                             <small class="text-muted d-block">(${ev.cupos_sucesivos - ev.citas_sucesivas_count} cupos disponibles)</small>
                                         </div>
                                     </div>
                                 </div>

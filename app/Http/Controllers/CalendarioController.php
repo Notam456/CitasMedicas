@@ -53,7 +53,7 @@ class CalendarioController extends Controller
 
     public function getMedicos($especialidad_id)
     {
-        $medicos_query = Medico::where('especialidad_id', $especialidad_id)->get();
+        $medicos_query = Medico::where('especialidad_id', $especialidad_id)->with('horarios')->get();
         $medicos_count = $medicos_query->count();
         $medicos = $medicos_query->toArray();
         
@@ -63,7 +63,7 @@ class CalendarioController extends Controller
                 'nombre' => 'Cualquier',
                 'apellido' => 'Médico',
                 'especialidad_id' => $especialidad_id,
-                'horario' => null
+                'horarios' => []
             ]);
         }
 
@@ -107,15 +107,26 @@ class CalendarioController extends Controller
                 'required',
                 function ($attribute, $value, $fail) use ($request) {
                     if ($value === 'any') return;
-                    $medico = Medico::find($value);
+                    $medico = Medico::with('horarios')->find($value);
                     if (!$medico) {
                         $fail('El médico seleccionado no es válido.');
                         return;
                     }
-                    if ($medico->horario && count($medico->horario) > 0) {
+                    if ($medico->horarios->isNotEmpty()) {
                         $diaSemana = Carbon::parse($request->fecha)->dayOfWeekIso;
-                        if (!in_array($diaSemana, array_map('intval', $medico->horario))) {
+                        $sched = $medico->horarios->firstWhere('dia_semana', $diaSemana);
+                        if (!$sched) {
                             $fail('El médico no tiene permitido atender en este día de la semana según su horario.');
+                            return;
+                        }
+                        
+                        $reqInicio = Carbon::parse($request->hora_inicio)->format('H:i');
+                        $reqFin = Carbon::parse($request->hora_fin)->format('H:i');
+                        $ent = Carbon::parse($sched->hora_entrada)->format('H:i');
+                        $sal = Carbon::parse($sched->hora_salida)->format('H:i');
+
+                        if ($reqInicio < $ent || $reqFin > $sal) {
+                            $fail("El horario planificado ({$reqInicio} - {$reqFin}) está fuera del rango permitido para el médico este día ({$ent} - {$sal}).");
                         }
                     }
                 }
@@ -181,17 +192,31 @@ class CalendarioController extends Controller
                 'required',
                 function ($attribute, $value, $fail) use ($request) {
                     if ($value === 'any') return;
-                    $medico = Medico::find($value);
+                    $medico = Medico::with('horarios')->find($value);
                     if (!$medico) {
                         $fail('El médico seleccionado no es válido.');
                         return;
                     }
-                    if ($medico->horario && count($medico->horario) > 0) {
-                        $diasPermitidos = array_map('intval', $medico->horario);
+                    if ($medico->horarios->isNotEmpty()) {
+                        $diasPermitidos = $medico->horarios->pluck('dia_semana')->toArray();
                         foreach ($request->dias_semana as $diaSeleccionado) {
                             if (!in_array((int)$diaSeleccionado, $diasPermitidos)) {
                                 $fail('Uno o más días seleccionados no están permitidos en el horario del médico.');
-                                break;
+                                return;
+                            }
+
+                            $sched = $medico->horarios->firstWhere('dia_semana', (int)$diaSeleccionado);
+                            if ($sched) {
+                                $reqInicio = Carbon::parse($request->hora_inicio)->format('H:i');
+                                $reqFin = Carbon::parse($request->hora_fin)->format('H:i');
+                                $ent = Carbon::parse($sched->hora_entrada)->format('H:i');
+                                $sal = Carbon::parse($sched->hora_salida)->format('H:i');
+
+                                if ($reqInicio < $ent || $reqFin > $sal) {
+                                    $diasNombre = [1 => 'Lunes', 2 => 'Martes', 3 => 'Miércoles', 4 => 'Jueves', 5 => 'Viernes', 6 => 'Sábado', 7 => 'Domingo'];
+                                    $fail("El horario planificado ({$reqInicio} - {$reqFin}) está fuera del rango de atención del médico para el día {$diasNombre[$diaSeleccionado]} ({$ent} - {$sal}).");
+                                    return;
+                                }
                             }
                         }
                     }
