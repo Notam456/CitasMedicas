@@ -133,6 +133,18 @@ class MunicipioController extends Controller
             'distrito_id' => 'nullable|exists:distritos,id',
         ]);
 
+        if ($municipio->distrito_id && $municipio->distrito_id != $request->distrito_id) {
+            $esUnico = Municipio::where('distrito_id', $municipio->distrito_id)
+                ->where('id', '!=', $id)
+                ->count() === 0;
+
+            if ($esUnico) {
+                $nombreDistrito = $municipio->distrito->nombre;
+                Alert::error('No se puede modificar', "Este municipio es el único asignado al distrito \"{$nombreDistrito}\". Primero asigne otro municipio al distrito o elimínelo desde el módulo de distritos.");
+                return redirect()->back()->withInput();
+            }
+        }
+
         $municipio->update($request->only(['nombre', 'estado_id', 'distrito_id']));
 
         Alert::success('Municipio actualizado exitosamente.');
@@ -142,6 +154,19 @@ class MunicipioController extends Controller
     public function destroy($id)
     {
         $municipio = Municipio::findOrFail($id);
+
+        if ($municipio->distrito_id) {
+            $esUnico = Municipio::where('distrito_id', $municipio->distrito_id)
+                ->where('id', '!=', $id)
+                ->count() === 0;
+
+            if ($esUnico) {
+                $nombreDistrito = $municipio->distrito->nombre;
+                Alert::error('No se puede eliminar', "Este municipio es el único asignado al distrito \"{$nombreDistrito}\". Primero asigne otro municipio al distrito o elimínelo desde el módulo de distritos.");
+                return redirect()->back();
+            }
+        }
+
         $municipio->delete();
         Alert::success('Municipio eliminado exitosamente.');
         return redirect()->route('municipios.index');

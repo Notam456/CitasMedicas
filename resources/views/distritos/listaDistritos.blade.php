@@ -91,21 +91,21 @@
 
     <!-- Modal Mostrar -->
     <div class="modal fade" id="modalShowDistrito" tabindex="-1" aria-labelledby="modalShowDistritoLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalShowDistritoLabel">Datos del Distrito</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="fw-bold">Nombre</label>
-                            <p class="form-control" id="show_nombre"></p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="fw-bold">Municipios</label>
-                            <p class="form-control" id="show_municipios"></p>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="show_nombre" readonly>
+                        <label>Nombre del Distrito</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Municipios</label>
+                        <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;" id="show_municipios">
+                            <span class="text-muted">Sin municipios asignados</span>
                         </div>
                     </div>
                 </div>
@@ -232,8 +232,15 @@
                             headers: { 'Accept': 'application/json' }
                         });
                         const data = await res.json();
-                        document.getElementById('show_nombre').innerText = data.nombre;
-                        document.getElementById('show_municipios').innerText = (data.municipios || []).join(', ') || 'Ninguno';
+                        document.getElementById('show_nombre').value = data.nombre;
+                        const container = document.getElementById('show_municipios');
+                        if (data.municipios && data.municipios.length > 0) {
+                            container.innerHTML = data.municipios.map(m =>
+                                '<div class="form-check"><input class="form-check-input" type="checkbox" checked disabled><label class="form-check-label">' + m + '</label></div>'
+                            ).join('');
+                        } else {
+                            container.innerHTML = '<span class="text-muted">Sin municipios asignados</span>';
+                        }
                         new bootstrap.Modal(document.getElementById('modalShowDistrito')).show();
                     } catch {
                         Swal.fire('Error', 'No se pudo cargar', 'error');

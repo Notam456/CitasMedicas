@@ -28,7 +28,7 @@ class DistritoController extends Controller
 
     public function getDistritosData(Request $request)
     {
-        $query = Distrito::withCount('municipios')->select(['id', 'nombre', 'created_at']);
+        $query = Distrito::withCount('municipios');
 
         $totalRecords = $query->count();
 
