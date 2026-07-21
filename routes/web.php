@@ -115,10 +115,11 @@ Route::middleware('auth')->group(function () {
 
 // Dashboard y Reportes Yajure
 
-Route::middleware(['auth', 'can:Morbilidad'])->group(function () {
 
+Route::get('/morbilidad/pendientes', [MorbilidadController::class, 'pendientes'])->name('morbilidad.pendientes')->middleware(['auth', 'can:Atender Cita']);
+Route::middleware(['auth', 'can:Reporte Cita'])->group(function () {
     Route::get('/morbilidad', [MorbilidadController::class, 'index'])->name('morbilidad.index');
-    Route::get('/morbilidad/pendientes', [MorbilidadController::class, 'pendientes'])->name('morbilidad.pendientes');
+    
     Route::get('/morbilidad/{cita}', [MorbilidadController::class, 'getCita'])->name('morbilidad.getCita');
     Route::get('/morbilidad/{cita}/pdf', [MorbilidadController::class, 'pdfCita'])->name('morbilidad.pdfCita');
 
