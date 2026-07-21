@@ -12,14 +12,13 @@ return new class extends Migration
     public function up(): void
     {
     Schema::create('medicos', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('especialidad_id')->constrained('especialidades')->onDelete('CASCADE');
-    $table->string('nombre');
-    $table->string('apellido');
-    $table->string('cedula')->unique();
-    $table->string('telefono');
-    $table->json('horario')->nullable();
-    $table->timestamps();
+        $table->id();
+        $table->foreignId('especialidad_id')->constrained('especialidades')->onDelete('CASCADE');
+        $table->string('nombre');
+        $table->string('apellido');
+        $table->string('cedula')->unique();
+        $table->string('telefono');
+        $table->timestamps();
     });
     }
 

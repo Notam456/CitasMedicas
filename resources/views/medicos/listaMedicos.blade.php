@@ -77,7 +77,7 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-3 mt-3">
                                 <div class="form-floating">
                                     <input type="text" name="telefono" value="{{ old('telefono') }}"
                                         class="form-control" id="telefonoMedico" placeholder="Teléfono" required
@@ -105,17 +105,39 @@
                             </div>
 
                             <div class="col-12 mb-3">
-                                <label class="form-label fw-bold small text-muted text-uppercase mb-2">Horario de Atención (Días de la semana)</label>
-                                <div class="d-flex flex-wrap gap-3">
-                                    @php $dias = [1 => 'Lun', 2 => 'Mar', 3 => 'Mié', 4 => 'Jue', 5 => 'Vie', 6 => 'Sáb', 7 => 'Dom']; @endphp
+                                <label class="form-label fw-bold small text-muted text mb-2">Horario de atención (días de la semana y horas)</label>
+                                <div class="row g-3">
+                                    @php $dias = [1 => 'Lunes', 2 => 'Martes', 3 => 'Miércoles', 4 => 'Jueves', 5 => 'Viernes', 6 => 'Sábado', 7 => 'Domingo']; @endphp
                                     @foreach($dias as $val => $nom)
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="horario[]" value="{{ $val }}" id="dia_reg_{{ $val }}" {{ is_array(old('horario')) && in_array($val, old('horario')) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="dia_reg_{{ $val }}">{{ $nom }}</label>
+                                        @php $isChecked = old("horarios.$val.checked") ? true : false; @endphp
+                                        <div class="col-md-6 col-12">
+                                            <div class="card border border-light-subtle shadow-xs h-100 day-card p-3" style="transition: all 0.2s; border-left: 4px solid {{ $isChecked ? '#0d6efd' : '#dee2e6' }} !important; background-color: #fafbfc;">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="form-check form-switch me-3 mb-0">
+                                                            <input class="form-check-input check-dia-reg" type="checkbox" name="horarios[{{ $val }}][checked]" value="1" id="dia_reg_{{ $val }}" {{ $isChecked ? 'checked' : '' }}>
+                                                        </div>
+                                                        <label class="form-check-label fw-bold mb-0 text-dark" for="dia_reg_{{ $val }}">
+                                                            <i class="bi bi-calendar3 me-1 text-primary opacity-75"></i> {{ $nom }}
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                                <div class="row g-2 time-inputs-reg mt-1" style="{{ $isChecked ? 'display: flex;' : 'display: none;' }}">
+                                                    <div class="col-6">
+                                                        <label class="small text-muted mb-1" style="font-size: 0.75rem;"><i class="bi bi-clock me-1 text-primary"></i> Entrada</label>
+                                                        <input type="time" name="horarios[{{ $val }}][hora_entrada]" class="form-control form-control-sm" value="{{ old("horarios.$val.hora_entrada") }}" {{ $isChecked ? '' : 'disabled' }}>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="small text-muted mb-1" style="font-size: 0.75rem;"><i class="bi bi-clock-fill me-1 text-danger"></i> Salida</label>
+                                                        <input type="time" name="horarios[{{ $val }}][hora_salida]" class="form-control form-control-sm" value="{{ old("horarios.$val.hora_salida") }}" {{ $isChecked ? '' : 'disabled' }}>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
-                                <small class="text-muted mt-1 d-block">Si no selecciona ningún día, el médico podrá atender cualquier día.</small>
+                                <small class="text-muted mt-3 d-block">Si no selecciona ningún día, el médico podrá atender cualquier día sin restricciones de horario.</small>
                             </div>
                         </div>
                     </div>
@@ -178,7 +200,7 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-3 mt-3">
                                 <div class="form-floating">
                                     <input type="text" name="telefono" class="form-control" id="editarTelefonoMedico"
                                         placeholder="Teléfono" required
@@ -191,7 +213,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="editarEspecialidadMedico" class="form-label mb-1">Especialidad</label>
-                                <select name="especialidad_id" id="editarEspecialidadMedico" class="form-select"
+                                <select name="especialidad_id" id="editarEspecialidadMedico" class="form-select "
                                     style="padding: 0.58rem 0.75rem;" required>
                                     <option value="">Seleccione una especialidad</option>
                                     @foreach ($especialidades as $especialidad)
@@ -204,16 +226,37 @@
                             </div>
 
                             <div class="col-12 mb-3">
-                                <label class="form-label fw-bold small text-muted text-uppercase mb-2">Horario de Atención (Días de la semana)</label>
-                                <div class="d-flex flex-wrap gap-3" id="contenedorHorarioEditar">
+                                <label class="form-label fw-bold small text-muted text mb-2">Horario de atención (días de la semana y horas)</label>
+                                <div class="row g-3">
                                     @foreach($dias as $val => $nom)
-                                        <div class="form-check">
-                                            <input class="form-check-input check-horario-edit" type="checkbox" name="horario[]" value="{{ $val }}" id="dia_edit_{{ $val }}">
-                                            <label class="form-check-label" for="dia_edit_{{ $val }}">{{ $nom }}</label>
+                                        <div class="col-md-6 col-12">
+                                            <div class="card border border-light-subtle shadow-xs h-100 day-card p-3" style="transition: all 0.2s; border-left: 4px solid #dee2e6 !important; background-color: #fafbfc;">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="form-check form-switch me-3 mb-0">
+                                                            <input class="form-check-input check-dia-edit" type="checkbox" name="horarios[{{ $val }}][checked]" value="1" id="dia_edit_{{ $val }}">
+                                                        </div>
+                                                        <label class="form-check-label fw-bold mb-0 text-dark" for="dia_edit_{{ $val }}">
+                                                            <i class="bi bi-calendar3 me-1 text-primary opacity-75"></i> {{ $nom }}
+                                                        </label>
+                                                    </div>
+                                                   
+                                                </div>
+                                                <div class="row g-2 time-inputs-edit mt-1" style="display: none;">
+                                                    <div class="col-6">
+                                                        <label class="small text-muted mb-1" style="font-size: 0.75rem;"><i class="bi bi-clock me-1 text-primary"></i> Entrada</label>
+                                                        <input type="time" name="horarios[{{ $val }}][hora_entrada]" class="form-control form-control-sm" disabled>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="small text-muted mb-1" style="font-size: 0.75rem;"><i class="bi bi-clock-fill me-1 text-danger"></i> Salida</label>
+                                                        <input type="time" name="horarios[{{ $val }}][hora_salida]" class="form-control form-control-sm" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
-                                <small class="text-muted mt-1 d-block">Si no selecciona ningún día, el médico podrá atender cualquier día.</small>
+                                <small class="text-muted mt-3 d-block">Si no selecciona ningún día, el médico podrá atender cualquier día sin restricciones de horario.</small>
                             </div>
                         </div>
                     </div>
@@ -259,7 +302,7 @@
                         </div>
                         <div class="col-12 mb-3">
                             <label class="fw-bold">Horario de Atención</label>
-                            <p class="form-control" id="mostrarHorarioMedico"></p>
+                            <div id="mostrarHorarioMedico" class="border rounded p-3 bg-white" style="max-height: 250px; overflow-y: auto;"></div>
                         </div>
                     </div>
                 </div>
@@ -352,15 +395,44 @@ document.addEventListener('click', async function(event) {
             inputEspecialidad.value = data.especialidad_id;
 
             // Limpiar y marcar horarios
-            document.querySelectorAll('.check-horario-edit').forEach(check => {
+            document.querySelectorAll('.check-dia-edit').forEach(check => {
                 check.checked = false;
-                if (data.horario) {
-                    const horarioStr = data.horario.map(String);
-                    if (horarioStr.includes(check.value)) {
-                        check.checked = true;
-                    }
-                }
+                const parent = check.closest('.day-card');
+                parent.style.borderLeftColor = '#dee2e6';
+
+                const timeInputsDiv = parent.querySelector('.time-inputs-edit');
+                timeInputsDiv.style.display = 'none';
+                const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
+                inputs.forEach(input => {
+                    input.disabled = true;
+                    input.required = false;
+                    input.value = '';
+                });
             });
+
+            if (data.horarios) {
+                data.horarios.forEach(h => {
+                    const check = document.getElementById(`dia_edit_${h.dia_semana}`);
+                    if (check) {
+                        check.checked = true;
+                        const parent = check.closest('.day-card');
+                        parent.style.borderLeftColor = '#0d6efd';
+            
+
+                        const timeInputsDiv = parent.querySelector('.time-inputs-edit');
+                        timeInputsDiv.style.display = 'flex';
+                        const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
+                        inputs.forEach(input => {
+                            input.disabled = false;
+                            input.required = true;
+                        });
+                        const entInput = parent.querySelector(`input[name="horarios[${h.dia_semana}][hora_entrada]"]`);
+                        const salInput = parent.querySelector(`input[name="horarios[${h.dia_semana}][hora_salida]"]`);
+                        if (entInput) entInput.value = h.hora_entrada.substring(0, 5);
+                        if (salInput) salInput.value = h.hora_salida.substring(0, 5);
+                    }
+                });
+            }
 
             const form = document.querySelector('#modalEditarMedico form');
             form.action = `/medicos/${data.id}`;
@@ -412,17 +484,79 @@ document.addEventListener('click', async function(event) {
             inputEspecialidad.innerHTML = data.especialidad.nombre;
 
             // Mostrar horario
-            const diasNombre = {1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo'};
-            if (data.horario && data.horario.length > 0) {
-                const horarioTexto = data.horario.map(d => diasNombre[d]).join(', ');
-                document.getElementById('mostrarHorarioMedico').innerHTML = horarioTexto;
+            const container = document.getElementById('mostrarHorarioMedico');
+            container.innerHTML = '';
+            if (data.horarios && data.horarios.length > 0) {
+                const diasNombre = {1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo'};
+                data.horarios.sort((a, b) => a.dia_semana - b.dia_semana);
+                data.horarios.forEach(h => {
+                    const ent = h.hora_entrada.substring(0, 5);
+                    const sal = h.hora_salida.substring(0, 5);
+                    container.innerHTML += `<div class="d-flex justify-content-between border-bottom py-1">
+                        <span><strong>${diasNombre[h.dia_semana]}:</strong></span>
+                        <span>${ent} a ${sal}</span>
+                    </div>`;
+                });
             } else {
-                document.getElementById('mostrarHorarioMedico').innerHTML = '<span class="text-muted">Sin horario restringido (Disponible todos los días)</span>';
+                container.innerHTML = '<span class="text-muted">Sin horario restringido (Disponible todos los días)</span>';
             }
 
         } catch (error) {
             console.error('Error:', error);
             Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
+        }
+    }
+});
+
+// Manejadores de eventos de cambio de checkbox para mostrar/ocultar y habilitar/deshabilitar los campos de tiempo
+document.addEventListener('change', function(event) {
+    if (event.target.classList.contains('check-dia-reg')) {
+        const checkbox = event.target;
+        const parent = checkbox.closest('.day-card');
+    
+        const timeInputsDiv = parent.querySelector('.time-inputs-reg');
+        const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
+        if (checkbox.checked) {
+            parent.style.borderLeftColor = '#0d6efd';
+           
+            timeInputsDiv.style.display = 'flex';
+            inputs.forEach(input => {
+                input.disabled = false;
+                input.required = true;
+            });
+        } else {
+            parent.style.borderLeftColor = '#dee2e6';
+            timeInputsDiv.style.display = 'none';
+            inputs.forEach(input => {
+                input.disabled = true;
+                input.required = false;
+                input.value = '';
+            });
+        }
+    }
+
+    if (event.target.classList.contains('check-dia-edit')) {
+        const checkbox = event.target;
+        const parent = checkbox.closest('.day-card');
+        
+        const timeInputsDiv = parent.querySelector('.time-inputs-edit');
+        const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
+        if (checkbox.checked) {
+            parent.style.borderLeftColor = '#0d6efd';
+            timeInputsDiv.style.display = 'flex';
+            inputs.forEach(input => {
+                input.disabled = false;
+                input.required = true;
+            });
+        } else {
+            parent.style.borderLeftColor = '#dee2e6';
+    
+            timeInputsDiv.style.display = 'none';
+            inputs.forEach(input => {
+                input.disabled = true;
+                input.required = false;
+                input.value = '';
+            });
         }
     }
 });
