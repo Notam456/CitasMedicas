@@ -196,7 +196,7 @@ class CitaController extends Controller
                 'nombre' => 'Cualquier',
                 'apellido' => 'Médico',
                 'especialidad_id' => $id,
-                'horario' => null
+                'horarios' => []
             ]);
         }
 

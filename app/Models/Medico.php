@@ -14,12 +14,12 @@ class Medico extends Model
         'cedula',
         'telefono',
         'especialidad_id',
-        'horario',
     ];
 
-    protected $casts = [
-        'horario' => 'array',
-    ];
+    public function horarios()
+    {
+        return $this->hasMany(HorarioMedico::class, 'medico_id');
+    }
 
     public function especialidad()
     {

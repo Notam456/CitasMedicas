@@ -257,6 +257,38 @@
                 actualizarMedicos(this.value, 'select-medico-masivo');
                 actualizarMedicos(this.value, 'select-medico');
             });
+
+            // Validation for massive config form submit
+            const formMasivo = document.querySelector('form[action="{{ route('calendario.store') }}"]');
+            if (formMasivo) {
+                formMasivo.addEventListener('submit', function(e) {
+                    const tipoConfig = this.querySelector('input[name="tipo_configuracion"]').value;
+                    if (tipoConfig === 'masivo' && horarioMedicoActual) {
+                        const hInicio = this.querySelector('input[name="hora_inicio"]').value;
+                        const hFin = this.querySelector('input[name="hora_fin"]').value;
+                        const checkedDays = Array.from(this.querySelectorAll('input[name="dias_semana[]"]:checked')).map(cb => parseInt(cb.value));
+                        
+                        for (let day of checkedDays) {
+                            const sched = horarioMedicoActual.find(h => parseInt(h.dia_semana) === day);
+                            if (sched) {
+                                const ent = sched.hora_entrada.substring(0, 5);
+                                const sal = sched.hora_salida.substring(0, 5);
+                                if (hInicio < ent || hFin > sal) {
+                                    e.preventDefault();
+                                    const diasNombre = {1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo'};
+                                    Swal.fire({
+                                        title: 'Horario fuera de rango',
+                                        text: `La hora seleccionada (${hInicio} - ${hFin}) está fuera del rango de atención del médico para el día ${diasNombre[day]} (${ent} - ${sal}).`,
+                                        icon: 'error',
+                                        confirmButtonColor: '#0d6efd'
+                                    });
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         });
 
         async function actualizarMedicos(espId, targetId) {
@@ -290,7 +322,7 @@
             const option = selectElement.options[selectElement.selectedIndex];
             if (option && option.dataset.full) {
                 const medico = JSON.parse(option.dataset.full);
-                horarioMedicoActual = medico.horario ? medico.horario.map(Number) : null;
+                horarioMedicoActual = medico.horarios && medico.horarios.length > 0 ? medico.horarios : null;
             } else {
                 horarioMedicoActual = null;
             }
@@ -299,10 +331,13 @@
             document.querySelectorAll('input[name="dias_semana[]"]').forEach(cb => {
                 cb.disabled = false;
                 cb.parentElement.style.opacity = '1';
-                if (horarioMedicoActual && !horarioMedicoActual.includes(parseInt(cb.value))) {
-                    cb.disabled = true;
-                    cb.checked = false;
-                    cb.parentElement.style.opacity = '0.5';
+                if (horarioMedicoActual) {
+                    const diasPermitidos = horarioMedicoActual.map(h => parseInt(h.dia_semana));
+                    if (!diasPermitidos.includes(parseInt(cb.value))) {
+                        cb.disabled = true;
+                        cb.checked = false;
+                        cb.parentElement.style.opacity = '0.5';
+                    }
                 }
             });
         }
@@ -374,8 +409,11 @@
                 const diaSemana = fechaSeleccionada.getDay() || 7; // ISO week day
 
                 let diaPermitido = true;
-                if (horarioMedicoActual && !horarioMedicoActual.includes(diaSemana)) {
-                    diaPermitido = false;
+                if (horarioMedicoActual) {
+                    const diasPermitidos = horarioMedicoActual.map(h => parseInt(h.dia_semana));
+                    if (!diasPermitidos.includes(diaSemana)) {
+                        diaPermitido = false;
+                    }
                 }
 
                 if (!diaPermitido) {
@@ -434,7 +472,16 @@
                 day: 'numeric',
                 month: 'long'
             });
-            document.getElementById('display-medico').innerText = "Médico: " + medNombre;
+            
+            const dateObj = new Date(fecha + "T00:00:00");
+            const dayOfWeekIso = dateObj.getDay() || 7;
+            const sched = horarioMedicoActual ? horarioMedicoActual.find(h => parseInt(h.dia_semana) === dayOfWeekIso) : null;
+            let medicoText = "Médico: " + medNombre;
+            if (sched) {
+                medicoText += ` (Horario del día: ${sched.hora_entrada.substring(0, 5)} - ${sched.hora_salida.substring(0, 5)})`;
+            }
+            document.getElementById('display-medico').innerText = medicoText;
+            
             document.getElementById('input-medico-id').value = medId;
             document.getElementById('input-especialidad-id').value = espId;
             document.getElementById('input-fecha').value = fecha;
@@ -449,6 +496,29 @@
 
         document.getElementById('form-guardar-cupo').onsubmit = function(e) {
             e.preventDefault();
+            
+            const tInicio = document.getElementById('input-inicio').value;
+            const tFin = document.getElementById('input-fin').value;
+            const fechaVal = document.getElementById('input-fecha').value;
+            if (horarioMedicoActual) {
+                const dateObj = new Date(fechaVal + "T00:00:00");
+                const dayOfWeekIso = dateObj.getDay() || 7;
+                const sched = horarioMedicoActual.find(h => parseInt(h.dia_semana) === dayOfWeekIso);
+                if (sched) {
+                    const entradaLimit = sched.hora_entrada.substring(0, 5);
+                    const salidaLimit = sched.hora_salida.substring(0, 5);
+                    if (tInicio < entradaLimit || tFin > salidaLimit) {
+                        Swal.fire({
+                            title: 'Horario fuera de rango',
+                            text: `El horario configurado debe estar dentro del rango de atención del médico para este día (${entradaLimit} - ${salidaLimit}).`,
+                            icon: 'error',
+                            confirmButtonColor: '#0d6efd'
+                        });
+                        return;
+                    }
+                }
+            }
+            
             const formData = new FormData(this);
 
             fetch("{{ route('calendario.store') }}", {
