@@ -10,7 +10,7 @@ class CalendarioSeeder extends Seeder
 {
     public function run()
     {
-        $medicos = Medico::with('horarios')->get();
+        $medicos = Medico::all();
         $especialidades = \App\Models\Especialidad::all();
         $startDate = now()->startOfDay()->subDay();
         $endDate = now()->addDays(90)->endOfDay();
@@ -49,9 +49,8 @@ class CalendarioSeeder extends Seeder
 
             foreach ($medicos as $medico) {
 
-                if ($medico->horarios->isNotEmpty()) {
-                    $diaSemana = $date->dayOfWeekIso;
-                    if (!$medico->horarios->contains('dia_semana', $diaSemana)) {
+                if ($medico->horario && count($medico->horario) > 0) {
+                    if (!in_array($date->dayOfWeekIso, array_map('intval', $medico->horario))) {
                         continue;
                     }
                 }
