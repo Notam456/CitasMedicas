@@ -36,13 +36,30 @@ class MorbilidadController extends Controller
             $fecha_registro_desde = $request->fecha_registro_desde;
             $fecha_registro_hasta = $request->fecha_registro_hasta;
 
+            $slugEsp = $especialidad ? str_replace(' ', '-', mb_strtolower($especialidad)) : null;
+            $slugEstado = $estado ? str_replace(' ', '-', mb_strtolower($estado)) : null;
+
+            $partesNombre = ['reporte-de-citas'];
+            if ($fecha_desde && $fecha_hasta) {
+                if ($fecha_desde === $fecha_hasta) {
+                    $partesNombre[] = Carbon::parse($fecha_desde)->format('d-m-y');
+                } else {
+                    $partesNombre[] = Carbon::parse($fecha_desde)->format('d-m-y') . '-al-' . Carbon::parse($fecha_hasta)->format('d-m-y');
+                }
+            }
+            if ($slugEsp) $partesNombre[] = $slugEsp;
+            if ($slugEstado) $partesNombre[] = $slugEstado;
+            $nombreArchivo = implode('-', $partesNombre);
+
+            $mostrarFechaCita = empty($fecha_desde) || empty($fecha_hasta) || $fecha_desde !== $fecha_hasta;
+
             if ($request->has('export_excel')) {
                 ini_set('memory_limit', '512M');
                 ini_set('max_execution_time', 300);
                 $morbilidades = $query->lazy();
                 return Excel::download(
                     new MorbilidadExport($morbilidades, $especialidad, $fecha_desde, $fecha_hasta, $tipo_paciente, $estado, $fecha_registro_desde, $fecha_registro_hasta),
-                    'morbilidades.xlsx'
+                    $nombreArchivo . '.xlsx'
                 );
             }
 
@@ -57,8 +74,8 @@ class MorbilidadController extends Controller
                 ini_set('pcre.backtrack_limit', '10000000');
                 $membrete = $this->getMembreteBase64();
                 $morbilidades = $query->get();
-                $pdf = Pdf::loadView('reportes.pdf.morbilidad_pdf', compact('morbilidades', 'membrete', 'especialidad', 'fecha_desde', 'fecha_hasta', 'tipo_paciente', 'estado', 'fecha_registro_desde', 'fecha_registro_hasta'));
-                return $pdf->stream('morbilidades.pdf');
+                $pdf = Pdf::loadView('reportes.pdf.morbilidad_pdf', compact('morbilidades', 'membrete', 'especialidad', 'fecha_desde', 'fecha_hasta', 'tipo_paciente', 'estado', 'fecha_registro_desde', 'fecha_registro_hasta', 'mostrarFechaCita'));
+                return $pdf->stream($nombreArchivo . '.pdf');
             }
         }
 
@@ -108,9 +125,11 @@ class MorbilidadController extends Controller
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
             ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
             ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->leftJoin('expedientes', 'pacientes.id', '=', 'expedientes.paciente_id')
             ->leftJoin(DB::raw("(SELECT cp.cita_id, STRING_AGG(p.nombre, ', ' ORDER BY p.nombre) as patologias_nombres FROM cita_patologias cp JOIN patologias p ON p.id = cp.patologia_id GROUP BY cp.cita_id) as pats"), 'pats.cita_id', '=', 'citas.id')
             ->select(
                 'citas.id',
+                'expedientes.numero_expediente',
                 'pacientes.nombre as paciente_nombre',
                 'pacientes.apellido as paciente_apellido',
                 'pacientes.cedula as paciente_cedula',
@@ -119,6 +138,7 @@ class MorbilidadController extends Controller
                 'medicos.nombre as medico_nombre',
                 'medicos.apellido as medico_apellido',
                 'especialidades.nombre as especialidad_nombre',
+                'especialidades.id as especialidad_id',
                 'citas.diagnostico_libre',
                 'citas.estado',
                 'citas.tipo_paciente',
@@ -168,14 +188,15 @@ class MorbilidadController extends Controller
         }
         $filteredRecords = $query->count();
 
-        $orderColumn = $request->get('order')[0]['column'] ?? 2;
+        $orderColumn = $request->get('order')[0]['column'] ?? 3;
         $orderDir = $request->get('order')[0]['dir'] ?? 'asc';
         $columns = [
-            0 => 'pacientes.nombre',
-            1 => 'pacientes.cedula',
-            2 => 'citas.fecha_cita',
-            3 => 'especialidades.nombre',
-            4 => 'medicos.nombre',
+            0 => 'expedientes.numero_expediente',
+            1 => 'pacientes.nombre',
+            2 => 'pacientes.cedula',
+            3 => 'citas.fecha_cita',
+            4 => 'especialidades.nombre',
+            5 => 'medicos.nombre',
         ];
 
         $query->orderBy(DB::raw("CASE WHEN citas.tipo_paciente = 'primera_vez' THEN 0 ELSE 1 END"), 'asc');
@@ -222,6 +243,7 @@ class MorbilidadController extends Controller
             $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . $btnReagendar . $btnDelete . '</div>';
 
             $dataFormatted[] = [
+                $row->numero_expediente ?? 'Sin asignar',
                 $row->paciente_nombre . ' ' . $row->paciente_apellido,
                 $row->paciente_cedula,
                 Carbon::parse($row->fecha_cita)->format('d/m/Y'),
