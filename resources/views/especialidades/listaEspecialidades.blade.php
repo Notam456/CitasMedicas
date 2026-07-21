@@ -92,20 +92,19 @@
     <!-- Modal Mostrar Datos -->
     <div class="modal fade" id="modalShowEspecialidad" tabindex="-1" aria-labelledby="modalShowEspecialidadLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalShowEspecialidadLabel">Datos de la Especialidad</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <label for="mostrarNombreEspecialidad" class="form-label">Nombre</label>
-                    <div class="form-floating mb-3">
-                        <p class="form-control-plaintext" id="mostrarEspecialidadNombre"></p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Nombre</label>
+                            <p class="form-control" id="mostrarEspecialidadNombre"></p>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -174,7 +173,7 @@
             if (btnShow) {
                 const id = btnShow.dataset.id;
                 try {
-                    const res = await fetch(`/especialidades/${id}/show`, {
+                    const res = await fetch(`/especialidades/${id}`, {
                         headers: {
                             'Accept': 'application/json'
                         }

@@ -13,6 +13,10 @@
         #spinner {
             visibility: visible;
         }
+        .swal2-popup {
+            transform: scale(0.85);
+            transform-origin: center center;
+        }
     </style>
     
     <meta content="width=device-width, initial-scale=1.0" name="viewport">

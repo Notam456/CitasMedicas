@@ -44,7 +44,7 @@
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Cédula del Paciente *</label>
                         <div class="input-group">
-                            <select name="cedula_tipo" id="input_cedula_tipo" class="form-select @error('cedula') is-invalid @enderror" style="max-width: 60px;">
+                            <select name="cedula_tipo" id="input_cedula_tipo" class="form-select @error('cedula') is-invalid @enderror" style="max-width: 60px;" required>
                                 <option value="V" {{ old('cedula_tipo') == 'E' ? '' : 'selected' }}>V</option>
                                 <option value="E" {{ old('cedula_tipo') == 'E' ? 'selected' : '' }}>E</option>
                             </select>
@@ -63,6 +63,7 @@
                         <label class="form-label">Nombre</label>
                         <input type="text" name="nombre" id="input_nombre"
                             class="form-control @error('nombre') is-invalid @enderror" value="{{ old('nombre') }}" required
+                            pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+" maxlength="255"
                             oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g,'')">
                         @error('nombre')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -73,7 +74,7 @@
                         <label class="form-label">Apellido</label>
                         <input type="text" name="apellido" id="input_apellido"
                             class="form-control @error('apellido') is-invalid @enderror" value="{{ old('apellido') }}"
-                            required
+                            required pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+" maxlength="255"
                             oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g,'')">
                         @error('apellido')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -84,7 +85,7 @@
                         <label class="form-label">F. Nacimiento</label>
                         <input type="date" name="fecha_nacimiento" id="input_fecha"
                             class="form-control @error('fecha_nacimiento') is-invalid @enderror"
-                            value="{{ old('fecha_nacimiento') }}" required max="{{ date('Y-m-d') }}">
+                            value="{{ old('fecha_nacimiento') }}" required min="1900-01-01" max="{{ date('Y-m-d') }}">
                         @error('fecha_nacimiento')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -94,7 +95,7 @@
                         <label class="form-label">Teléfono</label>
                         <input type="text" name="telefono" id="input_telefono"
                             class="form-control @error('telefono') is-invalid @enderror" value="{{ old('telefono') }}"
-                            required>
+                            required pattern="[\d\-\(\)\s\+]+" maxlength="20">
                         @error('telefono')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -105,7 +106,7 @@
                         <div class="d-flex gap-3 pt-2">
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="sexo" id="input_sexo_m"
-                                    value="Masculino" {{ old('sexo') == 'Masculino' ? 'checked' : '' }}>
+                                    value="Masculino" {{ old('sexo') == 'Masculino' ? 'checked' : '' }} required>
                                 <label class="form-check-label" for="input_sexo_m">Masculino</label>
                             </div>
                             <div class="form-check">
@@ -125,7 +126,7 @@
                             <span class="input-group-text bg-light fw-bold">J</span>
                             <input type="text" name="rif" id="input_rif"
                                 class="form-control @error('rif') is-invalid @enderror" value="{{ old('rif') }}"
-                                placeholder="123456789">
+                                placeholder="123456789" pattern="[0-9]*" maxlength="20" title="Solo números">
                         </div>
                         @error('rif')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -143,7 +144,7 @@
                     <!-- Estado -->
                     <div class="col-md-4">
                         <label class="form-label" for="select-estado">Estado</label>
-                        <select name="estado_id" id="select-estado" class="form-select">
+                        <select name="estado_id" id="select-estado" class="form-select" required>
                             <option value="">Seleccione Estado</option>
                             @foreach($estados as $estado)
                                 <option value="{{ $estado->id }}"
@@ -157,7 +158,7 @@
                     <!-- Municipio -->
                     <div class="col-md-4">
                         <label class="form-label" for="select-municipio">Municipio</label>
-                        <select name="municipio_id" id="select-municipio" class="form-select">
+                        <select name="municipio_id" id="select-municipio" class="form-select" required>
                             <option value="">Seleccione Municipio</option>
                         </select>
                     </div>
@@ -178,7 +179,7 @@
                     <div class="col-md-12">
                         <label class="form-label">Dirección exacta</label>
                         <input type="text" name="direccion" id="input_direccion" value="{{ old('direccion') }}"
-                            class="form-control @error('direccion') is-invalid @enderror">
+                            class="form-control @error('direccion') is-invalid @enderror" maxlength="500">
                         @error('direccion')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -265,7 +266,7 @@
                         <label class="form-label">Fecha de Cita</label>
                         <input type="date" name="fecha_cita" id="input_fecha_cita"
                             class="form-control @error('fecha_cita') is-invalid @enderror" required readonly
-                            value="{{ old('fecha_cita') }}">
+                            value="{{ old('fecha_cita') }}" min="{{ date('Y-m-d') }}">
                         @error('fecha_cita')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
@@ -290,7 +291,7 @@
                     <div class="col-md-8 fw-bold small text-uppercase text-muted">
                         <label class="form-label">Observación</label>
                         <textarea name="observacion" class="form-control @error('observacion') is-invalid @enderror" rows="1"
-                            placeholder="Síntomas o nota...">{{ old('observacion') }}</textarea>
+                            placeholder="Síntomas o nota..." maxlength="5000">{{ old('observacion') }}</textarea>
                         @error('observacion')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

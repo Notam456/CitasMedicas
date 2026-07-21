@@ -40,7 +40,7 @@
                     <div class="modal-body">
                         <div class="form-floating mb-3">
                             <input type="text" value="{{ old('name') }}" class="form-control" id="nombreUsuario"
-                                name="name" placeholder="Nombre de usuario" required>
+                                name="name" placeholder="Nombre de usuario" required pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+" maxlength="255" title="Solo letras">
                             <label for="nombreUsuario">Nombre</label>
                             @error('name')
                                 <small class="text-danger">{{ $message }}</small>
@@ -146,7 +146,7 @@
                         <input type="hidden" id="id">
                         <div class="form-floating mb-3">
                             <input type="text" class="form-control" id="editarNombreUsuario" name="name"
-                                placeholder="Nombre de usuario" required>
+                                placeholder="Nombre de usuario" required pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+" maxlength="255" title="Solo letras">
                             <label for="editarNombreUsuario">Nombre</label>
                             @error('name')
                                 <small class="text-danger">{{ $message }}</small>

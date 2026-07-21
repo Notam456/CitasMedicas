@@ -92,6 +92,7 @@ class MunicipioController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge(['nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8'))]);
         $request->validate([
             'nombre' => [
                 'required', 'string', 'max:255',
@@ -119,6 +120,7 @@ class MunicipioController extends Controller
     public function update(Request $request, $id)
     {
         $municipio = Municipio::findOrFail($id);
+        $request->merge(['nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8'))]);
         $request->validate([
             'nombre' => [
                 'required', 'string', 'max:255',

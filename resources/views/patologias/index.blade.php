@@ -108,19 +108,27 @@
 
 <!-- Modal Mostrar -->
 <div class="modal fade" id="modalShowPatologia" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Datos de la Patología</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p><strong>Nombre:</strong> <span id="show_nombre"></span></p>
-                <p><strong>Especialidad:</strong> <span id="show_especialidad"></span></p>
-                <p><strong>Descripción:</strong> <span id="show_descripcion"></span></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="fw-bold">Nombre</label>
+                        <p class="form-control" id="show_nombre"></p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="fw-bold">Especialidad</label>
+                        <p class="form-control" id="show_especialidad"></p>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label class="fw-bold">Descripción</label>
+                        <p class="form-control" id="show_descripcion"></p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

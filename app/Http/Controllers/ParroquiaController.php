@@ -92,6 +92,7 @@ class ParroquiaController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge(['nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8'))]);
         $request->validate([
             'nombre' => [
                 'required',
@@ -120,6 +121,7 @@ class ParroquiaController extends Controller
     public function update(Request $request, $id)
     {
         $parroquia = Parroquia::findOrFail($id);
+        $request->merge(['nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8'))]);
         $request->validate([
             'nombre' => [
                 'required',

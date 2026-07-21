@@ -156,7 +156,7 @@ class DiagnosticoController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'diagnostico_libre' => 'nullable|string',
+            'diagnostico_libre' => 'nullable|string|max:5000',
             'patologias' => 'array',
             'patologias.*' => 'exists:patologias,id',
         ]);
@@ -212,7 +212,7 @@ class DiagnosticoController extends Controller
     public function store(Request $request, Cita $cita)
     {
         $request->validate([
-            'diagnostico_libre' => 'nullable|string',
+            'diagnostico_libre' => 'nullable|string|max:5000',
             'patologias' => 'array',
             'patologias.*' => 'exists:patologias,id',
         ]);

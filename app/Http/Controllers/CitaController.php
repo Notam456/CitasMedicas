@@ -291,15 +291,20 @@ class CitaController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8')),
+            'apellido' => ucfirst(mb_strtolower(trim($request->apellido), 'UTF-8')),
+        ]);
+
         $request->validate([
             // Datos del paciente
             'cedula_tipo' => 'required|in:V,E',
-            'cedula' => 'required|string|min:7|max:20',
+            'cedula' => 'required|string|min:7|max:20|regex:/^[0-9]+$/',
             'rif' => 'nullable|string|max:20',
-            'nombre' => 'required|string|max:255',
-            'apellido' => 'required|string|max:255',
+            'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
+            'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'fecha_nacimiento' => 'required|date',
-            'telefono' => 'required|string|min:7|max:15',
+            'telefono' => 'required|string|min:7|max:15|regex:/^[\d\-\(\)\s\+]+$/',
             'parroquia_id' => 'required|numeric|exists:parroquias,id',
             'direccion' => 'nullable|string|max:255',
             'sexo' => 'required|in:Masculino,Femenino',

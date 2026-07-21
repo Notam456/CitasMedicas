@@ -110,12 +110,12 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label text-muted fw-bold small">Cupos 1ra Vez *</label>
-                            <input type="number" name="cupos_primera_vez" class="form-control" min="0"
+                            <input type="number" name="cupos_primera_vez" class="form-control" min="0" max="9999"
                                 value="{{ old('cupos_primera_vez', '10') }}" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label text-muted fw-bold small">Cupos Sucesivos *</label>
-                            <input type="number" name="cupos_sucesivos" class="form-control" min="0"
+                            <input type="number" name="cupos_sucesivos" class="form-control" min="0" max="9999"
                                 value="{{ old('cupos_sucesivos', '10') }}" required>
                         </div>
 
@@ -216,12 +216,12 @@
                             <div class="col-md-12">
                                 <label class="form-label text-muted fw-bold small">Cupos primera vez *</label>
                                 <input type="number" name="cupos_primera_vez" id="input-cupos-p" class="form-control"
-                                    required min="0">
+                                    required min="0" max="9999">
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label text-muted fw-bold small">Cupos sucesivos *</label>
                                 <input type="number" name="cupos_sucesivos" id="input-cupos-s" class="form-control"
-                                    required min="0">
+                                    required min="0" max="9999">
                             </div>
                         </div>
                     </div>

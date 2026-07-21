@@ -10,12 +10,12 @@
             <a href="{{ route('dashboard') }}" class="nav-item nav-link"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
             @endcan
 
-            @can('Usuarios')
-            <a href="{{ route('users.index') }}" class="nav-item nav-link "><i class="bi bi-people-fill me-2"></i>Usuarios</a>
+            @can('Usuario')
+            <a href="{{ route('users.index') }}" class="nav-item nav-link "><i class="bi bi-people-fill me-2"></i>Usuario</a>
             @endcan
 
-            @can('Médicos')
-            <a href="{{ route('medicos.index') }}" class="nav-item nav-link"><i class="bi bi-person-badge me-2"></i>Médicos</a>
+            @can('Medico')
+            <a href="{{ route('medicos.index') }}" class="nav-item nav-link"><i class="bi bi-person-badge me-2"></i>Médico</a>
             @endcan
 
             @can('Especialidad')
@@ -23,7 +23,7 @@
             @endcan
 
             @can('Patologia')
-            <a href="{{ route('patologias.index') }}" class="nav-item nav-link"><i class="bi bi-file-medical-fill me-2"></i>Patologias</a>
+            <a href="{{ route('patologias.index') }}" class="nav-item nav-link"><i class="bi bi-file-medical-fill me-2"></i>Patología</a>
             @endcan
 
             @can('Paciente')
@@ -46,16 +46,16 @@
             <a href="{{ route('calendario.index') }}" class="nav-item nav-link"><i class="bi bi-calendar-event-fill me-2"></i>Planificación</a>
             @endcan
 
-            @canany(['Citas', 'Morbilidad'])
+            @canany(['Cita', 'Morbilidad'])
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-calendar-check-fill me-2"></i>Citas</a>
                 <div class="dropdown-menu bg-transparent border-0">
-                    @can('Citas')
-                    <a href="{{ route('Citas.create') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-plus-circle me-2"></i>Agendar Citas</a>
+                    @can('Cita')
+                    <a href="{{ route('Citas.create') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-plus-circle me-2"></i>Agendar Cita</a>
                     <!-- <a href="{{ route('Citas.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-list-check me-2"></i>Citas Agendadas</a> -->
                     @endcan
                     @can('Morbilidad')
-                    <a href="{{ route('morbilidad.pendientes') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-person-check-fill me-2"></i>Atender Citas</a>
+                    <a href="{{ route('morbilidad.pendientes') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-person-check-fill me-2"></i>Atender Cita</a>
                    <!-- <a href="{{ route('diagnosticos.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-check2-all me-2"></i>Citas Atendidas</a> -->
                     
                     <a href="{{ route('morbilidad.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-file-earmark-text me-2"></i>Reporte de Citas</a>

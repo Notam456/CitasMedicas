@@ -103,8 +103,12 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $request->merge([
+            'name' => ucfirst(mb_strtolower(trim($request->name), 'UTF-8')),
+        ]);
+
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|string|exists:roles,name',
@@ -152,8 +156,12 @@ class UserController extends Controller
      */
     public function update(Request $request, int $id)
     {
+        $request->merge([
+            'name' => ucfirst(mb_strtolower(trim($request->name), 'UTF-8')),
+        ]);
+
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'email' => 'required|string|email|max:255|unique:users,email,' . $id,
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|string|exists:roles,name',

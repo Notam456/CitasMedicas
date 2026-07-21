@@ -47,7 +47,7 @@
                                         <option value="V">V</option>
                                         <option value="E">E</option>
                                     </select>
-                                    <input type="text" class="form-control" id="editarCedulaPaciente" name="cedula" placeholder="12345678" required>
+                                    <input type="text" class="form-control" id="editarCedulaPaciente" name="cedula" placeholder="12345678" required pattern="[0-9]+" maxlength="20" title="Solo números">
                                 </div>
                                 @error('cedula')
                                     <small class="text-danger">{{ $message }}</small>
@@ -57,7 +57,7 @@
                                 <label class="form-label text-muted small fw-bold">RIF</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light fw-bold">J</span>
-                                    <input type="text" class="form-control" id="editarRifPaciente" name="rif" placeholder="123456789">
+                                    <input type="text" class="form-control" id="editarRifPaciente" name="rif" placeholder="123456789" pattern="[0-9]*" maxlength="20" title="Solo números">
                                 </div>
                                 @error('rif')
                                     <small class="text-danger">{{ $message }}</small>
@@ -70,14 +70,16 @@
 
                             <div class="col-md-4 mb-3">
                                 <label class="form-label text-muted small fw-bold">Nombres</label>
-                                <input type="text" class="form-control" id="editarNombrePaciente" name="nombre" placeholder="Nombres del paciente" required>
+                                <input type="text" class="form-control" id="editarNombrePaciente" name="nombre" placeholder="Nombres del paciente" required
+                                    pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                                 @error('nombre')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label text-muted small fw-bold">Apellidos</label>
-                                <input type="text" class="form-control" id="editarApellidoPaciente" name="apellido" placeholder="Apellidos del paciente" required>
+                                <input type="text" class="form-control" id="editarApellidoPaciente" name="apellido" placeholder="Apellidos del paciente" required
+                                    pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                                 @error('apellido')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
@@ -92,7 +94,8 @@
 
                             <div class="col-md-4 mb-3">
                                 <label class="form-label text-muted small fw-bold">Teléfono</label>
-                                <input type="text" class="form-control" id="editarTelefonoPaciente" name="telefono" placeholder="Teléfono del paciente" required>
+                                <input type="text" class="form-control" id="editarTelefonoPaciente" name="telefono" placeholder="Teléfono del paciente" required
+                                    pattern="[\d\-\(\)\s\+]+" title="Solo se permiten números, guiones, paréntesis y espacios">
                                 @error('telefono')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
@@ -217,9 +220,6 @@
                             <p class="form-control" id="mostrarDireccionPaciente"></p>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 </div>
             </div>
         </div>

@@ -45,7 +45,7 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="cedula" value="{{ old('cedula') }}" class="form-control"
-                                        id="cedulaMedico" placeholder="Cédula" required>
+                                        id="cedulaMedico" placeholder="Cédula" required pattern="[0-9]+" maxlength="20" title="Solo números">
                                     <label for="cedulaMedico">Cédula</label>
                                 </div>
                                 @error('cedula')
@@ -80,7 +80,8 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="telefono" value="{{ old('telefono') }}"
-                                        class="form-control" id="telefonoMedico" placeholder="Teléfono" required>
+                                        class="form-control" id="telefonoMedico" placeholder="Teléfono" required
+                                        pattern="[\d\-\(\)\s\+]+" title="Solo se permiten números, guiones, paréntesis y espacios">
                                     <label for="telefonoMedico">Teléfono</label>
                                 </div>
                                 @error('telefono')
@@ -145,7 +146,7 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="cedula" class="form-control" id="editarCedulaMedico"
-                                        placeholder="Cédula" required>
+                                        placeholder="Cédula" required pattern="[0-9]+" maxlength="20" title="Solo números">
                                     <label for="editarCedulaMedico">Cédula</label>
                                 </div>
                                 @error('cedula')
@@ -180,7 +181,8 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="telefono" class="form-control" id="editarTelefonoMedico"
-                                        placeholder="Teléfono" required>
+                                        placeholder="Teléfono" required
+                                        pattern="[\d\-\(\)\s\+]+" title="Solo se permiten números, guiones, paréntesis y espacios">
                                     <label for="editarTelefonoMedico">Teléfono</label>
                                 </div>
                                 @error('telefono')
@@ -236,36 +238,30 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Cédula</label>
-                            <p class="form-control-plaintext" id="mostrarCedulaMedico"></p>
-                        </div>
-                        <div class="col-md-6 mb-3 d-none d-md-block"></div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Nombres</label>
-                            <p class="form-control-plaintext" id="mostrarNombreMedico"></p>
+                            <label class="fw-bold">Cédula</label>
+                            <p class="form-control" id="mostrarCedulaMedico"></p>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Apellidos</label>
-                            <p class="form-control-plaintext" id="mostrarApellidoMedico"></p>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Teléfono</label>
-                            <p class="form-control-plaintext" id="mostrarTelefonoMedico"></p>
+                            <label class="fw-bold">Nombres</label>
+                            <p class="form-control" id="mostrarNombreMedico"></p>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Especialidad</label>
-                            <p class="form-control-plaintext" id="mostrarEspecialidadMedico"></p>
+                            <label class="fw-bold">Apellidos</label>
+                            <p class="form-control" id="mostrarApellidoMedico"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Teléfono</label>
+                            <p class="form-control" id="mostrarTelefonoMedico"></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Especialidad</label>
+                            <p class="form-control" id="mostrarEspecialidadMedico"></p>
                         </div>
                         <div class="col-12 mb-3">
-                            <label class="form-label fw-bold">Horario de Atención</label>
-                            <p class="form-control-plaintext" id="mostrarHorarioMedico"></p>
+                            <label class="fw-bold">Horario de Atención</label>
+                            <p class="form-control" id="mostrarHorarioMedico"></p>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
