@@ -151,4 +151,16 @@ class MunicipioController extends Controller
         
         return response()->json($municipios);
     }
+
+    public function getDisponibles($distritoId = null)
+    {
+        $municipios = Municipio::whereNull('distrito_id')
+            ->when($distritoId, function ($q) use ($distritoId) {
+                $q->orWhere('distrito_id', $distritoId);
+            })
+            ->orderBy('nombre')
+            ->get(['id', 'nombre']);
+
+        return response()->json($municipios);
+    }
 }

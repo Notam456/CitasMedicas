@@ -286,7 +286,7 @@
                     spanDistrito.innerHTML = "Cargando...";
 
                     modalInstance.show();
-                    const response = await fetch(`/municipios/${municipioId}/show`, {
+                    const response = await fetch(`/municipios/${municipioId}`, {
                         method: 'GET',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',

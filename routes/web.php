@@ -69,6 +69,8 @@ Route::middleware(['auth', 'can:Procedencia'])->group(function () {
 
     Route::resource('distritos', DistritoController::class);
     Route::get('/api/distritos', [DistritoController::class, 'getDistritosData'])->name('api.distritos');
+
+    Route::get('/api/municipios-disponibles/{distrito_id?}', [MunicipioController::class, 'getDisponibles'])->name('api.municipios-disponibles');
 });
 
 //Rutas para Agendar Cita
