@@ -101,8 +101,8 @@ class MedicoController extends Controller
     public function store(Request $request)
     {
         $request->merge([
-            'nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8')),
-            'apellido' => ucfirst(mb_strtolower(trim($request->apellido), 'UTF-8')),
+            'nombre' => mb_convert_case(trim($request->nombre), MB_CASE_TITLE, 'UTF-8'),
+            'apellido' => mb_convert_case(trim($request->apellido), MB_CASE_TITLE, 'UTF-8'),
         ]);
         $request->validate([
             'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
@@ -138,8 +138,8 @@ class MedicoController extends Controller
         $medico = Medico::findOrFail($id);
 
         $request->merge([
-            'nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8')),
-            'apellido' => ucfirst(mb_strtolower(trim($request->apellido), 'UTF-8')),
+            'nombre' => mb_convert_case(trim($request->nombre), MB_CASE_TITLE, 'UTF-8'),
+            'apellido' => mb_convert_case(trim($request->apellido), MB_CASE_TITLE, 'UTF-8'),
         ]);
         $request->validate([
             'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
@@ -154,7 +154,6 @@ class MedicoController extends Controller
 
         if ($nuevoHorario) {
             $diasPermitidos = array_map('intval', $nuevoHorario);
-            // 1 (Lunes) a 7 (Domingo)
             
             $planificaciones = $medico->calendarios()->where('fecha', '>=', now()->toDateString())->get();
             foreach ($planificaciones as $plan) {
