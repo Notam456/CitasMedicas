@@ -109,26 +109,31 @@ Route::middleware('auth')->group(function () {
 });
 
 // Expedientes (N° Historia)
-Route::middleware('auth')->group(function () {
-    Route::post('/expedientes/asignar', [ExpedienteController::class, 'asignarNumero'])->name('expedientes.asignar');
-});
+
 
 // Dashboard y Reportes Yajure
 
-Route::middleware(['auth', 'can:Morbilidad'])->group(function () {
-
-    Route::get('/morbilidad', [MorbilidadController::class, 'index'])->name('morbilidad.index');
+Route::middleware(['auth', 'can:Atender Cita'])->group(function () {
     Route::get('/morbilidad/pendientes', [MorbilidadController::class, 'pendientes'])->name('morbilidad.pendientes');
+    Route::get('/citas/{cita}/atender', [DiagnosticoController::class, 'atender'])->name('citas.atender');
+    Route::post('/citas/{cita}/diagnostico', [DiagnosticoController::class, 'store'])->name('citas.diagnostico.store'); 
+    Route::get('/diagnosticos/{diagnostico}/edit', [DiagnosticoController::class, 'edit'])->name('diagnosticos.edit');
+    Route::post('/expedientes/asignar', [ExpedienteController::class, 'asignarNumero'])->name('expedientes.asignar');
+    
+});
+Route::middleware(['auth', 'can:Reporte Cita'])->group(function () {
+    Route::get('/morbilidad', [MorbilidadController::class, 'index'])->name('morbilidad.index');
+    
     Route::get('/morbilidad/{cita}', [MorbilidadController::class, 'getCita'])->name('morbilidad.getCita');
     Route::get('/morbilidad/{cita}/pdf', [MorbilidadController::class, 'pdfCita'])->name('morbilidad.pdfCita');
+    
 
-    Route::get('/diagnosticos', [DiagnosticoController::class, 'index'])->name('diagnosticos.index');
-    Route::get('/diagnosticos/{diagnostico}/edit', [DiagnosticoController::class, 'edit'])->name('diagnosticos.edit');
+    /*Route::get('/diagnosticos', [DiagnosticoController::class, 'index'])->name('diagnosticos.index');
+    
     Route::put('/diagnosticos/{diagnostico}', [DiagnosticoController::class, 'update'])->name('diagnosticos.update');
     Route::delete('/diagnosticos/{diagnostico}', [DiagnosticoController::class, 'destroy'])->name('diagnosticos.destroy');
-    Route::get('/diagnosticos/{diagnostico}', [DiagnosticoController::class, 'show'])->name('diagnosticos.show');
-    Route::get('/citas/{cita}/atender', [DiagnosticoController::class, 'atender'])->name('citas.atender');
-    Route::post('/citas/{cita}/diagnostico', [DiagnosticoController::class, 'store'])->name('citas.diagnostico.store');
+    Route::get('/diagnosticos/{diagnostico}', [DiagnosticoController::class, 'show'])->name('diagnosticos.show');*/
+   
 });
 
 Route::get('/api/patologias/por-cita/{cita}', function ($citaId) {
