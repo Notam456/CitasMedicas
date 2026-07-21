@@ -11,9 +11,7 @@
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h3 class="mb-0">Atender Citas ({{ now()->format('d/m/Y') }})</h3>
                 <div>
-                    <a href="{{ route('diagnosticos.index') }}" target="_blank" class="btn btn-secondary me-2">
-                        <i class="bi bi-list-ul me-1"></i> Gestionar Citas Atendidas
-                    </a>
+                    
 
                     @can('Reporte Cita')
                         <a href="{{ route('morbilidad.index') }}" class="btn btn-primary">

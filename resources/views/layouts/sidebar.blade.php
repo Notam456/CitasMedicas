@@ -56,7 +56,7 @@
                     @endcan
                     @can('Atender Cita')
                     <a href="{{ route('morbilidad.pendientes') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-person-check-fill me-2"></i>Atender Cita</a>
-                   <!-- <a href="{{ route('diagnosticos.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-check2-all me-2"></i>Citas Atendidas</a> -->
+                   <!-- <a href="" class="nav-item nav-link dropdown-item"><i class="bi bi-check2-all me-2"></i>Citas Atendidas</a> -->
                     @endcan
                     @can('Reporte Cita')
                     <a href="{{ route('morbilidad.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-file-earmark-text me-2"></i>Reporte de Citas</a>
