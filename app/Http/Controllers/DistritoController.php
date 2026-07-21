@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Distrito;
 use App\Models\Municipio;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class DistritoController extends Controller
@@ -15,7 +16,7 @@ class DistritoController extends Controller
         return view('distritos.listaDistritos');
     }
 
-        public function show($id)
+    public function show($id)
     {
         $distrito = Distrito::with('municipios')->findOrFail($id);
         return response()->json([
@@ -27,7 +28,7 @@ class DistritoController extends Controller
 
     public function getDistritosData(Request $request)
     {
-        $query = Distrito::select(['id', 'nombre', 'created_at']);
+        $query = Distrito::withCount('municipios')->select(['id', 'nombre', 'created_at']);
 
         $totalRecords = $query->count();
 
@@ -58,6 +59,7 @@ class DistritoController extends Controller
 
             $data[] = [
                 'nombre' => $distrito->nombre,
+                'municipios_count' => $distrito->municipios_count,
                 'action' => $actionBtn,
             ];
         }
@@ -73,31 +75,119 @@ class DistritoController extends Controller
     public function store(Request $request)
     {
         $request->merge(['nombre' => mb_convert_case(trim($request->nombre), MB_CASE_TITLE, 'UTF-8')]);
-        $request->validate(['nombre' => 'required|string|max:255|unique:distritos,nombre|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u']);
-        Distrito::create($request->only('nombre'));
-        Alert::success('Distrito creado exitosamente.');
-        return redirect()->route('distritos.index');
+        $request->validate([
+            'nombre' => 'required|string|max:255|unique:distritos,nombre|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
+            'municipios' => 'required|array|min:1',
+            'municipios.*' => 'integer|exists:municipios,id',
+        ]);
+
+        $municipiosIds = $request->municipios;
+
+        $ocupados = Municipio::whereIn('id', $municipiosIds)
+            ->whereNotNull('distrito_id')
+            ->pluck('id')
+            ->toArray();
+
+        if (!empty($ocupados)) {
+            $nombresOcupados = Municipio::whereIn('id', $ocupados)->pluck('nombre')->implode(', ');
+            Alert::error('Error', "Los siguientes municipios ya pertenecen a otro distrito: {$nombresOcupados}");
+            return redirect()->back()->withInput();
+        }
+
+        DB::beginTransaction();
+        try {
+            $distrito = Distrito::create(['nombre' => $request->nombre]);
+
+            Municipio::whereIn('id', $municipiosIds)->update(['distrito_id' => $distrito->id]);
+
+            DB::commit();
+            Alert::success('Distrito creado exitosamente.');
+            return redirect()->route('distritos.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Alert::error('Error', 'No se pudo crear el distrito. Intente de nuevo.');
+            return redirect()->back()->withInput();
+        }
     }
 
     public function edit($id)
     {
-        return response()->json(Distrito::findOrFail($id));
+        $distrito = Distrito::with('municipios')->findOrFail($id);
+
+        $municipiosActuales = $distrito->municipios->pluck('id')->toArray();
+
+        $municipiosDisponibles = Municipio::whereNull('distrito_id')
+            ->orWhere('distrito_id', $id)
+            ->get(['id', 'nombre']);
+
+        return response()->json([
+            'id' => $distrito->id,
+            'nombre' => $distrito->nombre,
+            'municipios_actuales' => $municipiosActuales,
+            'municipios_disponibles' => $municipiosDisponibles,
+        ]);
     }
 
     public function update(Request $request, $id)
     {
         $distrito = Distrito::findOrFail($id);
         $request->merge(['nombre' => mb_convert_case(trim($request->nombre), MB_CASE_TITLE, 'UTF-8')]);
-        $request->validate(['nombre' => 'required|string|max:255|unique:distritos,nombre,' . $id . '|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u']);
-        $distrito->update($request->only('nombre'));
-        Alert::success('Distrito actualizado exitosamente.');
-        return redirect()->route('distritos.index');
+
+        $request->validate([
+            'nombre' => 'required|string|max:255|unique:distritos,nombre,' . $id . '|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
+            'municipios' => 'required|array|min:1',
+            'municipios.*' => 'integer|exists:municipios,id',
+        ]);
+
+        $municipiosIds = $request->municipios;
+
+        $ocupados = Municipio::whereIn('id', $municipiosIds)
+            ->whereNotNull('distrito_id')
+            ->where('distrito_id', '!=', $id)
+            ->pluck('id')
+            ->toArray();
+
+        if (!empty($ocupados)) {
+            $nombresOcupados = Municipio::whereIn('id', $ocupados)->pluck('nombre')->implode(', ');
+            Alert::error('Error', "Los siguientes municipios ya pertenecen a otro distrito: {$nombresOcupados}");
+            return redirect()->back()->withInput();
+        }
+
+        DB::beginTransaction();
+        try {
+            $distrito->update(['nombre' => $request->nombre]);
+
+            Municipio::where('distrito_id', $id)
+                ->whereNotIn('id', $municipiosIds)
+                ->update(['distrito_id' => null]);
+
+            Municipio::whereIn('id', $municipiosIds)->update(['distrito_id' => $id]);
+
+            DB::commit();
+            Alert::success('Distrito actualizado exitosamente.');
+            return redirect()->route('distritos.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Alert::error('Error', 'No se pudo actualizar el distrito. Intente de nuevo.');
+            return redirect()->back()->withInput();
+        }
     }
 
     public function destroy($id)
     {
-        Distrito::findOrFail($id)->delete();
-        Alert::success('Distrito eliminado exitosamente.');
-        return redirect()->route('distritos.index');
+        DB::beginTransaction();
+        try {
+            Municipio::where('distrito_id', $id)->update(['distrito_id' => null]);
+
+            Distrito::findOrFail($id)->delete();
+
+            DB::commit();
+            Alert::success('Distrito eliminado exitosamente.');
+            return redirect()->route('distritos.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Alert::error('Error', 'No se pudo eliminar el distrito. Intente de nuevo.');
+            return redirect()->back();
+        }
     }
 }
