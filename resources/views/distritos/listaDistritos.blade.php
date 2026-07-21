@@ -15,6 +15,7 @@
             <thead>
                 <tr>
                     <th>Nombre</th>
+                    <th class="text-center">Municipios</th>
                     <th class="text-end">Acciones</th>
                 </tr>
             </thead>
@@ -35,6 +36,14 @@
                             <input type="text" class="form-control" name="nombre" required placeholder="Nombre"
                                 pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                             <label>Nombre del Distrito</label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Municipios <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm mb-2" id="buscarMunicipioCreate" placeholder="Buscar municipio...">
+                            <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;" id="municipiosCreateList">
+                                <span class="text-muted">Cargando municipios...</span>
+                            </div>
+                            <small class="text-muted">Debe seleccionar al menos 1 municipio.</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -62,6 +71,14 @@
                                 pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                             <label>Nombre del Distrito</label>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Municipios <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm mb-2" id="buscarMunicipioEdit" placeholder="Buscar municipio...">
+                            <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;" id="municipiosEditList">
+                                <span class="text-muted">Cargando municipios...</span>
+                            </div>
+                            <small class="text-muted">Debe seleccionar al menos 1 municipio.</small>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -74,21 +91,21 @@
 
     <!-- Modal Mostrar -->
     <div class="modal fade" id="modalShowDistrito" tabindex="-1" aria-labelledby="modalShowDistritoLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalShowDistritoLabel">Datos del Distrito</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="fw-bold">Nombre</label>
-                            <p class="form-control" id="show_nombre"></p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="fw-bold">Municipios</label>
-                            <p class="form-control" id="show_municipios"></p>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="show_nombre" readonly>
+                        <label>Nombre del Distrito</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Municipios</label>
+                        <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;" id="show_municipios">
+                            <span class="text-muted">Sin municipios asignados</span>
                         </div>
                     </div>
                 </div>
@@ -109,6 +126,16 @@
                     columns: [{
                             data: 'nombre',
                             name: 'nombre'
+                        },
+                        {
+                            data: 'municipios_count',
+                            name: 'municipios_count',
+                            className: 'text-center',
+                            orderable: false,
+                            searchable: false,
+                            render: function(data) {
+                                return '<span class="badge bg-info">' + data + '</span>';
+                            }
                         },
                         {
                             data: 'action',
@@ -132,7 +159,49 @@
                 });
             });
 
-            // Eventos para editar/mostrar con AJAX
+            function renderMunicipiosCheckboxes(containerId, municipios, checkedIds = []) {
+                const container = document.getElementById(containerId);
+                if (municipios.length === 0) {
+                    container.innerHTML = '<span class="text-muted">No hay municipios disponibles.</span>';
+                    return;
+                }
+                container.innerHTML = municipios.map(m => `
+                    <div class="form-check municipio-item">
+                        <input class="form-check-input" type="checkbox" name="municipios[]" value="${m.id}" id="${containerId}_${m.id}" ${checkedIds.includes(m.id) ? 'checked' : ''}>
+                        <label class="form-check-label" for="${containerId}_${m.id}">${m.nombre}</label>
+                    </div>
+                `).join('');
+            }
+
+            function setupSearch(inputId, containerId) {
+                document.getElementById(inputId).addEventListener('input', function() {
+                    const filter = this.value.toLowerCase();
+                    document.querySelectorAll(`#${containerId} .municipio-item`).forEach(item => {
+                        const label = item.querySelector('label').textContent.toLowerCase();
+                        item.style.display = label.includes(filter) ? '' : 'none';
+                    });
+                });
+            }
+
+            setupSearch('buscarMunicipioCreate', 'municipiosCreateList');
+            setupSearch('buscarMunicipioEdit', 'municipiosEditList');
+
+            async function cargarMunicipiosDisponibles(distritoId = null) {
+                const url = distritoId
+                    ? `/api/municipios-disponibles/${distritoId}`
+                    : '/api/municipios-disponibles';
+                try {
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    return await res.json();
+                } catch { return []; }
+            }
+
+            document.getElementById('modalDistrito').addEventListener('show.bs.modal', async function() {
+                const municipios = await cargarMunicipiosDisponibles();
+                renderMunicipiosCheckboxes('municipiosCreateList', municipios);
+                document.getElementById('buscarMunicipioCreate').value = '';
+            });
+
             document.addEventListener('click', async (e) => {
                 const btnEdit = e.target.closest('.btn-edit');
                 const btnShow = e.target.closest('.btn-show');
@@ -140,14 +209,17 @@
                     const id = btnEdit.dataset.id;
                     try {
                         const res = await fetch(`/distritos/${id}/edit`, {
-                            headers: {
-                                'Accept': 'application/json'
-                            }
+                            headers: { 'Accept': 'application/json' }
                         });
                         const data = await res.json();
                         document.getElementById('edit_id').value = data.id;
                         document.getElementById('edit_nombre').value = data.nombre;
                         document.getElementById('editForm').action = `/distritos/${data.id}`;
+
+                        const todosMunicipios = await cargarMunicipiosDisponibles(data.id);
+                        renderMunicipiosCheckboxes('municipiosEditList', todosMunicipios, data.municipios_actuales);
+                        document.getElementById('buscarMunicipioEdit').value = '';
+
                         new bootstrap.Modal(document.getElementById('modalEditarDistrito')).show();
                     } catch {
                         Swal.fire('Error', 'No se pudo cargar', 'error');
@@ -157,13 +229,18 @@
                     const id = btnShow.dataset.id;
                     try {
                         const res = await fetch(`/distritos/${id}`, {
-                            headers: {
-                                'Accept': 'application/json'
-                            }
+                            headers: { 'Accept': 'application/json' }
                         });
                         const data = await res.json();
-                        document.getElementById('show_nombre').innerText = data.nombre;
-                        document.getElementById('show_municipios').innerText = (data.municipios || []).join(', ') || 'Ninguno';
+                        document.getElementById('show_nombre').value = data.nombre;
+                        const container = document.getElementById('show_municipios');
+                        if (data.municipios && data.municipios.length > 0) {
+                            container.innerHTML = data.municipios.map(m =>
+                                '<div class="form-check"><input class="form-check-input" type="checkbox" checked disabled><label class="form-check-label">' + m + '</label></div>'
+                            ).join('');
+                        } else {
+                            container.innerHTML = '<span class="text-muted">Sin municipios asignados</span>';
+                        }
                         new bootstrap.Modal(document.getElementById('modalShowDistrito')).show();
                     } catch {
                         Swal.fire('Error', 'No se pudo cargar', 'error');
