@@ -104,7 +104,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->merge([
-            'name' => ucfirst(mb_strtolower(trim($request->name), 'UTF-8')),
+            'name' => mb_convert_case(trim($request->name), MB_CASE_TITLE, 'UTF-8'),
         ]);
 
         $request->validate([
@@ -157,7 +157,7 @@ class UserController extends Controller
     public function update(Request $request, int $id)
     {
         $request->merge([
-            'name' => ucfirst(mb_strtolower(trim($request->name), 'UTF-8')),
+            'name' => mb_convert_case(trim($request->name), MB_CASE_TITLE, 'UTF-8'),
         ]);
 
         $request->validate([

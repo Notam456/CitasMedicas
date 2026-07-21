@@ -72,7 +72,7 @@ class DistritoController extends Controller
 
     public function store(Request $request)
     {
-        $request->merge(['nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8'))]);
+        $request->merge(['nombre' => mb_convert_case(trim($request->nombre), MB_CASE_TITLE, 'UTF-8')]);
         $request->validate(['nombre' => 'required|string|max:255|unique:distritos,nombre|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u']);
         Distrito::create($request->only('nombre'));
         Alert::success('Distrito creado exitosamente.');
@@ -87,7 +87,7 @@ class DistritoController extends Controller
     public function update(Request $request, $id)
     {
         $distrito = Distrito::findOrFail($id);
-        $request->merge(['nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8'))]);
+        $request->merge(['nombre' => mb_convert_case(trim($request->nombre), MB_CASE_TITLE, 'UTF-8')]);
         $request->validate(['nombre' => 'required|string|max:255|unique:distritos,nombre,' . $id . '|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u']);
         $distrito->update($request->only('nombre'));
         Alert::success('Distrito actualizado exitosamente.');

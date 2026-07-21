@@ -81,7 +81,7 @@ class PatologiaController extends Controller
 
     public function store(Request $request)
     {
-        $request->merge(['nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8'))]);
+        $request->merge(['nombre' => mb_convert_case(trim($request->nombre), MB_CASE_TITLE, 'UTF-8')]);
         $request->validate([
             'nombre' => 'required|string|max:255|unique:patologias,nombre|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'especialidad_id' => 'required|exists:especialidades,id',
@@ -104,7 +104,7 @@ class PatologiaController extends Controller
     public function update(Request $request, $id)
     {
         $patologia = Patologia::findOrFail($id);
-        $request->merge(['nombre' => ucfirst(mb_strtolower(trim($request->nombre), 'UTF-8'))]);
+        $request->merge(['nombre' => mb_convert_case(trim($request->nombre), MB_CASE_TITLE, 'UTF-8')]);
         $request->validate([
             'nombre' => 'required|string|max:255|unique:patologias,nombre,' . $id . '|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'especialidad_id' => 'required|exists:especialidades,id',
