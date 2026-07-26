@@ -74,7 +74,7 @@
             <div class="col-md-2">
                 <label class="form-label fw-bold small text-uppercase text-muted">Fecha cita hasta</label>
                 <input type="date" name="fecha_hasta" id="fecha_hasta" class="form-control"
-                    value="{{ request('fecha_hasta') }}">
+                    value="{{ request('fecha_hasta') }}" min="{{ request('fecha_desde') }}">
             </div>
             <div class="col-md-1">
                 <button type="button" id="btnFiltrar" class="btn btn-primary w-100 shadow-sm">
@@ -94,7 +94,7 @@
             <div class="col-md-2">
                 <label class="form-label fw-bold small text-uppercase text-muted">Fecha registro hasta</label>
                 <input type="date" name="fecha_registro_hasta" id="fecha_registro_hasta" class="form-control"
-                    value="{{ request('fecha_registro_hasta') }}">
+                    value="{{ request('fecha_registro_hasta') }}" min="{{ request('fecha_registro_desde') }}">
             </div>
             <div class="col-md-2">
                 <div class="d-flex gap-2">
@@ -112,6 +112,7 @@
             <table id="tablaMorbilidad" class="table table-bordered table-striped mb-0">
                 <thead class="bg-light">
                     <tr>
+                        <th>N° Historia</th>
                         <th>Paciente</th>
                         <th>Cédula</th>
                         <th>Fecha Cita</th>
@@ -162,38 +163,42 @@
                 },
                 columns: [{
                         data: 0,
-                        name: 'paciente'
+                        name: 'numero_expediente'
                     },
                     {
                         data: 1,
-                        name: 'cedula'
+                        name: 'paciente'
                     },
                     {
                         data: 2,
-                        name: 'fecha_cita'
+                        name: 'cedula'
                     },
                     {
                         data: 3,
-                        name: 'especialidad'
+                        name: 'fecha_cita'
                     },
                     {
                         data: 4,
-                        name: 'medico'
+                        name: 'especialidad'
                     },
                     {
                         data: 5,
-                        name: 'tipo'
+                        name: 'medico'
                     },
                     {
                         data: 6,
-                        name: 'estado'
+                        name: 'tipo'
                     },
                     {
                         data: 7,
-                        name: 'fecha_registro'
+                        name: 'estado'
                     },
                     {
                         data: 8,
+                        name: 'fecha_registro'
+                    },
+                    {
+                        data: 9,
                         name: 'accion',
                         orderable: false,
                         searchable: false,
@@ -209,8 +214,34 @@
                     [10, 25, 50, "Todas"]
                 ],
                 order: [
-                    [2, 'asc']
+                    [3, 'asc']
                 ]
+            });
+
+            // Auto-fill fechas con min dinámico
+            $('#fecha_desde').on('change', function() {
+                var val = $(this).val();
+                $('#fecha_hasta').attr('min', val);
+                if (val) {
+                    $('#fecha_hasta').val(val);
+                }
+            });
+            $('#fecha_hasta').on('change', function() {
+                if ($(this).val() && !$('#fecha_desde').val()) {
+                    $('#fecha_desde').val($(this).val());
+                }
+            });
+            $('#fecha_registro_desde').on('change', function() {
+                var val = $(this).val();
+                $('#fecha_registro_hasta').attr('min', val);
+                if (val) {
+                    $('#fecha_registro_hasta').val(val);
+                }
+            });
+            $('#fecha_registro_hasta').on('change', function() {
+                if ($(this).val() && !$('#fecha_registro_desde').val()) {
+                    $('#fecha_registro_desde').val($(this).val());
+                }
             });
 
             $('#btnFiltrar').on('click', function() {
@@ -241,13 +272,21 @@
                 var extra = formato === 'pdf' ? '&export_pdf=1' : '&export_excel=1';
                 var url = "{{ route('morbilidad.index') }}?" + params + extra;
 
-                var msg = 'El Sistema está solicitando su confirmación para generar el reporte ' +
-                    formato.toUpperCase() + '.\n\n¿Desea continuar?';
-
-                if (confirm(msg)) {
-                    if (formato === 'pdf') window.open(url, '_blank');
-                    else window.location.href = url;
-                }
+                Swal.fire({
+                    title: 'Generar reporte ' + formato.toUpperCase(),
+                    text: 'Se generará un reporte en ' + formato.toUpperCase() + ' con los filtros actuales. ¿Desea continuar?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, generar',
+                    cancelButtonText: 'Cancelar',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        if (formato === 'pdf') window.open(url, '_blank');
+                        else window.location.href = url;
+                    }
+                });
             }
 
             $('#btnExcel').on('click', function() {

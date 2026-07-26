@@ -46,8 +46,17 @@ class MorbilidadExport implements FromView, WithEvents
 
     public function registerEvents(): array
     {
+        $showEsp = empty($this->especialidad);
+        $showEstado = empty($this->estado);
+        $showTipo = empty($this->tipo_paciente);
+        $showFechaCita = empty($this->fecha_desde) || empty($this->fecha_hasta) || $this->fecha_desde !== $this->fecha_hasta;
+        $showFechaRegistro = empty($this->fecha_registro_desde) || empty($this->fecha_registro_hasta) || $this->fecha_registro_desde !== $this->fecha_registro_hasta;
+
+        $lastColIndex = 5 + ($showEsp ? 1 : 0) + ($showFechaCita ? 1 : 0) + ($showTipo ? 1 : 0) + ($showEstado ? 1 : 0) + ($showFechaRegistro ? 1 : 0);
+        $lastColLetter = chr(65 + $lastColIndex);
+
         return [
-            AfterSheet::class => function (AfterSheet $event) {
+            AfterSheet::class => function (AfterSheet $event) use ($lastColLetter) {
                 $sheet = $event->sheet;
                 $highestRow = $sheet->getHighestRow();
 
@@ -56,17 +65,20 @@ class MorbilidadExport implements FromView, WithEvents
                 $sheet->getRowDimension(3)->setRowHeight(20);
                 $sheet->getRowDimension(4)->setRowHeight(35);
 
-                $sheet->getColumnDimension('A')->setWidth(35);
+                $sheet->getColumnDimension('A')->setWidth(15);
                 $sheet->getColumnDimension('B')->setWidth(15);
-                $sheet->getColumnDimension('C')->setWidth(14);
+                $sheet->getColumnDimension('C')->setWidth(32);
                 $sheet->getColumnDimension('D')->setWidth(22);
                 $sheet->getColumnDimension('E')->setWidth(28);
-                $sheet->getColumnDimension('F')->setWidth(40);
+                $sheet->getColumnDimension('F')->setWidth(14);
                 $sheet->getColumnDimension('G')->setWidth(14);
-                $sheet->getColumnDimension('H')->setWidth(18);
+                $sheet->getColumnDimension('H')->setWidth(14);
+                $sheet->getColumnDimension('I')->setWidth(14);
+                $sheet->getColumnDimension('J')->setWidth(25);
+                $sheet->getColumnDimension('K')->setWidth(40);
 
                 if ($highestRow >= 4) {
-                    $sheet->setAutoFilter('A4:H' . $highestRow);
+                    $sheet->setAutoFilter('A4:' . $lastColLetter . $highestRow);
                 }
             },
         ];
