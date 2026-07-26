@@ -9,7 +9,6 @@
         .fecha { text-align: center; font-size: 10px; margin-bottom: 10px; }
         h1 { color: #20356B; text-align: center; font-size: 18px; margin: 10px 0; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 15px; }
-        thead { display: table-row-group; }
         th, td { border: 1px solid #ddd; padding: 6px 4px; text-align: center; vertical-align: top; word-wrap: break-word; }
         th { background-color: #f2f2f2; font-weight: bold; }
         th:first-child, td:first-child { width: 40%; }
@@ -40,15 +39,12 @@
 
     @if(count($data) > 0)
         <table>
-            <thead>
                 <tr>
                     <th>Especialidad</th>
                     <th>Primera vez</th>
                     <th>Sucesivas</th>
                     <th>Total</th>
                 </tr>
-            </thead>
-            <tbody>
                 @php $totales = ['primera' => 0, 'sucesivas' => 0, 'total' => 0]; @endphp
                 @foreach($data as $row)
                 <tr>

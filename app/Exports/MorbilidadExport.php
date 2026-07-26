@@ -17,8 +17,10 @@ class MorbilidadExport implements FromView, WithEvents
     protected $estado;
     protected $fecha_registro_desde;
     protected $fecha_registro_hasta;
+    protected $medicoNombre;
+    protected $especialidadHeader;
 
-    public function __construct($data, $especialidad = null, $fecha_desde = null, $fecha_hasta = null, $tipo_paciente = null, $estado = null, $fecha_registro_desde = null, $fecha_registro_hasta = null)
+    public function __construct($data, $especialidad = null, $fecha_desde = null, $fecha_hasta = null, $tipo_paciente = null, $estado = null, $fecha_registro_desde = null, $fecha_registro_hasta = null, $medicoNombre = null, $especialidadHeader = null)
     {
         $this->data = $data;
         $this->especialidad = $especialidad;
@@ -28,6 +30,8 @@ class MorbilidadExport implements FromView, WithEvents
         $this->estado = $estado;
         $this->fecha_registro_desde = $fecha_registro_desde;
         $this->fecha_registro_hasta = $fecha_registro_hasta;
+        $this->medicoNombre = $medicoNombre;
+        $this->especialidadHeader = $especialidadHeader;
     }
 
     public function view(): View
@@ -41,18 +45,22 @@ class MorbilidadExport implements FromView, WithEvents
             'estado' => $this->estado,
             'fecha_registro_desde' => $this->fecha_registro_desde,
             'fecha_registro_hasta' => $this->fecha_registro_hasta,
+            'medicoNombreStr' => $this->medicoNombre,
+            'mostrarColumnaMedico' => empty($this->medicoNombre),
+            'especialidadHeader' => $this->especialidadHeader,
         ]);
     }
 
     public function registerEvents(): array
     {
-        $showEsp = empty($this->especialidad);
+        $showEsp = empty($this->especialidad) && empty($this->medicoNombre);
         $showEstado = empty($this->estado);
         $showTipo = empty($this->tipo_paciente);
         $showFechaCita = empty($this->fecha_desde) || empty($this->fecha_hasta) || $this->fecha_desde !== $this->fecha_hasta;
         $showFechaRegistro = empty($this->fecha_registro_desde) || empty($this->fecha_registro_hasta) || $this->fecha_registro_desde !== $this->fecha_registro_hasta;
+        $showMedico = empty($this->medicoNombre);
 
-        $lastColIndex = 5 + ($showEsp ? 1 : 0) + ($showFechaCita ? 1 : 0) + ($showTipo ? 1 : 0) + ($showEstado ? 1 : 0) + ($showFechaRegistro ? 1 : 0);
+        $lastColIndex = 4 + ($showMedico ? 1 : 0) + ($showEsp ? 1 : 0) + ($showFechaCita ? 1 : 0) + ($showTipo ? 1 : 0) + ($showEstado ? 1 : 0) + ($showFechaRegistro ? 1 : 0);
         $lastColLetter = chr(65 + $lastColIndex);
 
         return [

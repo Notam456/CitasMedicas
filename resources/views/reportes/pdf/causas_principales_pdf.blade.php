@@ -9,7 +9,6 @@
         .fecha { text-align: center; font-size: 10px; margin-bottom: 10px; }
         h1 { color: #20356B; text-align: center; font-size: 16px; margin: 10px 0; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 15px; }
-        thead { display: table-row-group; }
         th, td { border: 1px solid #ddd; padding: 3px 2px; text-align: center; vertical-align: middle; word-wrap: break-word; }
         th { background-color: #f2f2f2; font-weight: bold; font-size: 8px; }
         th:first-child, td:first-child { width: 3%; }
@@ -44,7 +43,6 @@
 
     @if(count($data) > 0)
         <table>
-            <thead>
                 <tr>
                     <th rowspan="2">#</th>
                     <th rowspan="2">Patología (Diagnóstico)</th>
@@ -59,8 +57,6 @@
                     <th>1ra Vez</th>
                     <th>Sucesivas</th>
                 </tr>
-            </thead>
-            <tbody>
                 @php
                     $totales = ['m1' => 0, 'ms' => 0, 'f1' => 0, 'fs' => 0, 'total' => 0];
                 @endphp

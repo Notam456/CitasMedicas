@@ -30,10 +30,6 @@
             table-layout: fixed;
             margin-top: 15px;
         }
-        /* Evitar que se repita el encabezado en cada página */
-        thead {
-            display: table-row-group;
-        }
         th, td {
             border: 1px solid #ddd;
             padding: 6px 4px;
@@ -86,7 +82,6 @@
     </div>
 
     <table>
-        <thead>
             <tr>
                 <th>Distrito</th>
                 <th>Municipio</th>
@@ -94,8 +89,6 @@
                 <th>Citas Atendidas</th>
                 <th>Total Pacientes*</th>
             </tr>
-        </thead>
-        <tbody>
             @php
                 $grandTotal = ['agendadas' => 0, 'atendidas' => 0, 'todos' => 0];
             @endphp
