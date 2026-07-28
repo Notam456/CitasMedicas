@@ -21,11 +21,12 @@
     @endif
 
     @php
-        $showEsp = empty($especialidad);
+        $showEsp = empty($especialidad) && empty($medicoNombreStr);
         $showEstado = empty($estado);
         $showTipo = empty($tipo_paciente);
         $showFechaCita = $mostrarFechaCita ?? (empty($fecha_desde) || empty($fecha_hasta) || $fecha_desde !== $fecha_hasta);
         $showFechaRegistro = empty($fecha_registro_desde) || empty($fecha_registro_hasta) || $fecha_registro_desde !== $fecha_registro_hasta;
+        $showMedico = $mostrarColumnaMedico ?? true;
 
         $fechaTexto = '';
         $tituloFecha = '';
@@ -63,14 +64,17 @@
     <div class="fecha">
         <p>
             <strong>Fecha de la Cita:</strong> {{ $fechaTexto }}
-            @if($especialidad)
-                &nbsp;|&nbsp; <strong>Especialidad:</strong> {{ $especialidad }}
+            @if($especialidadHeader)
+                &nbsp;|&nbsp; <strong>Especialidad:</strong> {{ $especialidadHeader }}
             @endif
             @if($tipo_paciente)
                 &nbsp;|&nbsp; <strong>Tipo:</strong> {{ $tipo_paciente === 'primera_vez' ? 'Primera Vez' : ($tipo_paciente === 'control' ? 'Sucesiva' : 'Orden Médica') }}
             @endif
             @if($estado)
                 &nbsp;|&nbsp; <strong>Estado:</strong> {{ $estado }}
+            @endif
+            @if(!empty($medicoNombreStr))
+                &nbsp;|&nbsp; <strong>Médico:</strong> {{ $medicoNombreStr }}
             @endif
             @if($fechaRegTexto)
                 &nbsp;|&nbsp; <strong>Fecha de Registro:</strong> {{ $fechaRegTexto }}
@@ -80,13 +84,12 @@
     </div>
 
     <table>
-        <thead>
             <tr>
                 <th>N° Historia</th>
                 <th>Cédula</th>
                 <th>Paciente</th>
                 @if($showEsp)<th>Especialidad</th>@endif
-                <th>Médico</th>
+                @if($showMedico)<th>Médico</th>@endif
                 @if($showFechaCita)<th>Fecha Cita</th>@endif
                 @if($showTipo)<th>Tipo</th>@endif
                 @if($showEstado)<th>Estado</th>@endif
@@ -94,15 +97,13 @@
                 <th>Observación</th>
                 <th>Diagnóstico</th>
             </tr>
-        </thead>
-        <tbody>
             @foreach($morbilidades as $m)
             <tr>
                 <td>{{ $m->numero_expediente ?? 'Sin asignar' }}</td>
                 <td>{{ $m->paciente_cedula }}</td>
                 <td>{{ $m->paciente_nombre }} {{ $m->paciente_apellido }}</td>
                 @if($showEsp)<td>{{ $m->especialidad_nombre }}</td>@endif
-                <td>Dr. {{ $m->medico_nombre }} {{ $m->medico_apellido }}</td>
+                @if($showMedico)<td>Dr. {{ $m->medico_nombre }} {{ $m->medico_apellido }}</td>@endif
                 @if($showFechaCita)<td class="text-center">{{ \Carbon\Carbon::parse($m->fecha_cita)->format('d/m/Y') }}</td>@endif
                 @if($showTipo)<td>{{ $m->tipo_paciente === 'primera_vez' ? 'Primera Vez' : ($m->tipo_paciente === 'control' ? 'Sucesiva' : 'Orden Médica') }}</td>@endif
                 @if($showEstado)<td>{{ $m->estado }}</td>@endif
@@ -111,26 +112,19 @@
                 <td>
                     @php
                         $diag = '';
-                        if ($m->estado === 'Agendada') {
-                            $diag = 'SIN OBSERVACION, PENDIENTE POR ATENDER';
-                        } elseif (!empty($m->patologias_nombres)) {
+                        if (!empty($m->patologias_nombres)) {
                             $diag = $m->patologias_nombres;
                             if ($m->diagnostico_libre) {
                                 $diag .= ' - ' . $m->diagnostico_libre;
                             }
                         } elseif ($m->diagnostico_libre) {
                             $diag = $m->diagnostico_libre;
-                        } elseif ($m->estado === 'Cancelada') {
-                            $diag = 'SIN OBSERVACION, ESTUVO AGENDADA';
-                        } else {
-                            $diag = '—';
                         }
                     @endphp
                     {{ $diag }}
                 </td>
             </tr>
             @endforeach
-        </tbody>
     </table>
 </body>
 </html>

@@ -33,77 +33,89 @@
         </div>
     </div>
     <div class="card-body">
-        <form method="GET" id="filtroForm" class="row g-3 mb-4 align-items-end">
-            <div class="col-md-2">
-                <label class="form-label fw-bold small text-uppercase text-muted">Especialidad</label>
-                <select name="especialidad_id" id="especialidad_id" class="form-select shadow-none">
-                    <option value="">Todas las especialidades</option>
-                    @foreach ($especialidades as $especialidad)
-                        <option value="{{ $especialidad->id }}"
-                            {{ request('especialidad_id') == $especialidad->id ? 'selected' : '' }}>
-                            {{ $especialidad->nombre }}
-                        </option>
-                    @endforeach
-                </select>
+        <form method="GET" id="filtroForm">
+            <div class="row g-3 mb-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-uppercase text-muted">Especialidad</label>
+                    <x-searchable-select
+                        name="especialidad_id"
+                        id="especialidad_id"
+                        placeholder="Todas las especialidades"
+                        :options="$especialidades->pluck('nombre', 'id')->toArray()"
+                        :selected="request('especialidad_id')"
+                    />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-uppercase text-muted">Tipo de Cita</label>
+                    <select name="tipo_paciente" id="tipo_paciente" class="form-select shadow-none">
+                        <option value="">Todos</option>
+                        <option value="primera_vez" {{ request('tipo_paciente') == 'primera_vez' ? 'selected' : '' }}>Primera Vez</option>
+                        <option value="control" {{ request('tipo_paciente') == 'control' ? 'selected' : '' }}>Sucesiva</option>
+                        <option value="orden_medica" {{ request('tipo_paciente') == 'orden_medica' ? 'selected' : '' }}>Orden Médica</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-uppercase text-muted">Estado de Cita</label>
+                    <select name="estado" id="estado" class="form-select shadow-none">
+                        <option value="">Todos</option>
+                        <option value="Agendada" {{ request('estado') == 'Agendada' ? 'selected' : '' }}>Agendada</option>
+                        <option value="Atendida" {{ request('estado') == 'Atendida' ? 'selected' : '' }}>Atendida</option>
+                        <option value="Cancelada" {{ request('estado') == 'Cancelada' ? 'selected' : '' }}>Cancelada</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-uppercase text-muted">Médico</label>
+                    <x-searchable-select
+                        name="medico_id"
+                        id="medico_id"
+                        placeholder="Todos los médicos"
+                        :options="$medicos->mapWithKeys(function($m) {
+                            return [$m->id => 'Dr. ' . $m->nombre . ' ' . $m->apellido];
+                        })->toArray()"
+                        :selected="request('medico_id')"
+                    />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-uppercase text-muted">Fecha cita desde</label>
+                    <input type="date" name="fecha_desde" id="fecha_desde" class="form-control"
+                        value="{{ request('fecha_desde') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-uppercase text-muted">Fecha cita hasta</label>
+                    <input type="date" name="fecha_hasta" id="fecha_hasta" class="form-control"
+                        value="{{ request('fecha_hasta') }}" min="{{ request('fecha_desde') }}">
+                </div>
             </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold small text-uppercase text-muted">Tipo de Cita</label>
-                <select name="tipo_paciente" id="tipo_paciente" class="form-select shadow-none">
-                    <option value="">Todos</option>
-                    <option value="primera_vez" {{ request('tipo_paciente') == 'primera_vez' ? 'selected' : '' }}>Primera
-                        Vez</option>
-                    <option value="control" {{ request('tipo_paciente') == 'control' ? 'selected' : '' }}>Sucesiva</option>
-                    <option value="orden_medica" {{ request('tipo_paciente') == 'orden_medica' ? 'selected' : '' }}>Orden
-                        Médica</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold small text-uppercase text-muted">Estado de Cita</label>
-                <select name="estado" id="estado" class="form-select shadow-none">
-                    <option value="">Todos</option>
-                    <option value="Agendada" {{ request('estado') == 'Agendada' ? 'selected' : '' }}>Agendada</option>
-                    <option value="Atendida" {{ request('estado') == 'Atendida' ? 'selected' : '' }}>Atendida</option>
-                    <option value="Cancelada" {{ request('estado') == 'Cancelada' ? 'selected' : '' }}>Cancelada</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold small text-uppercase text-muted">Fecha cita desde</label>
-                <input type="date" name="fecha_desde" id="fecha_desde" class="form-control"
-                    value="{{ request('fecha_desde') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold small text-uppercase text-muted">Fecha cita hasta</label>
-                <input type="date" name="fecha_hasta" id="fecha_hasta" class="form-control"
-                    value="{{ request('fecha_hasta') }}" min="{{ request('fecha_desde') }}">
-            </div>
-            <div class="col-md-1">
-                <button type="button" id="btnFiltrar" class="btn btn-primary w-100 shadow-sm">
-                    <i class="fas fa-filter me-1"></i> Filtrar
-                </button>
-            </div>
-            <div class="col-md-1">
-                <button type="button" id="btnLimpiar" class="btn btn-secondary w-100 shadow-sm">
-                    <i class="fas fa-undo me-1"></i> Limpiar
-                </button>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold small text-uppercase text-muted">Fecha registro desde</label>
-                <input type="date" name="fecha_registro_desde" id="fecha_registro_desde" class="form-control"
-                    value="{{ request('fecha_registro_desde') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold small text-uppercase text-muted">Fecha registro hasta</label>
-                <input type="date" name="fecha_registro_hasta" id="fecha_registro_hasta" class="form-control"
-                    value="{{ request('fecha_registro_hasta') }}" min="{{ request('fecha_registro_desde') }}">
-            </div>
-            <div class="col-md-2">
-                <div class="d-flex gap-2">
-                    <button type="button" id="btnExcel" class="btn btn-success w-50 shadow-sm">
-                        <i class="fas fa-file-excel me-1"></i> Excel
+            <div class="row g-3 mb-4 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-uppercase text-muted">Fecha registro desde</label>
+                    <input type="date" name="fecha_registro_desde" id="fecha_registro_desde" class="form-control"
+                        value="{{ request('fecha_registro_desde') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-uppercase text-muted">Fecha registro hasta</label>
+                    <input type="date" name="fecha_registro_hasta" id="fecha_registro_hasta" class="form-control"
+                        value="{{ request('fecha_registro_hasta') }}" min="{{ request('fecha_registro_desde') }}">
+                </div>
+                <div class="col-md-1">
+                    <button type="button" id="btnFiltrar" class="btn btn-primary w-100 shadow-sm">
+                        <i class="fas fa-filter me-1"></i> Filtrar
                     </button>
-                    <button type="button" id="btnPdf" class="btn btn-danger w-50 shadow-sm">
-                        <i class="fas fa-file-pdf me-1"></i> PDF
+                </div>
+                <div class="col-md-1">
+                    <button type="button" id="btnLimpiar" class="btn btn-secondary w-100 shadow-sm">
+                        <i class="fas fa-undo me-1"></i> Limpiar
                     </button>
+                </div>
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="button" id="btnExcel" class="btn btn-success w-50 shadow-sm">
+                            <i class="fas fa-file-excel me-1"></i> Excel
+                        </button>
+                        <button type="button" id="btnPdf" class="btn btn-danger w-50 shadow-sm">
+                            <i class="fas fa-file-pdf me-1"></i> PDF
+                        </button>
+                    </div>
                 </div>
             </div>
         </form>
@@ -153,6 +165,7 @@
                     type: 'GET',
                     data: function(d) {
                         d.especialidad_id = $('#especialidad_id').val();
+                        d.medico_id = $('#medico_id').val();
                         d.fecha_desde = $('#fecha_desde').val();
                         d.fecha_hasta = $('#fecha_hasta').val();
                         d.tipo_paciente = $('#tipo_paciente').val();
@@ -249,7 +262,17 @@
             });
 
             $('#btnLimpiar').on('click', function() {
-                $('#especialidad_id').val('');
+                // Reset searchable selects
+                $('.searchable-select-wrapper').each(function() {
+                    const wrapper = $(this);
+                    const input = wrapper.find('.searchable-select-input');
+                    const hidden = wrapper.find('input[type="hidden"]');
+                    const dropdown = wrapper.find('.searchable-select-dropdown');
+                    hidden.val('');
+                    input.val('');
+                    dropdown.find('.searchable-select-option').removeClass('active');
+                    dropdown.find('li').show();
+                });
                 $('#tipo_paciente').val('');
                 $('#estado').val('');
                 $('#fecha_desde').val('');
@@ -262,6 +285,7 @@
             function confirmarExportacion(formato) {
                 var params = $.param({
                     especialidad_id: $('#especialidad_id').val(),
+                    medico_id: $('#medico_id').val(),
                     fecha_desde: $('#fecha_desde').val(),
                     fecha_hasta: $('#fecha_hasta').val(),
                     tipo_paciente: $('#tipo_paciente').val(),
@@ -378,6 +402,39 @@
                     Swal.fire('Error', 'No se pudo cargar la información para editar', 'error');
                 }
             });
+
+            // Cascada: al cambiar especialidad, filtrar médicos
+            const medicoEspMap = @json($medicos->pluck('especialidad_id', 'id'));
+
+            function filtrarMedicos() {
+                const espId = $('#especialidad_id').val();
+                const wrapper = $('.searchable-select-wrapper[data-target="medico_id"]');
+                const input = wrapper.find('.searchable-select-input');
+                const hidden = wrapper.find('#medico_id');
+                const dropdown = wrapper.find('.searchable-select-dropdown');
+                const currentVal = hidden.val();
+
+                dropdown.find('.searchable-select-option').each(function() {
+                    const $opt = $(this);
+                    const val = $opt.data('value');
+                    if (val === '') return;
+                    const espDelMedico = medicoEspMap[val];
+                    const match = !espId || espDelMedico == espId;
+                    $opt.closest('li').toggle(match);
+                });
+
+                if (currentVal) {
+                    const $current = dropdown.find(`.searchable-select-option[data-value="${currentVal}"]`);
+                    if ($current.length === 0 || $current.closest('li').is(':hidden')) {
+                        hidden.val('');
+                        input.val('');
+                        dropdown.find('.searchable-select-option').removeClass('active');
+                    }
+                }
+            }
+
+            $('#especialidad_id').on('change', filtrarMedicos);
+            filtrarMedicos();
         });
     </script>
 @endpush

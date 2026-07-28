@@ -36,8 +36,15 @@ class MorbilidadController extends Controller
             $fecha_registro_desde = $request->fecha_registro_desde;
             $fecha_registro_hasta = $request->fecha_registro_hasta;
 
-            $slugEsp = $especialidad ? str_replace(' ', '-', mb_strtolower($especialidad)) : null;
+            $medicoModel = $request->filled('medico_id')
+                ? \App\Models\Medico::find($request->medico_id)
+                : null;
+            $medicoNombreStr = $medicoModel ? 'Dr. ' . $medicoModel->nombre . ' ' . $medicoModel->apellido : null;
+            $especialidadHeader = $especialidad ?: ($medicoModel ? $medicoModel->especialidad->nombre : null);
+
+            $slugEsp = $especialidadHeader ? str_replace(' ', '-', mb_strtolower($especialidadHeader)) : null;
             $slugEstado = $estado ? str_replace(' ', '-', mb_strtolower($estado)) : null;
+            $slugMedico = $medicoNombreStr ? str_replace(' ', '-', mb_strtolower($medicoNombreStr)) : null;
 
             $partesNombre = ['reporte-de-citas'];
             if ($fecha_desde && $fecha_hasta) {
@@ -48,17 +55,19 @@ class MorbilidadController extends Controller
                 }
             }
             if ($slugEsp) $partesNombre[] = $slugEsp;
+            if ($slugMedico) $partesNombre[] = $slugMedico;
             if ($slugEstado) $partesNombre[] = $slugEstado;
             $nombreArchivo = implode('-', $partesNombre);
 
             $mostrarFechaCita = empty($fecha_desde) || empty($fecha_hasta) || $fecha_desde !== $fecha_hasta;
+            $mostrarColumnaMedico = !$request->filled('medico_id');
 
             if ($request->has('export_excel')) {
                 ini_set('memory_limit', '512M');
                 ini_set('max_execution_time', 300);
                 $morbilidades = $query->lazy();
                 return Excel::download(
-                    new MorbilidadExport($morbilidades, $especialidad, $fecha_desde, $fecha_hasta, $tipo_paciente, $estado, $fecha_registro_desde, $fecha_registro_hasta),
+                    new MorbilidadExport($morbilidades, $especialidad, $fecha_desde, $fecha_hasta, $tipo_paciente, $estado, $fecha_registro_desde, $fecha_registro_hasta, $medicoNombreStr, $especialidadHeader),
                     $nombreArchivo . '.xlsx'
                 );
             }
@@ -74,12 +83,15 @@ class MorbilidadController extends Controller
                 ini_set('pcre.backtrack_limit', '10000000');
                 $membrete = $this->getMembreteBase64();
                 $morbilidades = $query->get();
-                $pdf = Pdf::loadView('reportes.pdf.morbilidad_pdf', compact('morbilidades', 'membrete', 'especialidad', 'fecha_desde', 'fecha_hasta', 'tipo_paciente', 'estado', 'fecha_registro_desde', 'fecha_registro_hasta', 'mostrarFechaCita'));
+                $pdf = Pdf::loadView('reportes.pdf.morbilidad_pdf', compact('morbilidades', 'membrete', 'especialidad', 'fecha_desde', 'fecha_hasta', 'tipo_paciente', 'estado', 'fecha_registro_desde', 'fecha_registro_hasta', 'mostrarFechaCita', 'medicoNombreStr', 'mostrarColumnaMedico', 'especialidadHeader'));
                 return $pdf->stream($nombreArchivo . '.pdf');
             }
         }
 
-        return view('morbilidad.index', compact('especialidades'));
+        $medicos = \App\Models\Medico::with('especialidad')
+            ->orderBy('nombre')
+            ->get();
+        return view('morbilidad.index', compact('especialidades', 'medicos'));
     }
 
     public function pendientes(Request $request)
@@ -166,6 +178,9 @@ class MorbilidadController extends Controller
         }
         if ($request->filled('fecha_registro_hasta')) {
             $query->whereDate('citas.created_at', '<=', $request->fecha_registro_hasta);
+        }
+        if ($request->filled('medico_id')) {
+            $query->where('medicos.id', $request->medico_id);
         }
 
         return $query;

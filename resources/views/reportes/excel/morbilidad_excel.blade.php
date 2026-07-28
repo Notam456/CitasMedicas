@@ -1,10 +1,11 @@
 @php
-    $showEsp = empty($especialidad);
+    $showEsp = empty($especialidad) && empty($medicoNombreStr);
     $showEstado = empty($estado);
     $showTipo = empty($tipo_paciente);
     $showFechaCita = $mostrarFechaCita ?? (empty($fecha_desde) || empty($fecha_hasta) || $fecha_desde !== $fecha_hasta);
     $showFechaRegistro = empty($fecha_registro_desde) || empty($fecha_registro_hasta) || $fecha_registro_desde !== $fecha_registro_hasta;
-    $totalCols = 6 + ($showEsp ? 1 : 0) + ($showFechaCita ? 1 : 0) + ($showTipo ? 1 : 0) + ($showEstado ? 1 : 0) + ($showFechaRegistro ? 1 : 0);
+    $showMedico = $mostrarColumnaMedico ?? true;
+    $totalCols = 5 + ($showMedico ? 1 : 0) + ($showEsp ? 1 : 0) + ($showFechaCita ? 1 : 0) + ($showTipo ? 1 : 0) + ($showEstado ? 1 : 0) + ($showFechaRegistro ? 1 : 0);
 
     $tituloFecha = '';
     if ($fecha_desde && $fecha_hasta) {
@@ -25,14 +26,17 @@
     </tr>
     <tr>
         <td colspan="{{ $totalCols }}" style="font-size: 11px; padding: 8px 12px; background-color: #E8F5E9; border: none;">
-            @if($especialidad)
-                <strong> Especialidad: </strong> {{ $especialidad }} &nbsp;|&nbsp;
+            @if($especialidadHeader)
+                <strong> Especialidad: </strong> {{ $especialidadHeader }} &nbsp;|&nbsp;
             @endif
             @if($tipo_paciente)
                 <strong> Tipo: </strong> {{ $tipo_paciente === 'primera_vez' ? 'Primera Vez' : ($tipo_paciente === 'control' ? 'Sucesiva' : 'Orden Médica') }} &nbsp;|&nbsp;
             @endif
             @if($estado)
                 <strong> Estado: </strong> {{ $estado }} &nbsp;|&nbsp;
+            @endif
+            @if(!empty($medicoNombreStr))
+                <strong> Médico: </strong> {{ $medicoNombreStr }} &nbsp;|&nbsp;
             @endif
             <strong> Fecha de la Cita: </strong>
             @if($fecha_desde && $fecha_hasta)
@@ -70,7 +74,7 @@
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Cédula</th>
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Paciente</th>
         @if($showEsp)<th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Especialidad</th>@endif
-        <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Médico</th>
+        @if($showMedico)<th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Médico</th>@endif
         @if($showFechaCita)<th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Fecha Cita</th>@endif
         @if($showTipo)<th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Tipo</th>@endif
         @if($showEstado)<th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Estado</th>@endif
@@ -84,7 +88,7 @@
         <td style="padding: 8px; text-align: center; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ $m->paciente_cedula }}</td>
         <td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ $m->paciente_nombre }} {{ $m->paciente_apellido }}</td>
         @if($showEsp)<td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ $m->especialidad_nombre }}</td>@endif
-        <td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">Dr. {{ $m->medico_nombre }} {{ $m->medico_apellido }}</td>
+        @if($showMedico)<td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">Dr. {{ $m->medico_nombre }} {{ $m->medico_apellido }}</td>@endif
         @if($showFechaCita)<td style="padding: 8px; text-align: center; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ \Carbon\Carbon::parse($m->fecha_cita)->format('d/m/Y') }}</td>@endif
         @if($showTipo)<td style="padding: 8px; text-align: center; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ $m->tipo_paciente === 'primera_vez' ? 'Primera Vez' : ($m->tipo_paciente === 'control' ? 'Sucesiva' : 'Orden Médica') }}</td>@endif
         @if($showEstado)<td style="padding: 8px; text-align: center; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ $m->estado }}</td>@endif
@@ -93,19 +97,13 @@
         <td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">
             @php
                 $diag = '';
-                if ($m->estado === 'Agendada') {
-                    $diag = 'SIN OBSERVACION, PENDIENTE POR ATENDER';
-                } elseif (!empty($m->patologias_nombres)) {
+                if (!empty($m->patologias_nombres)) {
                     $diag = $m->patologias_nombres;
                     if ($m->diagnostico_libre) {
                         $diag .= ' - ' . $m->diagnostico_libre;
                     }
                 } elseif ($m->diagnostico_libre) {
                     $diag = $m->diagnostico_libre;
-                } elseif ($m->estado === 'Cancelada') {
-                    $diag = 'SIN OBSERVACION, ESTUVO AGENDADA';
-                } else {
-                    $diag = '—';
                 }
             @endphp
             {{ $diag }}

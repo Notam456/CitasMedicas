@@ -30,10 +30,6 @@
             table-layout: fixed;
             margin-top: 15px;
         }
-        /* Evitar que se repita el encabezado en cada página */
-        thead {
-            display: table-row-group;
-        }
         th, td {
             border: 1px solid #ddd;
             padding: 6px 4px;
@@ -78,7 +74,6 @@
 
     @if($medicos->count())
         <table>
-            <thead>
                 <tr>
                     <th>Nombres</th>
                     <th>Apellidos</th>
@@ -86,8 +81,6 @@
                     <th>Teléfono</th>
                     <th>Especialidad</th>
                 </tr>
-            </thead>
-            <tbody>
                 @foreach($medicos as $medico)
                 <tr>
                     <td>{{ $medico->nombre }}</td>

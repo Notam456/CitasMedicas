@@ -88,7 +88,6 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
         $distritosReales = Distrito::orderBy('id')->get();
 
         $distritosEspeciales = [
-            (object)['id' => 999, 'nombre' => 'Otros Estados'],
             (object)['id' => 1000, 'nombre' => 'Ignorado']
         ];
 
@@ -106,7 +105,7 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
                 'subtotal' => ['agendadas' => 0, 'atendidas' => 0, 'total' => 0]
             ];
             // Para distritos reales (no especiales), obtener todos sus municipios desde la tabla
-            if ($distritoId <= 5) { 
+            if (!in_array($distritoId, [6, 1000])) { 
                 $municipiosDelDistrito = Municipio::where('distrito_id', $distritoId)->orderBy('nombre')->get();
                 foreach ($municipiosDelDistrito as $mun) {
                     $reporte[$distritoNombre]['municipios'][$mun->nombre] = [
@@ -163,10 +162,12 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
             }
         }
         
-        // 5. Ordenar distritos: primero los reales por id, luego Otros Estados, luego Ignorado
+        // 5. Ordenar distritos: reales primero (excluye Otros Estados), luego Otros Estados, luego Ignorado
         $ordenDistritos = [];
         foreach ($distritosReales as $d) {
-            $ordenDistritos[] = $d->nombre;
+            if ($d->nombre !== 'Otros Estados') {
+                $ordenDistritos[] = $d->nombre;
+            }
         }
         $ordenDistritos[] = 'Otros Estados';
         $ordenDistritos[] = 'Ignorado';

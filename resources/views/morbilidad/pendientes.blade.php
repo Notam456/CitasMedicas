@@ -15,7 +15,7 @@
 
                     @can('Reporte Cita')
                         <a href="{{ route('morbilidad.index') }}" class="btn btn-primary">
-                            <i class="bi bi-printer me-1"></i> Reporte de Morbilidad
+                            <i class="bi bi-printer me-1"></i> Reporte de Citas
                         </a>
                     @endcan
                 </div>

@@ -80,7 +80,7 @@
         {{-- 2 --}}
         <div class="col-md-4">
             @component('reportes.card')
-            @slot('card_title','Movimiento Consulta Aro')
+            @slot('card_title','Movimiento Consulta Aro, EN PROCESO')
 
             @slot('card_desc')
             Pacientes con menos de 13 semanas de gestación de primera, y las adolescentes entre 10-19 de primera.
@@ -98,7 +98,7 @@
         {{-- 3 --}}
         <div class="col-md-4">
             @component('reportes.card')
-            @slot('card_title','Inasistencia Pacientes')
+            @slot('card_title','Inasistencia Pacientes, EN PROCESO')
 
             @slot('card_desc')
             Reporte Mensual de las Ausencias de Pacientes Ordenadas por Especialidad.
@@ -122,7 +122,7 @@
         {{-- 1 --}}
         <div class="col-md-4">
             @component('reportes.card')
-            @slot('card_title','Inasistencia Médicos')
+            @slot('card_title','Inasistencia Médicos, EN PROCESO')
 
             @slot('card_desc')
             Reporte Mensual con Información Basica de los Pacientes que Perdieron Citas.

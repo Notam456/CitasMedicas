@@ -48,7 +48,7 @@
 
             @canany(['Cita', 'Reporte Cita', 'Atender Cita'])
             <div class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-calendar-check-fill me-2"></i>Citas</a>
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-calendar-check-fill me-2"></i>Cita</a>
                 <div class="dropdown-menu bg-transparent border-0">
                     @can('Cita')
                     <a href="{{ route('Citas.create') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-plus-circle me-2"></i>Agendar Cita</a>
@@ -66,7 +66,7 @@
             @endcanany
 
             @can('Reportes')
-            <a href="{{route('reportes.index')}}" class="nav-link nav-item"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Reportes</a>
+            <a href="{{route('reportes.index')}}" class="nav-link nav-item"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Reporte</a>
             @endcan
         </div>
     </nav>
