@@ -80,17 +80,18 @@
         {{-- 2 --}}
         <div class="col-md-4">
             @component('reportes.card')
-            @slot('card_title','Movimiento Consulta Aro, EN PROCESO')
+            @slot('card_title','Movimiento Consulta Aro Mensual')
 
             @slot('card_desc')
             Pacientes con menos de 13 semanas de gestación de primera, y las adolescentes entre 10-19 de primera.
             @endslot
 
             @slot('reporte_bs_target','#modalMovimientoConsultaAro')
-            
+
             @slot('reporte_excel')
-            {{route('reportes.medicos_excel')}}
+            {{route('reportes.movimiento_consulta_aro_excel')}}
             @endslot
+            @slot('excel_modal', true)
             
             @endcomponent
         </div>

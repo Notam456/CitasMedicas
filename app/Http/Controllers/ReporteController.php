@@ -323,6 +323,87 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
         return $this->movimientoConsultas($request);
     }
 
+    public function movimientoConsultaAro(Request $request)
+    {
+        $request->validate([
+            'tipo_rango' => 'required|in:mes,rango',
+            'mes' => 'required_if:tipo_rango,mes|nullable|date_format:Y-m',
+            'fecha_desde' => 'required_if:tipo_rango,rango|nullable|date',
+            'fecha_hasta' => 'required_if:tipo_rango,rango|nullable|date|after_or_equal:fecha_desde',
+        ]);
+
+        if ($request->tipo_rango == 'mes') {
+            $fecha = Carbon::createFromFormat('Y-m', $request->mes);
+            $fecha_desde = $fecha->copy()->startOfMonth()->toDateString();
+            $fecha_hasta = $fecha->copy()->endOfMonth()->toDateString();
+            $fechaTexto = $fecha->locale('es')->translatedFormat('F Y');
+        } else {
+            $fecha_desde = $request->fecha_desde;
+            $fecha_hasta = $request->fecha_hasta;
+            $fechaTexto = Carbon::parse($fecha_desde)->format('d/m/Y') . ' al ' . Carbon::parse($fecha_hasta)->format('d/m/Y');
+        }
+
+        $aroEsp = Especialidad::where('nombre', 'Aro (Embarazados)')->first();
+        if (!$aroEsp) {
+            Alert::error('Error', 'No se encontró la especialidad Aro (Embarazados).');
+            return redirect()->route('reportes.index');
+        }
+
+        $data = Cita::select(
+                DB::raw("to_char(citas.fecha_cita, 'YYYY-MM') as mes"),
+                DB::raw("COUNT(DISTINCT CASE WHEN acd.semanas_gestacion IS NOT NULL AND acd.semanas_gestacion < 13 AND citas.tipo_paciente = 'primera_vez' THEN citas.paciente_id END) as menos_13_sem"),
+                DB::raw("COUNT(DISTINCT CASE WHEN EXTRACT(YEAR FROM AGE(pacientes.fecha_nacimiento)) BETWEEN 10 AND 19 AND citas.tipo_paciente = 'primera_vez' THEN citas.paciente_id END) as adolescentes"),
+                DB::raw("COUNT(*) as total_consultas")
+            )
+            ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
+            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
+            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
+            ->leftJoin('aro_cita_datos as acd', 'acd.cita_id', '=', 'citas.id')
+            ->where('especialidades.id', $aroEsp->id)
+            ->whereIn('citas.estado', ['Atendida', 'Agendada'])
+            ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
+            ->groupBy(DB::raw("to_char(citas.fecha_cita, 'YYYY-MM')"))
+            ->orderBy('mes')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'mes' => $item->mes,
+                    'menos_13_sem' => (int) $item->menos_13_sem,
+                    'adolescentes' => (int) $item->adolescentes,
+                    'total_consultas' => (int) $item->total_consultas,
+                ];
+            })
+            ->toArray();
+
+        $totales = [
+            'menos_13_sem' => array_sum(array_column($data, 'menos_13_sem')),
+            'adolescentes' => array_sum(array_column($data, 'adolescentes')),
+            'total_consultas' => array_sum(array_column($data, 'total_consultas')),
+        ];
+
+        $titulo = 'Movimiento de Consulta Aro Mensual';
+
+        if ($request->has('excel')) {
+            return Excel::download(new \App\Exports\MovimientoConsultaAroExport($data, $titulo, $fechaTexto, $totales), 'movimiento_consulta_aro.xlsx');
+        }
+
+        $membrete = $this->getMembreteBase64();
+        $pdf = Pdf::loadView('reportes.pdf.movimiento_consulta_aro_pdf', compact('data', 'titulo', 'fechaTexto', 'membrete', 'totales'));
+        return $pdf->stream('movimiento_consulta_aro.pdf');
+    }
+
+    public function movimientoConsultaAroPdf(Request $request)
+    {
+        return $this->movimientoConsultaAro($request);
+    }
+
+    public function movimientoConsultaAroExcel(Request $request)
+    {
+        $request->merge(['excel' => true]);
+        return $this->movimientoConsultaAro($request);
+    }
+
     public function causasPrincipales(Request $request)
     {
         $request->validate([

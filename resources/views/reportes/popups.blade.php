@@ -232,15 +232,59 @@
     </div>
     @endcomponent
 
-    {{--6 Movimiento Consulta Aro (pendiente) --}}
+    {{--6 Movimiento Consulta Aro --}}
     @component('reportes.modal')
         @slot('modal_id', 'modalMovimientoConsultaAro')
         @slot('modal_title', 'Rango de Fecha Consultas Aro')
-        @slot('form_action', '#')
+        @slot('form_action', route('reportes.movimiento_consulta_aro_pdf'))
+        @slot('excel_action', route('reportes.movimiento_consulta_aro_excel'))
+
         <div class="mb-3">
-            <label for="mes_consulta_aro" class="form-label">Seleccione el Mes</label>
-            <input type="month" name="mes" id="mes_consulta_aro" class="form-control" required>
+            <label class="form-label">Tipo de rango</label>
+            <div class="d-flex gap-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tipo_rango" id="aro_tipo_mes" value="mes" checked>
+                    <label class="form-check-label" for="aro_tipo_mes">Mes específico</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tipo_rango" id="aro_tipo_rango" value="rango">
+                    <label class="form-check-label" for="aro_tipo_rango">Rango de fechas</label>
+                </div>
+            </div>
         </div>
+
+        <div class="mb-3" id="aro_div_mes">
+            <label class="form-label">Seleccione el Mes</label>
+            <input type="month" name="mes" id="aro_mes" class="form-control">
+        </div>
+
+        <div class="mb-3 d-none" id="aro_div_rango">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="aro_fecha_desde" class="form-label">Fecha desde</label>
+                    <input type="date" name="fecha_desde" id="aro_fecha_desde" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="aro_fecha_hasta" class="form-label">Fecha hasta</label>
+                    <input type="date" name="fecha_hasta" id="aro_fecha_hasta" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                initRangoFechas({
+                    prefix: 'aro',
+                    mesId: 'aro_mes',
+                    tipoMesId: 'aro_tipo_mes',
+                    tipoRangoId: 'aro_tipo_rango',
+                    divMesId: 'aro_div_mes',
+                    divRangoId: 'aro_div_rango',
+                });
+            });
+        </script>
+        @endpush
     @endcomponent
 
     {{--7 Inasistencia Pacientes (pendiente) --}}
