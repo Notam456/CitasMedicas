@@ -58,4 +58,9 @@ class Cita extends Model
     {
         return $this->belongsToMany(Patologia::class, 'cita_patologias')->withTimestamps();
     }
+
+    public function aroDato()
+    {
+        return $this->hasOne(AroCitaDato::class);
+    }
 }

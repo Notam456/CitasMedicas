@@ -24,15 +24,9 @@
                 <div class="row g-3 mb-4 align-items-end">
                     <div class="col-md-3">
                         <label class="form-label fw-bold small text-uppercase text-muted">Especialidad</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="fas fa-stethoscope"></i></span>
-                            <select id="especialidad_filtro" class="form-select shadow-none">
-                                <option value="">Todas</option>
-                                @foreach ($especialidades as $e)
-                                    <option value="{{ $e->id }}">{{ $e->nombre }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <x-searchable-select name="especialidad_filtro" id="especialidad_filtro"
+                            :options="$especialidades->pluck('nombre', 'id')->prepend('Todas', '')"
+                            placeholder="Todas" icon="fas fa-stethoscope" />
                     </div>
                     <div class="col-md-2">
                         <button type="button" id="btnFiltrar" class="btn btn-primary w-100 shadow-sm">
@@ -120,7 +114,19 @@
                                     class="bi bi-plus-circle"></i> Agregar otra patología</button>
                         </div>
 
-
+                        <!-- Sección Aro (Embarazadas) -->
+                        <div id="aroSection" class="mb-4 d-none">
+                            <hr>
+                            <h6 class="text-primary fw-bold">Datos de Embarazo (Aro)</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label for="semanas_gestacion" class="form-label">Semanas de Gestación</label>
+                                    <input type="number" name="semanas_gestacion" id="semanas_gestacion"
+                                           class="form-control" min="0" max="42" step="1"
+                                           placeholder="Ej: 24 semanas" required>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -242,6 +248,7 @@
             });
             $('#btnLimpiar').on('click', function() {
                 $('#especialidad_filtro').val('');
+                $('#especialidad_filtro_search').val('');
                 table.ajax.reload();
             });
 
@@ -348,6 +355,20 @@
                                 .cita.medico.apellido);
                             $('#info_especialidad').text(data.cita.medico.especialidad.nombre);
                             $('#diagnostico_libre').val(data.cita.diagnostico_libre || '');
+
+                            // Sección Aro
+                            if (data.es_aro) {
+                                $('#aroSection').removeClass('d-none');
+                                $('#semanas_gestacion').prop('required', true);
+                                if (data.cita.aro_dato && data.cita.aro_dato.semanas_gestacion) {
+                                    $('#semanas_gestacion').val(data.cita.aro_dato.semanas_gestacion);
+                                } else {
+                                    $('#semanas_gestacion').val('');
+                                }
+                            } else {
+                                $('#aroSection').addClass('d-none');
+                                $('#semanas_gestacion').prop('required', false).val('');
+                            }
                         }
                     },
                     error: function() {
@@ -423,6 +444,7 @@
             $('#modalAtender').on('hidden.bs.modal', function() {
                 $('#formDiagnostico')[0].reset();
                 $('#patologias-container').empty();
+                $('#semanas_gestacion').prop('required', false);
             });
         });
     </script>

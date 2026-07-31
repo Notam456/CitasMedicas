@@ -143,6 +143,7 @@ class DiagnosticoController extends Controller
             'paciente',
             'medico.especialidad',
             'patologias',
+            'aroDato',
         ])->findOrFail($id);
 
         $patologiasDisponibles = Patologia::where('especialidad_id', $cita->medico->especialidad_id)->get();
@@ -150,22 +151,33 @@ class DiagnosticoController extends Controller
         return response()->json([
             'cita' => $cita,
             'patologias_disponibles' => $patologiasDisponibles,
+            'es_aro' => $cita->medico->especialidad->nombre === 'Aro (Embarazados)',
         ]);
     }
 
     public function update(Request $request, $id)
     {
+        $cita = Cita::with('medico.especialidad')->findOrFail($id);
+        $esAro = $cita->medico->especialidad->nombre === 'Aro (Embarazados)';
+
         $request->validate([
             'diagnostico_libre' => 'nullable|string|max:5000',
             'patologias' => 'array',
             'patologias.*' => 'exists:patologias,id',
+            'semanas_gestacion' => $esAro ? 'required|integer|min:0|max:42' : 'nullable|integer|min:0|max:42',
         ]);
 
         DB::beginTransaction();
         try {
-            $cita = Cita::findOrFail($id);
             $cita->update(['diagnostico_libre' => $request->diagnostico_libre]);
             $cita->patologias()->sync($request->patologias ?? []);
+
+            if ($request->filled('semanas_gestacion')) {
+                $cita->aroDato()->updateOrCreate(
+                    ['cita_id' => $cita->id],
+                    ['semanas_gestacion' => $request->semanas_gestacion]
+                );
+            }
 
             DB::commit();
             Alert::success('Diagnóstico actualizado correctamente.');
@@ -211,10 +223,14 @@ class DiagnosticoController extends Controller
 
     public function store(Request $request, Cita $cita)
     {
+        $cita->load('medico.especialidad');
+        $esAro = $cita->medico->especialidad->nombre === 'Aro (Embarazados)';
+
         $request->validate([
             'diagnostico_libre' => 'nullable|string|max:5000',
             'patologias' => 'array',
             'patologias.*' => 'exists:patologias,id',
+            'semanas_gestacion' => $esAro ? 'required|integer|min:0|max:42' : 'nullable|integer|min:0|max:42',
         ]);
 
         if ($cita->estado === 'Atendida') {
@@ -232,6 +248,13 @@ class DiagnosticoController extends Controller
 
             if ($request->has('patologias')) {
                 $cita->patologias()->sync($request->patologias);
+            }
+
+            if ($request->filled('semanas_gestacion')) {
+                $cita->aroDato()->updateOrCreate(
+                    ['cita_id' => $cita->id],
+                    ['semanas_gestacion' => $request->semanas_gestacion]
+                );
             }
 
             DB::commit();

@@ -23,6 +23,21 @@ class MorbilidadController extends Controller
 
         if ($request->has('export_excel') || $request->has('export_pdf')) {
             $query = $this->buildBaseQuery($request);
+
+            $esAgendadas = $request->estado === 'Agendada';
+
+            if ($esAgendadas) {
+                $query->leftJoin('parroquias', 'pacientes.parroquia_id', '=', 'parroquias.id')
+                    ->leftJoin('municipios', 'parroquias.municipio_id', '=', 'municipios.id')
+                    ->leftJoin('distritos', 'municipios.distrito_id', '=', 'distritos.id')
+                    ->addSelect(
+                        DB::raw("EXTRACT(YEAR FROM AGE(pacientes.fecha_nacimiento)) as edad"),
+                        'pacientes.sexo',
+                        DB::raw("COALESCE(distritos.nombre, 'Ignorado') as distrito_nombre"),
+                        DB::raw("COALESCE(municipios.nombre, 'Ignorado') as municipio_nombre")
+                    );
+            }
+
             $query->orderBy(DB::raw("CASE WHEN citas.tipo_paciente = 'primera_vez' THEN 0 ELSE 1 END"), 'asc')
                   ->orderBy('citas.fecha_cita', 'desc');
 
@@ -61,11 +76,20 @@ class MorbilidadController extends Controller
 
             $mostrarFechaCita = empty($fecha_desde) || empty($fecha_hasta) || $fecha_desde !== $fecha_hasta;
             $mostrarColumnaMedico = !$request->filled('medico_id');
+            $mostrarColumnaTipo = !$esAgendadas || empty($tipo_paciente);
 
             if ($request->has('export_excel')) {
                 ini_set('memory_limit', '512M');
                 ini_set('max_execution_time', 300);
                 $morbilidades = $query->lazy();
+
+                if ($esAgendadas) {
+                    return Excel::download(
+                        new \App\Exports\AgendadasExport($morbilidades, $especialidad, $fecha_desde, $fecha_hasta, $tipo_paciente, $estado, $fecha_registro_desde, $fecha_registro_hasta, $medicoNombreStr, $especialidadHeader, $mostrarColumnaTipo),
+                        $nombreArchivo . '.xlsx'
+                    );
+                }
+
                 return Excel::download(
                     new MorbilidadExport($morbilidades, $especialidad, $fecha_desde, $fecha_hasta, $tipo_paciente, $estado, $fecha_registro_desde, $fecha_registro_hasta, $medicoNombreStr, $especialidadHeader),
                     $nombreArchivo . '.xlsx'
@@ -83,7 +107,12 @@ class MorbilidadController extends Controller
                 ini_set('pcre.backtrack_limit', '10000000');
                 $membrete = $this->getMembreteBase64();
                 $morbilidades = $query->get();
-                $pdf = Pdf::loadView('reportes.pdf.morbilidad_pdf', compact('morbilidades', 'membrete', 'especialidad', 'fecha_desde', 'fecha_hasta', 'tipo_paciente', 'estado', 'fecha_registro_desde', 'fecha_registro_hasta', 'mostrarFechaCita', 'medicoNombreStr', 'mostrarColumnaMedico', 'especialidadHeader'));
+
+                if ($esAgendadas) {
+                    $pdf = Pdf::loadView('reportes.pdf.agendadas_pdf', compact('morbilidades', 'membrete', 'especialidad', 'fecha_desde', 'fecha_hasta', 'tipo_paciente', 'estado', 'fecha_registro_desde', 'fecha_registro_hasta', 'mostrarFechaCita', 'medicoNombreStr', 'mostrarColumnaMedico', 'especialidadHeader', 'mostrarColumnaTipo'));
+                } else {
+                    $pdf = Pdf::loadView('reportes.pdf.morbilidad_pdf', compact('morbilidades', 'membrete', 'especialidad', 'fecha_desde', 'fecha_hasta', 'tipo_paciente', 'estado', 'fecha_registro_desde', 'fecha_registro_hasta', 'mostrarFechaCita', 'medicoNombreStr', 'mostrarColumnaMedico', 'especialidadHeader'));
+                }
                 return $pdf->stream($nombreArchivo . '.pdf');
             }
         }

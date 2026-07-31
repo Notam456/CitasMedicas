@@ -190,18 +190,13 @@
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label fw-bold small text-uppercase text-muted">Especialidad</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="fas fa-stethoscope"></i></span>
-                            <select name="especialidad_id" id="select-especialidad" class="form-select shadow-none @error('especialidad_id') is-invalid @enderror">
-                                <option value="">Seleccione Especialidad</option>
-                                @foreach ($especialidades as $e)
-                                    <option value="{{ $e->id }}" {{ old('especialidad_id') == $e->id ? 'selected' : '' }}>{{ $e->nombre }}</option>
-                                @endforeach
-                            </select>
-                            @error('especialidad_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        <x-searchable-select name="especialidad_id" id="select-especialidad"
+                            :options="$especialidades->pluck('nombre', 'id')"
+                            :selected="old('especialidad_id')"
+                            placeholder="Seleccione Especialidad" required icon="fas fa-stethoscope" />
+                        @error('especialidad_id')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold small text-uppercase text-muted">Médico</label>
@@ -767,6 +762,11 @@
                 const selectEsp = document.getElementById('select-especialidad');
                 selectEsp.value = espId;
                 document.getElementById('input_especialidad_id').value = espId;
+                const searchEsp = document.getElementById('select-especialidad_search');
+                if (searchEsp) {
+                    const selectedItem = searchEsp.closest('.searchable-select-wrapper').querySelector('[data-value="' + espId + '"]');
+                    searchEsp.value = selectedItem ? selectedItem.textContent : '';
+                }
 
                 if (medId) {
                     const res = await fetch(`/api/especialidades/${espId}/medicos`);

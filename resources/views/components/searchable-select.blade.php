@@ -5,16 +5,21 @@
     'selected' => null,
     'placeholder' => 'Seleccione...',
     'required' => false,
+    'icon' => null,
 ])
 
 @php
     $id = $id ?? $name;
 @endphp
 
-<div class="searchable-select-wrapper" data-target="{{ $id }}">
-    <div class="dropdown">
+<div class="searchable-select-wrapper" data-target="{{ $id }}"
+    style="{{ $icon ? 'display: flex; align-items: stretch; position: relative;' : '' }}">
+    @if ($icon)
+        <span class="input-group-text bg-light border-end-0 rounded-start"><i class="{{ $icon }}"></i></span>
+    @endif
+    <div class="dropdown" style="{{ $icon ? 'flex: 1; min-width: 0;' : '' }}">
         <input type="text"
-            class="form-control searchable-select-input shadow-none"
+            class="form-control searchable-select-input shadow-none {{ $icon ? 'border-start-0 rounded-end' : '' }}"
             id="{{ $id }}_search"
             placeholder="{{ $placeholder }}"
             autocomplete="off"
@@ -46,7 +51,6 @@ $(document).ready(function() {
         var dropdown = wrapper.find('.searchable-select-dropdown');
         var items = dropdown.find('.searchable-select-option');
 
-        // Filter on input
         input.on('keyup', function() {
             var val = $(this).val().toLowerCase();
             items.each(function() {
@@ -58,7 +62,6 @@ $(document).ready(function() {
             }
         });
 
-        // Select item
         dropdown.on('click', '.searchable-select-option', function(e) {
             e.preventDefault();
             var value = $(this).data('value');
@@ -69,16 +72,14 @@ $(document).ready(function() {
             $(this).addClass('active');
             input.dropdown('hide');
 
-            // Trigger change event on hidden input
             hidden.trigger('change');
+            hidden[0]?.dispatchEvent(new Event('change', { bubbles: true }));
         });
 
-        // Prevent dropdown from closing on input click
         input.on('click', function(e) {
             e.stopPropagation();
         });
 
-        // When dropdown hides, restore input text to selected value
         input.on('blur', function() {
             var selectedVal = hidden.val();
             if (selectedVal) {
