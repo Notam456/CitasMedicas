@@ -18,6 +18,7 @@ use App\Http\Controllers\DistritoController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\PatologiaController;
+use App\Http\Controllers\SuspensionMedicoController;
 
 use function PHPUnit\Framework\returnValue;
 use App\Http\Controllers\NotificacionController;
@@ -86,6 +87,7 @@ Route::middleware(['auth', 'can:Cita'])->group(function () {
     Route::get('/api/especialidades/{id}/medicos', [CitaController::class, 'getMedicosPorEspecialidad']);
     Route::get('/api/medicos/{medico_id}/disponibilidad', [CitaController::class, 'disponibilidadMes']);
     Route::get('/api/citas/paciente/{paciente_id}/especialidad/{especialidad_id}/tiene-citas', [CitaController::class, 'tieneCitasEnEspecialidad']);
+    Route::get('/api/medicos/{medico_id}/suspensiones-activas', [SuspensionMedicoController::class, 'getActiveSuspensions'])->name('api.medicos.suspensiones-activas');
 
     //Rutas resource
     Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita']);
@@ -159,10 +161,15 @@ Route::middleware(['auth', 'can:Reportes'])->group(function () {
     Route::get('/reportes/pdf/movimiento-consultas/pdf', [ReporteController::class, 'movimientoConsultasPdf'])->name('reportes.movimiento_consultas_pdf');
     Route::get('/reportes/excel/movimiento-consultas/excel', [ReporteController::class, 'movimientoConsultasExcel'])->name('reportes.movimiento_consultas_excel');
 
-    Route::get('/reportes/pdf/movimiento-consulta-aro/pdf', [ReporteController::class, 'movimientoConsultaAroPdf'])->name('reportes.movimiento_consulta_aro_pdf');
-    Route::get('/reportes/excel/movimiento-consulta-aro/excel', [ReporteController::class, 'movimientoConsultaAroExcel'])->name('reportes.movimiento_consulta_aro_excel');
-
     Route::get('/reportes/pdf/causas-principales/pdf', [ReporteController::class, 'causasPrincipalesPdf'])->name('reportes.causas_principales_pdf');
     Route::get('/reportes/excel/causas-principales/excel', [ReporteController::class, 'causasPrincipalesExcel'])->name('reportes.causas_principales_excel');
+});
+
+Route::middleware(['auth', 'can:Médicos inactivos'])->group(function () {
+    Route::get('/suspensiones', [SuspensionMedicoController::class, 'index'])->name('suspensiones.index');
+    Route::post('/suspensiones', [SuspensionMedicoController::class, 'store'])->name('suspensiones.store');
+    Route::delete('/suspensiones/{id}', [SuspensionMedicoController::class, 'destroy'])->name('suspensiones.destroy');
+    Route::get('/api/medicos/{medico_id}/suplentes-disponibles', [SuspensionMedicoController::class, 'getSuplentesDisponibles'])->name('api.medicos.suplentes-disponibles');
+    Route::get('/api/medicos/{medico_id}/citas-activas-count', [SuspensionMedicoController::class, 'getCitasActivasCount'])->name('api.medicos.citas-activas-count');
 });
 

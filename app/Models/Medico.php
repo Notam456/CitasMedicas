@@ -30,6 +30,11 @@ class Medico extends Model
         return $this->hasMany(Calendario::class);
     }
 
+    public function suspensiones()
+    {
+        return $this->hasMany(SuspensionMedico::class, 'medico_id');
+    }
+
     public function citas()
     {
         return $this->hasManyThrough(

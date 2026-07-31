@@ -26,16 +26,17 @@ class PermissionSeeder extends Seeder
             'Patologia',
             'Atender Cita',
             'Reporte Cita',
+            'Médicos inactivos',
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
-        $role = Role::create(['name' => 'administrador']);
+        $role = Role::firstOrCreate(['name' => 'administrador']);
         $role->givePermissionTo(Permission::all());
 
-        $role = Role::create(['name' => 'usuario']);
+        $role = Role::firstOrCreate(['name' => 'usuario']);
         $role->givePermissionTo(['Dashboard', 'Cita']);
 
     }

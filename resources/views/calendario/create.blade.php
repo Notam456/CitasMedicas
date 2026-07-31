@@ -36,6 +36,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
+                            
                             <label class="form-label text-muted fw-bold small">Médico *</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-user-md"></i></span>
@@ -43,7 +44,10 @@
                                     class="form-select border-secondary-subtle" required>
                                     <option value="">Seleccione Médico</option>
                                 </select>
+                                
                             </div>
+                            <br>
+                            <div id="aviso_suspension_masivo" class="mb-2 text-danger small fw-bold animate__animated animate__fadeIn" style="display: none; background-color: #f8d7da; border: 1px solid #f5c2c7; padding: 6px 12px; border-radius: .25rem;"></div>
                         </div>
 
                         <div class="col-md-6">
@@ -150,6 +154,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <div id="aviso_suspension_manual" class="mb-2 text-danger small fw-bold animate__animated animate__fadeIn" style="display: none; background-color: #f8d7da; border: 1px solid #f5c2c7; padding: 6px 12px; border-radius: .25rem;"></div>
                             <label class="form-label text-muted fw-bold small">Médico *</label>
                             <select id="select-medico" class="form-select">
                                 <option value="">Seleccione Médico</option>
@@ -307,15 +312,50 @@
             if (targetId === 'select-medico') cargarCalendario();
         }
 
+        async function verificarSuspension(medicoId, targetDivId) {
+            const aviso = document.getElementById(targetDivId);
+            if (!aviso) return;
+
+            aviso.style.display = 'none';
+            aviso.innerHTML = '';
+
+            if (!medicoId || medicoId === 'any') return;
+
+            try {
+                const res = await fetch(`/api/medicos/${medicoId}/suspensiones-activas`);
+                if (res.ok) {
+                    const suspensions = await res.json();
+                    if (suspensions.length > 0) {
+                        let text = 'Inactivo por suspensión: ';
+                        suspensions.forEach((s, idx) => {
+                            const partsStart = s.fecha_inicio.split('-');
+                            const partsEnd = s.fecha_fin.split('-');
+                            const fInicio = `${partsStart[2]}/${partsStart[1]}/${partsStart[0]}`;
+                            const fFin = `${partsEnd[2]}/${partsEnd[1]}/${partsEnd[0]}`;
+                            if (idx > 0) text += ', ';
+                            text += `desde el ${fInicio} hasta el ${fFin}`;
+                        });
+                        aviso.innerHTML = text;
+                        aviso.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching suspensions:', error);
+            }
+        }
+
         document.getElementById('select-medico').addEventListener('change', function() {
             actualizarHorarioUI(this);
             cargarCalendario();
+            verificarSuspension(this.value, 'aviso_suspension_manual');
         });
 
         document.getElementById('select-medico-masivo').addEventListener('change', function() {
             document.getElementById('select-medico').value = this.value;
             actualizarHorarioUI(this);
             cargarCalendario();
+            verificarSuspension(this.value, 'aviso_suspension_masivo');
+            verificarSuspension(this.value, 'aviso_suspension_manual');
         });
 
         function actualizarHorarioUI(selectElement) {

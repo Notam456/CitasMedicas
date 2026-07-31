@@ -190,15 +190,21 @@
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label fw-bold small text-uppercase text-muted">Especialidad</label>
-                        <x-searchable-select name="especialidad_id" id="select-especialidad"
-                            :options="$especialidades->pluck('nombre', 'id')"
-                            :selected="old('especialidad_id')"
-                            placeholder="Seleccione Especialidad" required icon="fas fa-stethoscope" />
-                        @error('especialidad_id')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-stethoscope"></i></span>
+                            <select name="especialidad_id" id="select-especialidad" class="form-select shadow-none @error('especialidad_id') is-invalid @enderror">
+                                <option value="">Seleccione Especialidad</option>
+                                @foreach ($especialidades as $e)
+                                    <option value="{{ $e->id }}" {{ old('especialidad_id') == $e->id ? 'selected' : '' }}>{{ $e->nombre }}</option>
+                                @endforeach
+                            </select>
+                            @error('especialidad_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
                     <div class="col-md-4">
+                        <div id="aviso_suspension" class="mb-2 text-danger small fw-bold animate__animated animate__fadeIn" style="display: none; background-color: #f8d7da; border: 1px solid #f5c2c7; padding: 6px 12px; border-radius: .25rem;"></div>
                         <label class="form-label fw-bold small text-uppercase text-muted">Médico</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-user-md"></i></span>
@@ -498,6 +504,41 @@
             selectMedico.addEventListener('change', cargarCalendario);
             selectTipoPaciente.addEventListener('change', cargarCalendario);
 
+            // Escuchar cambios de médico para mostrar avisos de suspensión
+            selectMedico.addEventListener('change', async function() {
+                const medicoId = this.value;
+                const aviso = document.getElementById('aviso_suspension');
+                if (!aviso) return;
+
+                aviso.style.display = 'none';
+                aviso.innerHTML = '';
+
+                if (!medicoId || medicoId === 'any') return;
+
+                try {
+                    const res = await fetch(`/api/medicos/${medicoId}/suspensiones-activas`);
+                    if (res.ok) {
+                        const suspensions = await res.json();
+                        if (suspensions.length > 0) {
+                            let text = 'Inactivo por suspensión: ';
+                            suspensions.forEach((s, idx) => {
+                                const partsStart = s.fecha_inicio.split('-');
+                                const partsEnd = s.fecha_fin.split('-');
+                                const fInicio = `${partsStart[2]}/${partsStart[1]}/${partsStart[0]}`;
+                                const fFin = `${partsEnd[2]}/${partsEnd[1]}/${partsEnd[0]}`;
+                                
+                                if (idx > 0) text += ', ';
+                                text += `desde el ${fInicio} hasta el ${fFin}`;
+                            });
+                            aviso.innerHTML = text;
+                            aviso.style.display = 'block';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching suspensions:', error);
+                }
+            });
+
             // 3. Navegación de meses
             document.getElementById('btn-mes-anterior').addEventListener('click', () => cambiarMes(-1));
             document.getElementById('btn-mes-siguiente').addEventListener('click', () => cambiarMes(1));
@@ -762,11 +803,6 @@
                 const selectEsp = document.getElementById('select-especialidad');
                 selectEsp.value = espId;
                 document.getElementById('input_especialidad_id').value = espId;
-                const searchEsp = document.getElementById('select-especialidad_search');
-                if (searchEsp) {
-                    const selectedItem = searchEsp.closest('.searchable-select-wrapper').querySelector('[data-value="' + espId + '"]');
-                    searchEsp.value = selectedItem ? selectedItem.textContent : '';
-                }
 
                 if (medId) {
                     const res = await fetch(`/api/especialidades/${espId}/medicos`);
