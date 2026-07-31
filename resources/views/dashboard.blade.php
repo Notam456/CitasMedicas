@@ -48,7 +48,7 @@
                 </div>
                 <!-- estadisticas basicas -->
     
-    
+                <br>
                 <!-- municipios con mas pacientes chart.js -->
                 <div class="row g-4 mx-0">
                     <div class="col-sm-12 col-md-6">
