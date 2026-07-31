@@ -42,6 +42,7 @@
                         </div>
                     </div>
                     <div class="col-md-4">
+                        <div id="aviso_suspension_cal" class="mb-2 text-danger small fw-bold animate__animated animate__fadeIn" style="display: none; background-color: #f8d7da; border: 1px solid #f5c2c7; padding: 6px 12px; border-radius: .25rem;"></div>
                         <label class="form-label fw-bold small text-uppercase text-muted">Médico</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-user-md"></i></span>
@@ -151,16 +152,25 @@
 
         document.getElementById('select-medico').addEventListener('change', cargarCalendario);
 
+        let suspensionesMedico = [];
+
         function cambiarMes(offset) {
             fechaActual.setMonth(fechaActual.getMonth() + offset);
             cargarCalendario();
         }
 
-        function cargarCalendario() {
+        async function cargarCalendario() {
             const mes = fechaActual.getMonth() + 1;
             const anio = fechaActual.getFullYear();
             const espId = document.getElementById('select-especialidad').value;
             const medId = document.getElementById('select-medico').value;
+            
+            const aviso = document.getElementById('aviso_suspension_cal');
+            if (aviso) {
+                aviso.style.display = 'none';
+                aviso.innerHTML = '';
+            }
+
             if (!espId) {
                 renderizarGrid([]);
                 return;
@@ -171,6 +181,32 @@
                 year: 'numeric'
             };
             document.getElementById('mes-actual').innerText = fechaActual.toLocaleDateString('es-ES', opciones);
+
+            // Fetch active/future suspensions of selected doctor
+            suspensionesMedico = [];
+            if (medId && medId !== 'any') {
+                try {
+                    const resSusp = await fetch(`/api/medicos/${medId}/suspensiones-activas`);
+                    if (resSusp.ok) {
+                        suspensionesMedico = await resSusp.json();
+                        if (suspensionesMedico.length > 0 && aviso) {
+                            let text = 'Inactivo por suspensión: ';
+                            suspensionesMedico.forEach((s, idx) => {
+                                const partsStart = s.fecha_inicio.split('-');
+                                const partsEnd = s.fecha_fin.split('-');
+                                const fInicio = `${partsStart[2]}/${partsStart[1]}/${partsStart[0]}`;
+                                const fFin = `${partsEnd[2]}/${partsEnd[1]}/${partsEnd[0]}`;
+                                if (idx > 0) text += ', ';
+                                text += `desde el ${fInicio} hasta el ${fFin}`;
+                            });
+                            aviso.innerHTML = text;
+                            aviso.style.display = 'block';
+                        }
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }
 
             fetch(`/calendario/eventos?mes=${mes}&anio=${anio}&especialidad_id=${espId}&medico_id=${medId}`)
                 .then(res => res.json())
@@ -214,32 +250,64 @@
                     bgBarra = cuposDisponibles > 0 ? 'bg-success' : 'bg-warning';
                 }
 
+                // Check if suspended
+                let isSuspended = false;
+                if (suspensionesMedico.length > 0) {
+                    isSuspended = suspensionesMedico.some(s => {
+                        return fechaStr >= s.fecha_inicio && fechaStr <= s.fecha_fin;
+                    });
+                }
+
                 const divDia = document.createElement('div');
                 divDia.className = 'col p-2 border-end border-bottom calendar-day bg-white text-dark';
                 divDia.style.cssText = 'flex: 0 0 14.28%; height: 110px; cursor: pointer; transition: background 0.2s;';
-                divDia.onmouseover = function() {
-                    this.style.background = '#f8f9fa';
-                };
-                divDia.onmouseout = function() {
-                    this.style.background = 'white';
-                };
+                
+                if (isSuspended) {
+                    divDia.style.backgroundColor = '#f8d7da';
+                    divDia.onmouseover = function() {
+                        this.style.background = '#f5c2c7';
+                    };
+                    divDia.onmouseout = function() {
+                        this.style.background = '#f8d7da';
+                    };
+                } else {
+                    divDia.onmouseover = function() {
+                        this.style.background = '#f8f9fa';
+                    };
+                    divDia.onmouseout = function() {
+                        this.style.background = 'white';
+                    };
+                }
 
                 divDia.onclick = () => abrirResumen(fechaStr, eventosDia);
                 grid.appendChild(divDia);
 
-                divDia.innerHTML = `
+                let innerHtml = `
                     <div class="d-flex justify-content-between align-items-start">
                         <span class="fw-bold">${dia}</span>
-                        ${totalCuposConfigurados > 0 ? `<span class="badge rounded-pill ${cuposDisponibles > 0 ? 'bg-success' : 'bg-warning'} p-1"><i class="fas ${cuposDisponibles > 0 ? 'fa-check' : 'fa-exclamation'}"></i></span>` : ''}
-                    </div>
-                    <div class="text-center mt-2">
-                        <div class="small fw-bold ${colorClase}">
-                            ${totalCuposConfigurados > 0 ? `${cuposDisponibles} disp. de ${totalCuposConfigurados}` : '0 Cupos'}
-                        </div>
-                        <div class="progress mt-1" style="height: 6px; background-color: #e9ecef;">
-                            <div class="progress-bar ${bgBarra}" style="width: ${totalCuposConfigurados > 0 ? porcentajeOcupacion : 0}%"></div>
-                        </div>
+                        ${totalCuposConfigurados > 0 && !isSuspended ? `<span class="badge rounded-pill ${cuposDisponibles > 0 ? 'bg-success' : 'bg-warning'} p-1"><i class="fas ${cuposDisponibles > 0 ? 'fa-check' : 'fa-exclamation'}"></i></span>` : ''}
+                        ${isSuspended ? `<span class="badge rounded-pill bg-danger p-1 text-white" title="Médico Suspendido"><i class="fas fa-ban"></i></span>` : ''}
                     </div>`;
+
+                if (isSuspended) {
+                    innerHtml += `
+                        <div class="text-center mt-2">
+                            <div class="small fw-bold text-danger" style="font-size: 0.72rem;">Inactivo (Suspendido)</div>
+                            ${totalCuposConfigurados > 0 ? `<small class="text-muted text-decoration-line-through" style="font-size: 0.65rem;">${totalCuposConfigurados} cupos inactivos</small>` : '<small class="text-muted" style="font-size: 0.65rem;">Sin planificar</small>'}
+                        </div>`;
+                } else {
+                    innerHtml += `
+                        <div class="text-center mt-2">
+                            <div class="small fw-bold ${colorClase}">
+                                ${totalCuposConfigurados > 0 ? `${cuposDisponibles} disp. de ${totalCuposConfigurados}` : '0 Cupos'}
+                            </div>
+                            <div class="progress mt-1" style="height: 6px; background-color: #e9ecef;">
+                                <div class="progress-bar ${bgBarra}" style="width: ${totalCuposConfigurados > 0 ? porcentajeOcupacion : 0}%"></div>
+                            </div>
+                        </div>`;
+                }
+
+                divDia.innerHTML = innerHtml;
             }
         }
 
@@ -264,19 +332,31 @@
                 eventos.forEach(ev => {
                     const totalMed = ev.cupos_primera_vez + ev.cupos_sucesivos;
                     const asignadosMed = ev.citas_primera_vez_count + ev.citas_sucesivas_count;
-                    const dispMed = totalMed - asignadosMed;
+                    const dispMed = ev.suspended ? 0 : (totalMed - asignadosMed);
 
-                    lista.innerHTML += `
-                        <div class="card mb-3 border-start border-4 ${dispMed > 0 ? 'border-primary' : 'border-warning'} shadow-sm">
-                            <div class="card-body py-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    
-                                    <h6 class="mb-0 fw-bold text-primary">${ev.medico ? `Dr. ${ev.medico.nombre} ${ev.medico.apellido}`  : 'Cualquier médico'}</h6>
-                                    <span class="badge ${dispMed > 0 ? 'bg-info' : 'bg-warning'} text-dark fw-bold">
-                                        ${dispMed} / ${totalMed} Disponibles
-                                    </span>
-                                </div>
-                                
+                    let borderClass = 'border-primary';
+                    if (ev.suspended) {
+                        borderClass = 'border-danger';
+                    } else if (dispMed <= 0) {
+                        borderClass = 'border-warning';
+                    }
+
+                    let badgeHtml = '';
+                    if (ev.suspended) {
+                        badgeHtml = `<span class="badge bg-danger text-white fw-bold">Inactivo (Médico Suspendido)</span>`;
+                    } else {
+                        badgeHtml = `<span class="badge ${dispMed > 0 ? 'bg-info' : 'bg-warning'} text-dark fw-bold">${dispMed} / ${totalMed} Disponibles</span>`;
+                    }
+
+                    let bodyHtml = '';
+                    if (ev.suspended) {
+                        bodyHtml = `
+                            <div class="alert alert-danger mb-2 py-2 small border-0 d-flex align-items-center">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                Los cupos programados para este día están inactivos por suspensión del médico.
+                            </div>`;
+                    } else {
+                        bodyHtml = `
                                 <div class="row g-2 text-center my-2">
                                     <div class="col-6">
                                         <div class="p-2 bg-light rounded border">
@@ -294,7 +374,18 @@
                                              <small class="text-muted d-block">(${ev.cupos_sucesivos - ev.citas_sucesivas_count} cupos disponibles)</small>
                                         </div>
                                     </div>
+                                </div>`;
+                    }
+
+                    lista.innerHTML += `
+                        <div class="card mb-3 border-start border-4 ${borderClass} shadow-sm">
+                            <div class="card-body py-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0 fw-bold text-primary">${ev.medico ? `Dr. ${ev.medico.nombre} ${ev.medico.apellido}`  : 'Cualquier médico'}</h6>
+                                    ${badgeHtml}
                                 </div>
+                                
+                                ${bodyHtml}
 
                                 <div class="small text-muted mt-2 pt-2 border-top">
                                     <i class="far fa-clock me-1 text-secondary"></i> Jornada: ${ev.hora_inicio.substring(0,5)} - ${ev.hora_fin.substring(0,5)}

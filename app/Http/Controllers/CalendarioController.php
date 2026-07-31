@@ -46,7 +46,17 @@ class CalendarioController extends Controller
             $query->where('especialidad_id', $especialidadId);
         }
 
-        $disponibilidad = $query->get();
+        $disponibilidad = $query->get()->map(function($cal) {
+            $isSuspended = false;
+            if ($cal->medico_id) {
+                $isSuspended = \App\Models\SuspensionMedico::where('medico_id', $cal->medico_id)
+                    ->where('fecha_inicio', '<=', $cal->fecha)
+                    ->where('fecha_fin', '>=', $cal->fecha)
+                    ->exists();
+            }
+            $cal->suspended = $isSuspended;
+            return $cal;
+        });
 
         return response()->json($disponibilidad);
     }
@@ -112,6 +122,17 @@ class CalendarioController extends Controller
                         $fail('El médico seleccionado no es válido.');
                         return;
                     }
+
+                    // Verificar si está suspendido en la fecha seleccionada
+                    $suspended = \App\Models\SuspensionMedico::where('medico_id', $value)
+                        ->where('fecha_inicio', '<=', $request->fecha)
+                        ->where('fecha_fin', '>=', $request->fecha)
+                        ->exists();
+                    if ($suspended) {
+                        $fail('No se puede crear una planificación porque el médico se encuentra suspendido en esta fecha.');
+                        return;
+                    }
+
                     if ($medico->horarios->isNotEmpty()) {
                         $diaSemana = Carbon::parse($request->fecha)->dayOfWeekIso;
                         $sched = $medico->horarios->firstWhere('dia_semana', $diaSemana);
@@ -274,11 +295,50 @@ class CalendarioController extends Controller
             $overwritten = 0;
             $medico_id = $request->medico_id === 'any' ? null : $request->medico_id;
 
+            // Pre-calcular días totales y días suspendidos para validar y avisar
+            $totalDays = 0;
+            $suspendedDays = 0;
+            foreach ($period as $date) {
+                $dayOfWeek = $date->format('N');
+                if (in_array($dayOfWeek, $request->dias_semana)) {
+                    $fechaStr = $date->format('Y-m-d');
+                    $totalDays++;
+
+                    if ($medico_id) {
+                        $isSuspended = \App\Models\SuspensionMedico::where('medico_id', $medico_id)
+                            ->where('fecha_inicio', '<=', $fechaStr)
+                            ->where('fecha_fin', '>=', $fechaStr)
+                            ->exists();
+                        if ($isSuspended) {
+                            $suspendedDays++;
+                        }
+                    }
+                }
+            }
+
+            if ($medico_id && $totalDays > 0 && $suspendedDays === $totalDays) {
+                DB::rollBack();
+                return redirect()->back()->withInput()->withErrors([
+                    'medico_id' => 'No se puede registrar cupos masivos porque todo el rango de fechas seleccionado coincide con la suspensión del médico.'
+                ]);
+            }
+
             foreach ($period as $date) {
                 $dayOfWeek = $date->format('N');
 
                 if (in_array($dayOfWeek, $request->dias_semana)) {
                     $fechaStr = $date->format('Y-m-d');
+
+                    // Evitar planificar en fechas donde el médico está suspendido
+                    if ($medico_id) {
+                        $isSuspended = \App\Models\SuspensionMedico::where('medico_id', $medico_id)
+                            ->where('fecha_inicio', '<=', $fechaStr)
+                            ->where('fecha_fin', '>=', $fechaStr)
+                            ->exists();
+                        if ($isSuspended) {
+                            continue;
+                        }
+                    }
 
                     $exists = Calendario::where('medico_id', $medico_id)
                         ->where('especialidad_id', $request->especialidad_id)
@@ -315,7 +375,11 @@ class CalendarioController extends Controller
                 ));
             }
 
-            Alert::success($message);
+            if ($suspendedDays > 0) {
+                Alert::warning("Configuración parcial", "Se configuraron $count días. Se ignoraron $suspendedDays días debido a la suspensión del médico.")->persistent();
+            } else {
+                Alert::success($message);
+            }
 
             return redirect()->route('calendario.index');
         } catch (\Exception $e) {

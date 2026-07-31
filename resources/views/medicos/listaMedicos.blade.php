@@ -10,9 +10,16 @@
     <div class="table-responsive bg-light rounded h-100 p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="mb-0">Lista de Médicos</h3>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalMedico">
-                <i class="bi bi-person-plus me-1"></i> Registrar Médico
-            </button>
+            <div class="hstack gap-2">
+                @can('Médicos inactivos')
+                <a href="{{ route('suspensiones.index') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-person-x-fill me-1"></i> Médicos inactivos
+                </a>
+                @endcan
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalMedico">
+                    <i class="bi bi-person-plus me-1"></i> Registrar Médico
+                </button>
+            </div>
         </div>
 
         <table class="table table-hover" id="tablaMedicos">

@@ -227,6 +227,24 @@ class CitaController extends Controller
 
             // 2. Mapear y calcular cupos libres
             $eventos = $calendarios->map(function ($cal) use ($tipo_paciente) {
+                $isSuspended = false;
+                if ($cal->medico_id) {
+                    $isSuspended = \App\Models\SuspensionMedico::where('medico_id', $cal->medico_id)
+                        ->where('fecha_inicio', '<=', $cal->fecha)
+                        ->where('fecha_fin', '>=', $cal->fecha)
+                        ->exists();
+                }
+
+                if ($isSuspended) {
+                    return [
+                        'id' => $cal->id,
+                        'fecha' => $cal->fecha,
+                        'hora_inicio' => $cal->hora_inicio,
+                        'hora_fin' => $cal->hora_fin,
+                        'disponibles' => 0,
+                        'total' => 0,
+                    ];
+                }
 
                 // Orden Médica: mostrar todos los slots sin verificar cupos
                 if ($tipo_paciente === 'orden_medica') {
