@@ -84,8 +84,9 @@
                                     </div>
                                     <div class="col-md-6">
                                         <p class="mb-1"><strong>Médico:</strong> <span id="info_medico"></span></p>
-                                        <p class="mb-0"><strong>Especialidad:</strong> <span
-                                                id="info_especialidad"></span></p>
+                                        <p class="mb-1"><strong>Número de historia:</strong> <span id="nro_historia"></span></p>
+                                        <p class="mb-0"><strong>Especialidad:</strong> <span id="info_especialidad"></span></p>
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -308,6 +309,7 @@
                                 .toLocaleDateString());
                             $('#info_medico').text('Dr. ' + data.cita.medico.nombre + ' ' + data
                                 .cita.medico.apellido);
+                            $('#nro_historia').text(data.cita.paciente.expediente.numero_expediente);
                             $('#info_especialidad').text(data.cita.medico.especialidad.nombre);
                             $('#diagnostico_libre').val(data.cita.diagnostico_libre || '');
 

@@ -140,10 +140,10 @@ class DiagnosticoController extends Controller
     public function edit($id)
     {
         $cita = Cita::with([
-            'paciente',
+            'paciente.expediente',
             'medico.especialidad',
             'patologias',
-            'aroDato',
+            'aroDato'
         ])->findOrFail($id);
 
         $patologiasDisponibles = Patologia::where('especialidad_id', $cita->medico->especialidad_id)->get();
