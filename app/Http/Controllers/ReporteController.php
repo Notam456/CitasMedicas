@@ -254,11 +254,12 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
     public function movimientoConsultas(Request $request)
     {
         $request->validate([
-            'tipo_paciente' => 'required|in:adulto,pediatria',
+            'tipo_paciente' => 'required|in:adulto,pediatria,todas',
             'tipo_rango' => 'required|in:mes,rango',
             'mes' => 'required_if:tipo_rango,mes|nullable|date_format:Y-m',
             'fecha_desde' => 'required_if:tipo_rango,rango|nullable|date',
             'fecha_hasta' => 'required_if:tipo_rango,rango|nullable|date|after_or_equal:fecha_desde',
+            'especialidad_id' => 'nullable|exists:especialidades,id',
         ]);
 
         if ($request->tipo_rango == 'mes') {
@@ -273,42 +274,99 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
         }
 
         $tipoPaciente = $request->tipo_paciente;
-        $edadCondicion = $tipoPaciente == 'adulto' ? '> 12' : '<= 12';
+        $edadCondicion = match ($tipoPaciente) {
+            'adulto' => '> 12',
+            'pediatria' => '<= 12',
+            default => null,
+        };
+        $edadCol = $edadCondicion ? "EXTRACT(YEAR FROM AGE(pacientes.fecha_nacimiento)) {$edadCondicion}" : null;
+        $especialidadId = $request->especialidad_id;
+        $especialidad = $especialidadId ? Especialidad::find($especialidadId) : null;
+        $aroId = Especialidad::where('nombre', 'Aro (Embarazados)')->value('id');
 
-        $data = Cita::select(
-                'especialidades.nombre as especialidad',
-                DB::raw("COUNT(CASE WHEN citas.tipo_paciente = 'primera_vez' THEN 1 END) as primera_vez"),
-                DB::raw("COUNT(CASE WHEN citas.tipo_paciente = 'control' THEN 1 END) as sucesivas"),
-                DB::raw("COUNT(*) as total")
-            )
+        $columnas = [
+            'agendadas' => 'Citas Agendadas',
+            'atendidas' => 'Citas Atendidas',
+            'primera_vez' => 'Citas de Primera Vez',
+            'sucesivas' => 'Citas Sucesivas',
+            'ausentes' => 'Citados Ausentes',
+            'adolescentes' => 'Adolescentes 10-19',
+        ];
+
+        if ($especialidad && $especialidad->nombre === 'Aro (Embarazados)') {
+            $columnas['menos_13_sem'] = '13 Semanas Gestación';
+        }
+
+        $sum = function ($condicion) use ($edadCol) {
+            return "SUM(CASE WHEN {$condicion}" . ($edadCol ? " AND {$edadCol}" : '') . ' THEN 1 ELSE 0 END)';
+        };
+
+        $selects = [
+            'especialidades.nombre as especialidad',
+            DB::raw($sum("citas.estado = 'Agendada'") . ' as agendadas'),
+            DB::raw($sum("citas.estado = 'Atendida'") . ' as atendidas'),
+            DB::raw($sum("citas.tipo_paciente = 'primera_vez'") . ' as primera_vez'),
+            DB::raw($sum("citas.tipo_paciente = 'control'") . ' as sucesivas'),
+            DB::raw($sum("citas.estado = 'Cancelada'") . ' as ausentes'),
+            DB::raw("SUM(CASE WHEN citas.estado = 'Atendida' AND EXTRACT(YEAR FROM AGE(pacientes.fecha_nacimiento)) BETWEEN 10 AND 19 THEN 1 ELSE 0 END) as adolescentes"),
+        ];
+
+        if (isset($columnas['menos_13_sem'])) {
+            $selects[] = DB::raw("SUM(CASE WHEN acd.semanas_gestacion IS NOT NULL AND acd.semanas_gestacion < 13 AND citas.estado = 'Atendida' AND especialidades.id = {$aroId} THEN 1 ELSE 0 END) as menos_13_sem");
+        }
+
+        $data = Cita::select($selects)
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
             ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
             ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
+            ->leftJoin('aro_cita_datos as acd', 'acd.cita_id', '=', 'citas.id')
+            ->when($especialidadId, function ($query) use ($especialidadId) {
+                return $query->where('especialidades.id', $especialidadId);
+            })
             ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
-            ->whereRaw("EXTRACT(YEAR FROM AGE(pacientes.fecha_nacimiento)) {$edadCondicion}")
-            ->whereIn('citas.estado', ['Atendida', 'Agendada'])
             ->groupBy('especialidades.id', 'especialidades.nombre')
             ->orderBy('especialidades.nombre')
             ->get()
-            ->map(function ($item) {
-                return [
-                    'especialidad' => $item->especialidad,
-                    'primera_vez' => (int) $item->primera_vez,
-                    'sucesivas' => (int) $item->sucesivas,
-                    'total' => (int) $item->total,
-                ];
+            ->map(function ($item) use ($columnas) {
+                $fila = ['especialidad' => $item->especialidad];
+                foreach ($columnas as $clave => $label) {
+                    $fila[$clave] = (int) $item->{$clave};
+                }
+                return $fila;
             })
             ->toArray();
 
-        $titulo = 'Movimiento de Consulta Externa - ' . ($tipoPaciente == 'adulto' ? 'Adultos' : 'Pediatría');
+        $totales = [];
+        foreach ($columnas as $clave => $label) {
+            $totales[$clave] = array_sum(array_column($data, $clave));
+        }
+
+        $tipoPacienteTexto = match ($tipoPaciente) {
+            'adulto' => 'Mayores de 12 años',
+            'pediatria' => 'Pediatría (12 años o menos)',
+            default => 'Todas las Edades',
+        };
+        $titulo = 'Movimiento de Consulta Externa - ' . $tipoPacienteTexto;
+        $especialidadNombre = $especialidad ? $especialidad->nombre : 'Todas';
+        $especialidadSeleccionada = (bool) $especialidadId;
 
         if ($request->has('excel')) {
-            return Excel::download(new MovimientoConsultasExport($data, $titulo, $tipoPaciente, $fechaTexto), 'movimiento_consultas.xlsx');
+            return Excel::download(new MovimientoConsultasExport($data, $titulo, $tipoPacienteTexto, $fechaTexto, $columnas, $especialidadNombre, $totales, $especialidadSeleccionada), 'movimiento_consultas.xlsx');
         }
 
         $membrete = $this->getMembreteBase64();
-        $pdf = Pdf::loadView('reportes.pdf.movimiento_consultas_pdf', compact('data', 'titulo', 'tipoPaciente', 'fechaTexto', 'membrete'));
+        $pdf = Pdf::loadView('reportes.pdf.movimiento_consultas_pdf', [
+            'data' => $data,
+            'titulo' => $titulo,
+            'tipoPaciente' => $tipoPacienteTexto,
+            'fechaTexto' => $fechaTexto,
+            'membrete' => $membrete,
+            'columnas' => $columnas,
+            'especialidadNombre' => $especialidadNombre,
+            'totales' => $totales,
+            'especialidadSeleccionada' => $especialidadSeleccionada,
+        ]);
         return $pdf->stream('movimiento_consultas.pdf');
     }
 

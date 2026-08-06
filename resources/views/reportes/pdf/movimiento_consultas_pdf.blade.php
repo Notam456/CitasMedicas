@@ -8,13 +8,12 @@
         .header { text-align: center; margin-bottom: 20px; }
         .fecha { text-align: center; font-size: 10px; margin-bottom: 10px; }
         h1 { color: #20356B; text-align: center; font-size: 18px; margin: 10px 0; }
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #ddd; padding: 6px 4px; text-align: center; vertical-align: top; word-wrap: break-word; }
         th { background-color: #f2f2f2; font-weight: bold; }
-        th:first-child, td:first-child { width: 40%; }
-        th:nth-child(2), td:nth-child(2) { width: 20%; }
-        th:nth-child(3), td:nth-child(3) { width: 20%; }
-        th:nth-child(4), td:nth-child(4) { width: 20%; }
+        @if(!$especialidadSeleccionada)
+        th:first-child, td:first-child { width: 30%; }
+        @endif
         tr { page-break-inside: avoid; }
         .total-row { background-color: #c3e6cb; font-weight: bold; }
     </style>
@@ -26,12 +25,12 @@
 
     <div class="header">
         <h1>Movimiento de Consulta Externa</h1>
-      <!--  <h3>{{ $titulo }}</h3> -->
     </div>
 
     <div class="fecha">
         <p>
-            <strong>Tipo de paciente:</strong> {{ $tipoPaciente == 'adulto' ? 'Mayores de 12 años' : 'Pediatría (12 años o menos)' }}
+            <strong>Edad:</strong> {{ $tipoPaciente }}
+            &nbsp;|&nbsp; <strong>Especialidad:</strong> {{ $especialidadNombre }}
             &nbsp;|&nbsp; <strong>Período:</strong> {{ $fechaTexto }}
             &nbsp;|&nbsp; Reporte generado: {{ now()->format('d/m/Y H:i:s') }}
         </p>
@@ -39,33 +38,36 @@
 
     @if(count($data) > 0)
         <table>
-                <tr>
+            <tr>
+                @if(!$especialidadSeleccionada)
                     <th>Especialidad</th>
-                    <th>Primera vez</th>
-                    <th>Sucesivas</th>
-                    <th>Total</th>
+                @endif
+                @foreach($columnas as $label)
+                    <th>{{ $label }}</th>
+                @endforeach
+            </tr>
+            @if($especialidadSeleccionada)
+                <tr>
+                    @foreach($columnas as $clave => $label)
+                        <td>{{ $totales[$clave] }}</td>
+                    @endforeach
                 </tr>
-                @php $totales = ['primera' => 0, 'sucesivas' => 0, 'total' => 0]; @endphp
+            @else
                 @foreach($data as $row)
                 <tr>
                     <td>{{ $row['especialidad'] }}</td>
-                    <td>{{ $row['primera_vez'] }}</td>
-                    <td>{{ $row['sucesivas'] }}</td>
-                    <td>{{ $row['total'] }}</td>
+                    @foreach($columnas as $clave => $label)
+                        <td>{{ $row[$clave] }}</td>
+                    @endforeach
                 </tr>
-                @php
-                    $totales['primera'] += $row['primera_vez'];
-                    $totales['sucesivas'] += $row['sucesivas'];
-                    $totales['total'] += $row['total'];
-                @endphp
                 @endforeach
                 <tr class="total-row">
-                    <td colspan="1"><strong>TOTAL GENERAL</strong></td>
-                    <td><strong>{{ $totales['primera'] }}</strong></td>
-                    <td><strong>{{ $totales['sucesivas'] }}</strong></td>
-                    <td><strong>{{ $totales['total'] }}</strong></td>
+                    <td><strong>TOTAL GENERAL</strong></td>
+                    @foreach($columnas as $clave => $label)
+                        <td><strong>{{ $totales[$clave] }}</strong></td>
+                    @endforeach
                 </tr>
-            </tbody>
+            @endif
         </table>
     @else
         <p>No hay datos para el período seleccionado.</p>

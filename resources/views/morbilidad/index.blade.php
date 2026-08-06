@@ -65,7 +65,7 @@
     <div class="container py-4">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">Reporte de Citas</h3>
+                <h3 class="mb-0">Gestión de Citas</h3>
                 <div class="d-flex gap-2">
                     @can('Cita')
                         <a href="{{ route('Citas.create') }}" class="btn btn-success">

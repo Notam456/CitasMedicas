@@ -162,7 +162,7 @@
     @slot('excel_action', route('reportes.movimiento_consultas_excel'))
 
     <div class="mb-3">
-        <label class="form-label">Tipo de paciente</label>
+        <label class="form-label">Edad</label>
         <div class="d-flex gap-3">
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="tipo_paciente" id="mov_tipo_adulto" value="adulto" checked>
@@ -172,7 +172,18 @@
                 <input class="form-check-input" type="radio" name="tipo_paciente" id="mov_tipo_pediatria" value="pediatria">
                 <label class="form-check-label" for="mov_tipo_pediatria">Pediatría (12 años o menos)</label>
             </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipo_paciente" id="mov_tipo_todas" value="todas">
+                <label class="form-check-label" for="mov_tipo_todas">Todas las Edades</label>
+            </div>
         </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Especialidad</label>
+        <x-searchable-select name="especialidad_id" id="mov_especialidad_id"
+            :options="$especialidades->pluck('nombre', 'id')"
+            placeholder="Seleccione Especialidad (Todas)" icon="fas fa-stethoscope" />
     </div>
 
     <div class="mb-3">

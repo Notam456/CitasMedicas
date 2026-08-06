@@ -59,7 +59,7 @@
                    <!-- <a href="" class="nav-item nav-link dropdown-item"><i class="bi bi-check2-all me-2"></i>Citas Atendidas</a> -->
                     @endcan
                     @can('Reporte Cita')
-                    <a href="{{ route('morbilidad.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-file-earmark-text me-2"></i>Reporte de Citas</a>
+                    <a href="{{ route('morbilidad.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-file-earmark-text me-2"></i>Gestión de Citas</a>
                     @endcan
                 </div>
             </div>
