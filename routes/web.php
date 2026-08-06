@@ -31,11 +31,9 @@ Route::get('/', function () {
 
 //Rutas para las vistas de autenticación
 Route::view('/login', 'login')->name('login');
-Route::view('/signup', 'signup')->name('signup');
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 Route::middleware('throttle:10,1')->group(function () {
     Route::post('/iniciar-sesion', [LoginController::class, 'login'])->name('iniciar-sesion');
-    Route::post('/validar-registro', [LoginController::class, 'register'])->name('register');
 });
 Route::post('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout');
 
@@ -160,6 +158,9 @@ Route::middleware(['auth', 'can:Reportes'])->group(function () {
 
     Route::get('/reportes/pdf/movimiento-consultas/pdf', [ReporteController::class, 'movimientoConsultasPdf'])->name('reportes.movimiento_consultas_pdf');
     Route::get('/reportes/excel/movimiento-consultas/excel', [ReporteController::class, 'movimientoConsultasExcel'])->name('reportes.movimiento_consultas_excel');
+
+    Route::get('/reportes/pdf/movimiento-consulta-aro/pdf', [ReporteController::class, 'movimientoConsultaAroPdf'])->name('reportes.movimiento_consulta_aro_pdf');
+    Route::get('/reportes/excel/movimiento-consulta-aro/excel', [ReporteController::class, 'movimientoConsultaAroExcel'])->name('reportes.movimiento_consulta_aro_excel');
 
     Route::get('/reportes/pdf/causas-principales/pdf', [ReporteController::class, 'causasPrincipalesPdf'])->name('reportes.causas_principales_pdf');
     Route::get('/reportes/excel/causas-principales/excel', [ReporteController::class, 'causasPrincipalesExcel'])->name('reportes.causas_principales_excel');
