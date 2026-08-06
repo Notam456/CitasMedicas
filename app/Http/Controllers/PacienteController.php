@@ -88,17 +88,40 @@ class PacienteController extends Controller
     }
 
     /**
-     * Buscar paciente por cédula.
+     * Buscar paciente por cédula o número de historia.
      */
-    public function buscarPorCedula($cedula)
+    public function buscarPaciente(Request $request)
     {
-        $paciente = Paciente::with(['parroquia.municipio.estado', 'expediente'])->where('cedula', $cedula)->first();
+        $q = mb_strtoupper(trim($request->get('q', '')));
+
+        if ($q === '') {
+            return response()->json(['encontrado' => false]);
+        }
+
+        $consulta = Paciente::with(['parroquia.municipio.estado', 'expediente']);
+
+        if (preg_match('/^(V|E)-\d+$/', $q)) {
+            $consulta->where('cedula', $q);
+        } elseif (preg_match('/^\d+$/', $q)) {
+            $consulta->where(function ($query) use ($q) {
+                $query->where('cedula', 'LIKE', '%-' . $q)
+                    ->orWhereHas('expediente', function ($historia) use ($q) {
+                        $historia->where('numero_expediente', $q);
+                    });
+            });
+        } else {
+            $consulta->whereHas('expediente', function ($historia) use ($q) {
+                $historia->where('numero_expediente', $q);
+            });
+        }
+
+        $paciente = $consulta->first();
 
         if ($paciente) {
             return response()->json(['encontrado' => true, 'datos' => $paciente]);
-        } else {
-            return response()->json(['encontrado' => false]);
         }
+
+        return response()->json(['encontrado' => false]);
     }
 
     /**

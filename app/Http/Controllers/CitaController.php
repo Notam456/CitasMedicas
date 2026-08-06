@@ -6,6 +6,7 @@ use App\Models\Calendario;
 use App\Models\Cita;
 use App\Models\Especialidad;
 use App\Models\Estado;
+use App\Models\Expediente;
 use App\Models\Municipio;
 use App\Models\Medico;
 use App\Models\Paciente;
@@ -314,6 +315,7 @@ class CitaController extends Controller
             // Datos del paciente
             'cedula_tipo' => 'required|in:V,E',
             'cedula' => 'required|string|min:7|max:20|regex:/^[0-9]+$/',
+            'numero_expediente' => 'nullable|string|max:255',
             'rif' => 'nullable|string|max:20',
             'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
@@ -397,6 +399,36 @@ class CitaController extends Controller
             );
 
             session()->flash('paciente_id', $paciente->id);
+
+            $numeroExpediente = $request->filled('numero_expediente') ? trim($request->numero_expediente) : null;
+
+            if ($numeroExpediente) {
+                $historiaDeOtro = Expediente::where('numero_expediente', $numeroExpediente)
+                    ->where('paciente_id', '!=', $paciente->id)
+                    ->exists();
+
+                if ($historiaDeOtro) {
+                    DB::rollBack();
+                    Alert::error('Número de Historia en uso', 'Ese número de historia ya está asignado a otro paciente.');
+
+                    return redirect()->back()->withInput();
+                }
+
+                if ($paciente->expediente) {
+                    if ($paciente->expediente->numero_expediente !== $numeroExpediente) {
+                        DB::rollBack();
+                        Alert::error('Historia ya asignada', 'El paciente ya tiene un número de historia asignado.');
+
+                        return redirect()->back()->withInput();
+                    }
+                } else {
+                    Expediente::create([
+                        'paciente_id' => $paciente->id,
+                        'numero_expediente' => $numeroExpediente,
+                        'fecha_apertura' => now()->toDateString(),
+                    ]);
+                }
+            }
 
             Cita::create([
                 'paciente_id' => $paciente->id,

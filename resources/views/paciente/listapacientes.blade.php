@@ -65,7 +65,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label text-muted small fw-bold">N° Expediente</label>
+                                <label class="form-label text-muted small fw-bold">N° Historia</label>
                                 <input type="text" class="form-control bg-light" id="editarExpedientePaciente" readonly placeholder="Sin asignar">
                             </div>
 
@@ -174,7 +174,7 @@
                             <p class="form-control" id="mostrarCedulaPaciente"></p>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="fw-bold">N° Expediente</label>
+                            <label class="fw-bold">N° Historia</label>
                             <p class="form-control" id="mostrarExpedientePaciente"></p>
                         </div>
                         <div class="col-md-4 mb-3">
