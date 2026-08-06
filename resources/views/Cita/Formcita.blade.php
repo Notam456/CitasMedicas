@@ -75,8 +75,8 @@
                     <div class="col-md-4">
                         <label class="form-label fw-bold">N° Historia</label>
                         <input type="text" name="numero_expediente" id="input_expediente"
-                            class="form-control" placeholder="Nuevo paciente"
-                            value="{{ old('numero_expediente') }}" maxlength="255">
+                            class="form-control" placeholder="00-00-00"
+                            value="{{ old('numero_expediente') }}" maxlength="8" autocomplete="off">
                     </div>
 
                     <div class="col-md-4">
@@ -548,6 +548,16 @@
         document.addEventListener('DOMContentLoaded', function () {
             actualizarTextoMes();
             renderizarGrid();
+
+            const inputExpediente = document.getElementById('input_expediente');
+            inputExpediente.addEventListener('input', function () {
+                const digitos = this.value.replace(/\D/g, '').slice(0, 6);
+                const partes = digitos.match(/.{1,2}/g) || [];
+                const formateado = partes.join('-');
+                if (this.value !== formateado) {
+                    this.value = formateado;
+                }
+            });
 
             const selectEspecialidad = document.getElementById('select-especialidad');
             const selectMedico = document.getElementById('select-medico');

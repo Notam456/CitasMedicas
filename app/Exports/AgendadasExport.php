@@ -56,7 +56,7 @@ class AgendadasExport implements FromView, WithEvents
     public function registerEvents(): array
     {
         $showTipo = $this->mostrarColumnaTipo;
-        $totalCols = 6 + ($showTipo ? 1 : 0);
+        $totalCols = 7 + ($showTipo ? 1 : 0);
         $lastColLetter = chr(64 + $totalCols);
 
         return [
@@ -71,13 +71,14 @@ class AgendadasExport implements FromView, WithEvents
 
                 $sheet->getColumnDimension('A')->setWidth(15);
                 $sheet->getColumnDimension('B')->setWidth(32);
-                $sheet->getColumnDimension('C')->setWidth(8);
-                $sheet->getColumnDimension('D')->setWidth(10);
+                $sheet->getColumnDimension('C')->setWidth(12);
+                $sheet->getColumnDimension('D')->setWidth(8);
+                $sheet->getColumnDimension('E')->setWidth(10);
                 if ($showTipo) {
-                    $sheet->getColumnDimension('E')->setWidth(16);
+                    $sheet->getColumnDimension('F')->setWidth(16);
                 }
-                $sheet->getColumnDimension($showTipo ? 'F' : 'E')->setWidth(28);
-                $sheet->getColumnDimension($showTipo ? 'G' : 'F')->setWidth(40);
+                $sheet->getColumnDimension($showTipo ? 'G' : 'F')->setWidth(28);
+                $sheet->getColumnDimension($showTipo ? 'H' : 'G')->setWidth(40);
 
                 if ($highestRow >= 4) {
                     $sheet->setAutoFilter('A4:' . $lastColLetter . $highestRow);

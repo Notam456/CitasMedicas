@@ -88,6 +88,7 @@
                 <th>N° Historia</th>
                 <th>Cédula</th>
                 <th>Paciente</th>
+                <th>Hist. Traída</th>
                 @if($showEsp)<th>Especialidad</th>@endif
                 @if($showMedico)<th>Médico</th>@endif
                 @if($showFechaCita)<th>Fecha Cita</th>@endif
@@ -102,6 +103,7 @@
                 <td>{{ $m->numero_expediente ?? 'Sin asignar' }}</td>
                 <td>{{ $m->paciente_cedula }}</td>
                 <td>{{ $m->paciente_nombre }} {{ $m->paciente_apellido }}</td>
+                <td class="text-center">{{ $m->historia_traida ? 'TH' : 'FH' }}</td>
                 @if($showEsp)<td>{{ $m->especialidad_nombre }}</td>@endif
                 @if($showMedico)<td>Dr. {{ $m->medico_nombre }} {{ $m->medico_apellido }}</td>@endif
                 @if($showFechaCita)<td class="text-center">{{ \Carbon\Carbon::parse($m->fecha_cita)->format('d/m/Y') }}</td>@endif

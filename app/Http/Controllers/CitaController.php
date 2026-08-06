@@ -315,7 +315,7 @@ class CitaController extends Controller
             // Datos del paciente
             'cedula_tipo' => 'required|in:V,E',
             'cedula' => 'required|string|min:7|max:20|regex:/^[0-9]+$/',
-            'numero_expediente' => 'nullable|string|max:255',
+            'numero_expediente' => 'nullable|regex:/^\d{2}-\d{2}-\d{2}$/',
             'rif' => 'nullable|string|max:20',
             'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',

@@ -19,10 +19,10 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\PatologiaController;
 use App\Http\Controllers\SuspensionMedicoController;
+use App\Http\Controllers\ExpedienteController;
 
 use function PHPUnit\Framework\returnValue;
 use App\Http\Controllers\NotificacionController;
-use App\Http\Controllers\ExpedienteController;
 
 //Ruta de inicio
 Route::get('/', function () {
@@ -110,6 +110,10 @@ Route::middleware('auth')->group(function () {
 });
 
 // Expedientes (N° Historia)
+Route::middleware('auth')->group(function () {
+    Route::post('/citas/{cita}/historia-traida', [MorbilidadController::class, 'toggleHistoriaTraida'])->name('citas.historia-traida');
+    Route::post('/pacientes/{paciente}/expediente', [ExpedienteController::class, 'guardar'])->name('expedientes.guardar');
+});
 
 
 // Dashboard y Reportes Yajure
@@ -119,7 +123,6 @@ Route::middleware(['auth', 'can:Atender Cita'])->group(function () {
     Route::get('/citas/{cita}/atender', [DiagnosticoController::class, 'atender'])->name('citas.atender');
     Route::post('/citas/{cita}/diagnostico', [DiagnosticoController::class, 'store'])->name('citas.diagnostico.store'); 
     Route::get('/diagnosticos/{diagnostico}/edit', [DiagnosticoController::class, 'edit'])->name('diagnosticos.edit');
-    Route::post('/expedientes/asignar', [ExpedienteController::class, 'asignarNumero'])->name('expedientes.asignar');
     
 });
 Route::middleware(['auth', 'can:Reporte Cita'])->group(function () {

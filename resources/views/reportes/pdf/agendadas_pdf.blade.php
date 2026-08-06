@@ -63,6 +63,7 @@
         <tr>
             <th>N° Historia</th>
             <th>Paciente</th>
+            <th>Hist. Traída</th>
             <th>Edad</th>
             <th>Sexo</th>
             @if($showTipo)<th>Tipo de Cita</th>@endif
@@ -73,6 +74,7 @@
         <tr>
             <td>{{ $m->numero_expediente ?? 'Sin asignar' }}</td>
             <td>{{ $m->paciente_nombre }} {{ $m->paciente_apellido }}</td>
+            <td class="text-center">{{ $m->historia_traida ? 'TH' : 'FH' }}</td>
             <td class="text-center">{{ $m->edad ?? '—' }}</td>
             <td>{{ $m->sexo ?? '—' }}</td>
             @if($showTipo)<td>{{ $m->tipo_paciente === 'primera_vez' ? 'Primera Vez' : ($m->tipo_paciente === 'control' ? 'Sucesiva' : 'Orden Médica') }}</td>@endif
