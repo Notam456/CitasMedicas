@@ -88,7 +88,7 @@ Route::middleware(['auth', 'can:Cita'])->group(function () {
     Route::get('/api/medicos/{medico_id}/suspensiones-activas', [SuspensionMedicoController::class, 'getActiveSuspensions'])->name('api.medicos.suspensiones-activas');
 
     //Rutas resource
-    Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita']);
+    Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita'])->except(['edit', 'update']);
     Route::get('/Citas/{id}/show', [CitaController::class, 'show']);
 });
 

@@ -272,9 +272,6 @@ class MorbilidadController extends Controller
             $btnEdit = $row->estado === 'Atendida'
                 ? '<button type="button" data-id="' . $row->id . '" class="btn-edit-cita btn btn-xs btn-square btn-neutral text-info-hover border-info-hover" title="Editar Diagnóstico"><i class="bi bi-pencil"></i></button>'
                 : '';
-            $btnReagendar = $row->estado === 'Agendada'
-                ? '<a href="' . route('Citas.edit', $row->id) . '" target="_blank" class="btn btn-xs btn-square btn-neutral text-info-hover border-info-hover" title="Reagendar"><i class="bi bi-calendar2-week"></i></a>'
-                : '';
             $btnDelete = $row->estado !== 'Cancelada'
                 ? '<form action="' . route('Citas.destroy', $row->id) . '" method="POST" style="display:inline" class="form-delete-cita">
                     ' . csrf_field() . method_field('DELETE') . '
@@ -284,7 +281,7 @@ class MorbilidadController extends Controller
                    </form>'
                 : '';
 
-            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . $btnReagendar . $btnDelete . '</div>';
+            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . $btnDelete . '</div>';
 
             $dataFormatted[] = [
                 $row->numero_expediente ?? 'Sin asignar',
