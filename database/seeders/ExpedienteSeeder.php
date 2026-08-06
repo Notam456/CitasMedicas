@@ -14,7 +14,7 @@ class ExpedienteSeeder extends Seeder
         foreach ($pacientes as $paciente) {
             Expediente::create([
                 'paciente_id' => $paciente->id,
-                'numero_expediente' => rand(0, 99) . '-'. rand(0, 99) . '-' . rand(0, 99),
+                'numero_expediente' => rand(10, 99) . '-'. rand(10, 99) . '-' . rand(10, 99),
                 'fecha_apertura' => $paciente->created_at->format('Y-m-d'),
                 'created_at' => now(),
                 'updated_at' => now(),
