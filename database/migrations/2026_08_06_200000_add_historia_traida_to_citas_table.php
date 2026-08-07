@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('citas', function (Blueprint $table) {
-            $table->tinyInteger('reagendada_contador')->unsigned()->default(0)->after('observacion');
+            $table->boolean('historia_traida')->default(false)->after('observacion');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('citas', function (Blueprint $table) {
-            $table->dropColumn('reagendada_contador');
+            $table->dropColumn('historia_traida');
         });
     }
 };

@@ -6,12 +6,12 @@ use App\Models\Calendario;
 use App\Models\Cita;
 use App\Models\Especialidad;
 use App\Models\Estado;
+use App\Models\Expediente;
 use App\Models\Municipio;
 use App\Models\Medico;
 use App\Models\Paciente;
 use App\Models\User;
 use App\Notifications\CitaCancelada;
-use App\Notifications\CitaReagendada;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -130,11 +130,8 @@ class CitaController extends Controller
                 $accionesHtml = '<div class="hstack gap-2 justify-content-end"><span class="text-muted small">—</span></div>';
             } else {
                 $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
-                $btnReagendar = $row->estado == 'Agendada'
-                    ? '<a href="'.route('Citas.edit', $row->id).'" class="btn btn-xs btn-square btn-neutral text-info-hover border-info-hover" title="Reagendar"><i class="bi bi-calendar2-week"></i></a>'
-                    : '';
                 $btnDelete = '<a href="'.route('Citas.destroy', $row->id).'" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
-                $accionesHtml = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnReagendar.$btnDelete.'</div>';
+                $accionesHtml = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnDelete.'</div>';
             }
 
             $dataFormatted[] = [
@@ -318,6 +315,7 @@ class CitaController extends Controller
             // Datos del paciente
             'cedula_tipo' => 'required|in:V,E',
             'cedula' => 'required|string|min:7|max:20|regex:/^[0-9]+$/',
+            'numero_expediente' => 'nullable|regex:/^\d{2}-\d{2}-\d{2}$/',
             'rif' => 'nullable|string|max:20',
             'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
@@ -402,6 +400,36 @@ class CitaController extends Controller
 
             session()->flash('paciente_id', $paciente->id);
 
+            $numeroExpediente = $request->filled('numero_expediente') ? trim($request->numero_expediente) : null;
+
+            if ($numeroExpediente) {
+                $historiaDeOtro = Expediente::where('numero_expediente', $numeroExpediente)
+                    ->where('paciente_id', '!=', $paciente->id)
+                    ->exists();
+
+                if ($historiaDeOtro) {
+                    DB::rollBack();
+                    Alert::error('Número de Historia en uso', 'Ese número de historia ya está asignado a otro paciente.');
+
+                    return redirect()->back()->withInput();
+                }
+
+                if ($paciente->expediente) {
+                    if ($paciente->expediente->numero_expediente !== $numeroExpediente) {
+                        DB::rollBack();
+                        Alert::error('Historia ya asignada', 'El paciente ya tiene un número de historia asignado.');
+
+                        return redirect()->back()->withInput();
+                    }
+                } else {
+                    Expediente::create([
+                        'paciente_id' => $paciente->id,
+                        'numero_expediente' => $numeroExpediente,
+                        'fecha_apertura' => now()->toDateString(),
+                    ]);
+                }
+            }
+
             Cita::create([
                 'paciente_id' => $paciente->id,
                 'calendario_id' => $request->calendario_id,
@@ -441,80 +469,6 @@ class CitaController extends Controller
         $cita = Cita::with('paciente', 'calendario.medico.especialidad')->findOrFail($id);
 
         return response()->json($cita);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Cita $cita)
-    {
-        if (trim($cita->estado) !== 'Agendada') {
-            Alert::error('Error', 'Solo se pueden reagendar citas con estado "Agendada".');
-
-            return redirect()->route('morbilidad.index');
-        }
-
-        if ($cita->reagendada_contador >= 2) {
-            Alert::error('Límite alcanzado', 'Esta cita ya ha sido reagendada el máximo de 2 veces.');
-
-            return redirect()->route('morbilidad.index');
-        }
-
-        $cita->load('paciente', 'calendario.medico.especialidad');
-        $especialidades = Especialidad::all();
-
-        return view('Cita.Editcita', compact('cita', 'especialidades'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Cita $cita)
-    {
-        if (trim($cita->estado) !== 'Agendada') {
-            Alert::error('Error', 'Solo se pueden reagendar citas agendadas.');
-
-            return redirect()->route('morbilidad.index');
-        }
-
-        if ($cita->reagendada_contador >= 2) {
-            Alert::error('Límite alcanzado', 'Esta cita ya ha sido reagendada el máximo de 2 veces.');
-
-            return redirect()->route('morbilidad.index');
-        }
-
-        $fechaOriginal = $cita->fecha_cita;
-
-        $request->validate([
-            'calendario_id' => 'required|numeric|exists:calendarios,id',
-            'fecha_cita' => 'required|date|after_or_equal:today',
-            'observacion' => 'nullable|string',
-        ]);
-        try {
-            DB::beginTransaction();
-            $cita->update([
-                'calendario_id' => $request->calendario_id,
-                'fecha_cita' => $request->fecha_cita,
-                'observacion' => $request->observacion,
-                'reagendada_contador' => $cita->reagendada_contador + 1,
-            ]);
-
-            if (! auth()->user()->hasRole('administrador')) {
-                $admins = User::role('administrador')->get();
-                Notification::send($admins, new CitaReagendada($cita, auth()->user(), $fechaOriginal));
-            }
-
-            DB::commit();
-            Alert::success('¡Éxito!', 'Cita reagendada correctamente.');
-
-            return redirect()->route('morbilidad.index');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Alert::error('Error', 'No se pudo reagendar la cita. Intente de nuevo.');
-
-            return redirect()->route('morbilidad.index');
-
-        }
     }
 
     /**

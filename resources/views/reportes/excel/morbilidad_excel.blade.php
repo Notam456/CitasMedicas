@@ -5,7 +5,7 @@
     $showFechaCita = $mostrarFechaCita ?? (empty($fecha_desde) || empty($fecha_hasta) || $fecha_desde !== $fecha_hasta);
     $showFechaRegistro = empty($fecha_registro_desde) || empty($fecha_registro_hasta) || $fecha_registro_desde !== $fecha_registro_hasta;
     $showMedico = $mostrarColumnaMedico ?? true;
-    $totalCols = 5 + ($showMedico ? 1 : 0) + ($showEsp ? 1 : 0) + ($showFechaCita ? 1 : 0) + ($showTipo ? 1 : 0) + ($showEstado ? 1 : 0) + ($showFechaRegistro ? 1 : 0);
+    $totalCols = 6 + ($showMedico ? 1 : 0) + ($showEsp ? 1 : 0) + ($showFechaCita ? 1 : 0) + ($showTipo ? 1 : 0) + ($showEstado ? 1 : 0) + ($showFechaRegistro ? 1 : 0);
 
     $tituloFecha = '';
     if ($fecha_desde && $fecha_hasta) {
@@ -73,6 +73,7 @@
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">N° Historia</th>
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Cédula</th>
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Paciente</th>
+        <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Hist. Traída</th>
         @if($showEsp)<th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Especialidad</th>@endif
         @if($showMedico)<th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Médico</th>@endif
         @if($showFechaCita)<th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Fecha Cita</th>@endif
@@ -87,6 +88,7 @@
         <td style="padding: 8px; text-align: center; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ $m->numero_expediente ?? 'Sin asignar' }}</td>
         <td style="padding: 8px; text-align: center; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ $m->paciente_cedula }}</td>
         <td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ $m->paciente_nombre }} {{ $m->paciente_apellido }}</td>
+        <td style="padding: 8px; text-align: center; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ $m->historia_traida ? 'TH' : 'FH' }}</td>
         @if($showEsp)<td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ $m->especialidad_nombre }}</td>@endif
         @if($showMedico)<td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">Dr. {{ $m->medico_nombre }} {{ $m->medico_apellido }}</td>@endif
         @if($showFechaCita)<td style="padding: 8px; text-align: center; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ \Carbon\Carbon::parse($m->fecha_cita)->format('d/m/Y') }}</td>@endif

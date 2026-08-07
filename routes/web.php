@@ -19,10 +19,10 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\PatologiaController;
 use App\Http\Controllers\SuspensionMedicoController;
+use App\Http\Controllers\ExpedienteController;
 
 use function PHPUnit\Framework\returnValue;
 use App\Http\Controllers\NotificacionController;
-use App\Http\Controllers\ExpedienteController;
 
 //Ruta de inicio
 Route::get('/', function () {
@@ -31,11 +31,9 @@ Route::get('/', function () {
 
 //Rutas para las vistas de autenticación
 Route::view('/login', 'login')->name('login');
-Route::view('/signup', 'signup')->name('signup');
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 Route::middleware('throttle:10,1')->group(function () {
     Route::post('/iniciar-sesion', [LoginController::class, 'login'])->name('iniciar-sesion');
-    Route::post('/validar-registro', [LoginController::class, 'register'])->name('register');
 });
 Route::post('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout');
 
@@ -83,14 +81,14 @@ Route::middleware(['auth', 'can:Cita,Pacientes'])->group(function () {
 });
 
 Route::middleware(['auth', 'can:Cita'])->group(function () {
-    Route::get('api/paciente/buscar/{cedula}', [PacienteController::class, 'buscarPorCedula'])->name('paciente.buscar')->middleware('auth');
+    Route::get('api/paciente/buscar', [PacienteController::class, 'buscarPaciente'])->name('paciente.buscar')->middleware('auth');
     Route::get('/api/especialidades/{id}/medicos', [CitaController::class, 'getMedicosPorEspecialidad']);
     Route::get('/api/medicos/{medico_id}/disponibilidad', [CitaController::class, 'disponibilidadMes']);
     Route::get('/api/citas/paciente/{paciente_id}/especialidad/{especialidad_id}/tiene-citas', [CitaController::class, 'tieneCitasEnEspecialidad']);
     Route::get('/api/medicos/{medico_id}/suspensiones-activas', [SuspensionMedicoController::class, 'getActiveSuspensions'])->name('api.medicos.suspensiones-activas');
 
     //Rutas resource
-    Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita']);
+    Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita'])->except(['edit', 'update']);
     Route::get('/Citas/{id}/show', [CitaController::class, 'show']);
 });
 
@@ -112,6 +110,10 @@ Route::middleware('auth')->group(function () {
 });
 
 // Expedientes (N° Historia)
+Route::middleware('auth')->group(function () {
+    Route::post('/citas/{cita}/historia-traida', [MorbilidadController::class, 'toggleHistoriaTraida'])->name('citas.historia-traida');
+    Route::post('/pacientes/{paciente}/expediente', [ExpedienteController::class, 'guardar'])->name('expedientes.guardar');
+});
 
 
 // Dashboard y Reportes Yajure
@@ -121,7 +123,6 @@ Route::middleware(['auth', 'can:Atender Cita'])->group(function () {
     Route::get('/citas/{cita}/atender', [DiagnosticoController::class, 'atender'])->name('citas.atender');
     Route::post('/citas/{cita}/diagnostico', [DiagnosticoController::class, 'store'])->name('citas.diagnostico.store'); 
     Route::get('/diagnosticos/{diagnostico}/edit', [DiagnosticoController::class, 'edit'])->name('diagnosticos.edit');
-    Route::post('/expedientes/asignar', [ExpedienteController::class, 'asignarNumero'])->name('expedientes.asignar');
     
 });
 Route::middleware(['auth', 'can:Reporte Cita'])->group(function () {
@@ -160,6 +161,9 @@ Route::middleware(['auth', 'can:Reportes'])->group(function () {
 
     Route::get('/reportes/pdf/movimiento-consultas/pdf', [ReporteController::class, 'movimientoConsultasPdf'])->name('reportes.movimiento_consultas_pdf');
     Route::get('/reportes/excel/movimiento-consultas/excel', [ReporteController::class, 'movimientoConsultasExcel'])->name('reportes.movimiento_consultas_excel');
+
+    Route::get('/reportes/pdf/movimiento-consulta-aro/pdf', [ReporteController::class, 'movimientoConsultaAroPdf'])->name('reportes.movimiento_consulta_aro_pdf');
+    Route::get('/reportes/excel/movimiento-consulta-aro/excel', [ReporteController::class, 'movimientoConsultaAroExcel'])->name('reportes.movimiento_consulta_aro_excel');
 
     Route::get('/reportes/pdf/causas-principales/pdf', [ReporteController::class, 'causasPrincipalesPdf'])->name('reportes.causas_principales_pdf');
     Route::get('/reportes/excel/causas-principales/excel', [ReporteController::class, 'causasPrincipalesExcel'])->name('reportes.causas_principales_excel');

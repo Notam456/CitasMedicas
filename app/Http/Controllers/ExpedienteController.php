@@ -3,43 +3,41 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expediente;
+use App\Models\Paciente;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ExpedienteController extends Controller
 {
-    public function asignarNumero(Request $request)
+    public function guardar(Request $request, Paciente $paciente)
     {
         $request->validate([
-            'paciente_id' => 'required|exists:pacientes,id',
-            'numero_expediente' => 'required|string|max:255|unique:expedientes,numero_expediente',
+            'numero_expediente' => 'required|regex:/^\d{2}-\d{2}-\d{2}$/',
         ]);
 
-        $exists = Expediente::where('paciente_id', $request->paciente_id)->exists();
-        if ($exists) {
+        $numero = trim($request->numero_expediente);
+
+        $duplicado = Expediente::where('numero_expediente', $numero)
+            ->where('paciente_id', '!=', $paciente->id)
+            ->exists();
+
+        if ($duplicado) {
             return response()->json([
-                'success' => false,
-                'message' => 'El paciente ya tiene un número de historia asignado.',
+                'message' => 'Ese número de historia ya está asignado a otro paciente.',
             ], 422);
         }
 
-        try {
-            $expediente = Expediente::create([
-                'paciente_id' => $request->paciente_id,
-                'numero_expediente' => $request->numero_expediente,
-                'fecha_apertura' => now(),
-            ]);
+        $expediente = $paciente->expediente;
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Número de historia asignado correctamente.',
-                'numero_expediente' => $expediente->numero_expediente,
+        if ($expediente) {
+            $expediente->update(['numero_expediente' => $numero]);
+        } else {
+            Expediente::create([
+                'paciente_id' => $paciente->id,
+                'numero_expediente' => $numero,
+                'fecha_apertura' => now()->toDateString(),
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al asignar el número de historia: ' . $e->getMessage(),
-            ], 500);
         }
+
+        return response()->json(['numero_expediente' => $numero]);
     }
 }

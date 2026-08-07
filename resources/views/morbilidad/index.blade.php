@@ -6,6 +6,55 @@
 @section('content')
     @include('layouts.navbar')
 
+    <style>
+        .historia-inline {
+            min-width: 130px;
+        }
+        .historia-inline .input-historia {
+            font-family: monospace;
+            letter-spacing: 0.5px;
+        }
+        .th-fh-switch {
+            display: inline-flex;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            overflow: hidden;
+            cursor: not-allowed;
+            opacity: 0.6;
+            margin-top: 0.35rem;
+            user-select: none;
+        }
+        .th-fh-switch .seg {
+            padding: 0.1rem 0.55rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        .th-fh-switch.editable {
+            cursor: pointer;
+            opacity: 1;
+        }
+        .th-fh-switch.editable:hover {
+            border-color: #86b7fe;
+        }
+        .th-fh-switch .seg.th {
+            background: #fff;
+            color: #6c757d;
+        }
+        .th-fh-switch .seg.fh {
+            background: #fff;
+            color: #6c757d;
+        }
+        .th-fh-switch.th .seg.th {
+            background: #198754;
+            color: #fff;
+        }
+        .th-fh-switch.fh .seg.fh {
+            background: #dc3545;
+            color: #fff;
+        }
+    </style>
+
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fas fa-exclamation-triangle me-2"></i> {{ session('error') }}
@@ -338,6 +387,97 @@
                     if (result.isConfirmed) {
                         form.submit();
                     }
+                });
+            });
+
+            // N° Historia inline: máscara y guardado
+            function aplicarMascaraHistoria(val) {
+                var digitos = val.replace(/\D/g, '').slice(0, 6);
+                var partes = digitos.match(/.{1,2}/g) || [];
+                return partes.join('-');
+            }
+
+            $(document).on('input', '.input-historia', function() {
+                var formateado = aplicarMascaraHistoria($(this).val());
+                if ($(this).val() !== formateado) {
+                    $(this).val(formateado);
+                }
+            });
+
+            $(document).on('change', '.input-historia', function() {
+                var $input = $(this);
+                var valor = $input.val().trim();
+                var anterior = $input.data('anterior') || '';
+
+                if (valor === anterior) return;
+
+                if (valor === '') {
+                    $input.val(anterior);
+                    return;
+                }
+
+                if (!/^\d{2}-\d{2}-\d{2}$/.test(valor)) {
+                    Swal.fire('Formato inválido', 'El N° de Historia debe tener el formato 00-00-00.', 'warning');
+                    $input.val(anterior);
+                    return;
+                }
+
+                var url = "{{ route('expedientes.guardar', ['paciente' => '__PACIENTE__']) }}"
+                    .replace('__PACIENTE__', $input.data('paciente-id'));
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ numero_expediente: valor })
+                }).then(function(res) {
+                    if (!res.ok) {
+                        return res.json().then(function(data) {
+                            throw new Error(data.message || 'No se pudo guardar el N° de Historia.');
+                        });
+                    }
+                    $input.data('anterior', valor);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Guardado',
+                        text: 'N° de Historia actualizado.',
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+                }).catch(function(err) {
+                    $input.val(anterior);
+                    Swal.fire('Error', err.message, 'error');
+                });
+            });
+
+            // Switch TH/FH
+            $(document).on('click', '.th-fh-switch.editable', function() {
+                var $switch = $(this);
+                var url = "{{ route('citas.historia-traida', ['cita' => '__CITA__']) }}"
+                    .replace('__CITA__', $switch.data('cita-id'));
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                }).then(function(res) {
+                    if (!res.ok) {
+                        return res.json().then(function(data) {
+                            throw new Error(data.message || 'No se pudo actualizar el estado.');
+                        });
+                    }
+                    return res.json();
+                }).then(function(data) {
+                    var traida = data.historia_traida ? 1 : 0;
+                    $switch.data('traida', traida).toggleClass('th', !!data.historia_traida).toggleClass('fh', !data.historia_traida);
+                }).catch(function(err) {
+                    Swal.fire('Error', err.message, 'error');
                 });
             });
 

@@ -13,6 +13,20 @@ use Carbon\Carbon;
 
 class MorbilidadController extends Controller
 {
+    public function toggleHistoriaTraida(Cita $cita)
+    {
+        if ($cita->estado !== 'Agendada') {
+            return response()->json([
+                'message' => 'Solo se puede marcar la historia como traída en citas agendadas.',
+            ], 403);
+        }
+
+        $cita->historia_traida = !$cita->historia_traida;
+        $cita->save();
+
+        return response()->json(['historia_traida' => $cita->historia_traida]);
+    }
+
     public function index(Request $request)
     {
         $especialidades = Especialidad::where('estado', true)->get();
@@ -170,6 +184,8 @@ class MorbilidadController extends Controller
             ->leftJoin(DB::raw("(SELECT cp.cita_id, STRING_AGG(p.nombre, ', ' ORDER BY p.nombre) as patologias_nombres FROM cita_patologias cp JOIN patologias p ON p.id = cp.patologia_id GROUP BY cp.cita_id) as pats"), 'pats.cita_id', '=', 'citas.id')
             ->select(
                 'citas.id',
+                'citas.paciente_id',
+                'citas.historia_traida',
                 'expedientes.numero_expediente',
                 'pacientes.nombre as paciente_nombre',
                 'pacientes.apellido as paciente_apellido',
@@ -272,9 +288,6 @@ class MorbilidadController extends Controller
             $btnEdit = $row->estado === 'Atendida'
                 ? '<button type="button" data-id="' . $row->id . '" class="btn-edit-cita btn btn-xs btn-square btn-neutral text-info-hover border-info-hover" title="Editar Diagnóstico"><i class="bi bi-pencil"></i></button>'
                 : '';
-            $btnReagendar = $row->estado === 'Agendada'
-                ? '<a href="' . route('Citas.edit', $row->id) . '" target="_blank" class="btn btn-xs btn-square btn-neutral text-info-hover border-info-hover" title="Reagendar"><i class="bi bi-calendar2-week"></i></a>'
-                : '';
             $btnDelete = $row->estado !== 'Cancelada'
                 ? '<form action="' . route('Citas.destroy', $row->id) . '" method="POST" style="display:inline" class="form-delete-cita">
                     ' . csrf_field() . method_field('DELETE') . '
@@ -284,10 +297,27 @@ class MorbilidadController extends Controller
                    </form>'
                 : '';
 
-            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . $btnReagendar . $btnDelete . '</div>';
+            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . $btnDelete . '</div>';
+
+            $numero = $row->numero_expediente ?? '';
+            $historiaInput = '<input type="text" class="form-control form-control-sm input-historia"
+                data-paciente-id="' . $row->paciente_id . '"
+                data-anterior="' . e($numero) . '"
+                value="' . e($numero) . '"
+                placeholder="00-00-00" maxlength="8" autocomplete="off">';
+
+            $editableTraida = $row->estado === 'Agendada';
+            $traida = (bool) $row->historia_traida;
+            $switchTraida = '<div class="th-fh-switch' . ($editableTraida ? ' editable' : '') . ($traida ? ' th' : ' fh') . '"
+                data-cita-id="' . $row->id . '"
+                data-traida="' . ($traida ? '1' : '0') . '"
+                data-editable="' . ($editableTraida ? '1' : '0') . '"
+                title="Historia traída del archivo"><span class="seg th">TH</span><span class="seg fh">FH</span></div>';
+
+            $historiaCol = '<div class="historia-inline">' . $historiaInput . $switchTraida . '</div>';
 
             $dataFormatted[] = [
-                $row->numero_expediente ?? 'Sin asignar',
+                $historiaCol,
                 $row->paciente_nombre . ' ' . $row->paciente_apellido,
                 $row->paciente_cedula,
                 Carbon::parse($row->fecha_cita)->format('d/m/Y'),
@@ -376,13 +406,11 @@ class MorbilidadController extends Controller
 
             if ($row->numero_expediente) {
                 $expedienteBadge = '<span class="badge bg-success">' . e($row->numero_expediente) . '</span>';
-                $btnHistoria = '';
             } else {
                 $expedienteBadge = '<span class="badge bg-secondary">Sin asignar</span>';
-                $btnHistoria = '<button type="button" data-paciente-id="'.$row->paciente_id.'" data-paciente-nombre="'.e($row->paciente_nombre.' '.$row->paciente_apellido).'" data-paciente-cedula="'.e($row->paciente_cedula).'" class="btn-asignar-historia btn btn-xs btn-square btn-info"><i class="bi bi-file-earmark-plus"></i></button>';
             }
 
-            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnHistoria . $btnAtender . '</div>';
+            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnAtender . '</div>';
 
             $dataFormatted[] = [
                 $row->paciente_nombre . ' ' . $row->paciente_apellido,

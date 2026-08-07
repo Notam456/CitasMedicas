@@ -60,7 +60,7 @@ class MorbilidadExport implements FromView, WithEvents
         $showFechaRegistro = empty($this->fecha_registro_desde) || empty($this->fecha_registro_hasta) || $this->fecha_registro_desde !== $this->fecha_registro_hasta;
         $showMedico = empty($this->medicoNombre);
 
-        $lastColIndex = 4 + ($showMedico ? 1 : 0) + ($showEsp ? 1 : 0) + ($showFechaCita ? 1 : 0) + ($showTipo ? 1 : 0) + ($showEstado ? 1 : 0) + ($showFechaRegistro ? 1 : 0);
+        $lastColIndex = 5 + ($showMedico ? 1 : 0) + ($showEsp ? 1 : 0) + ($showFechaCita ? 1 : 0) + ($showTipo ? 1 : 0) + ($showEstado ? 1 : 0) + ($showFechaRegistro ? 1 : 0);
         $lastColLetter = chr(65 + $lastColIndex);
 
         return [
@@ -76,8 +76,8 @@ class MorbilidadExport implements FromView, WithEvents
                 $sheet->getColumnDimension('A')->setWidth(15);
                 $sheet->getColumnDimension('B')->setWidth(15);
                 $sheet->getColumnDimension('C')->setWidth(32);
-                $sheet->getColumnDimension('D')->setWidth(22);
-                $sheet->getColumnDimension('E')->setWidth(28);
+                $sheet->getColumnDimension('D')->setWidth(12);
+                $sheet->getColumnDimension('E')->setWidth(22);
                 $sheet->getColumnDimension('F')->setWidth(14);
                 $sheet->getColumnDimension('G')->setWidth(14);
                 $sheet->getColumnDimension('H')->setWidth(14);

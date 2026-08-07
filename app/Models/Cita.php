@@ -19,9 +19,13 @@ class Cita extends Model
         'estado',
         'tipo_paciente',
         'observacion',
-        'reagendada_contador',
+        'historia_traida',
         'diagnostico_libre',
         'atendido_por',
+    ];
+
+    protected $casts = [
+        'historia_traida' => 'boolean',
     ];
 
     public function user()

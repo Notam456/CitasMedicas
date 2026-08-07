@@ -21,6 +21,24 @@
             .calendar-day-available:hover .calendar-slot {
                 background-color: #d1e7dd;
             }
+            #barra_busqueda_paciente .form-control,
+            #barra_busqueda_paciente .form-control:hover,
+            #barra_busqueda_paciente .form-control:focus,
+            #barra_busqueda_paciente .form-control:active {
+                border-color: #ced4da;
+                box-shadow: none !important;
+                outline: none;
+                transform: none !important;
+                transition: none;
+            }
+            #barra_busqueda_paciente .btn,
+            #barra_busqueda_paciente .btn:hover,
+            #barra_busqueda_paciente .btn:focus,
+            #barra_busqueda_paciente .btn:active {
+                box-shadow: none !important;
+                transform: none !important;
+                transition: none;
+            }
         </style>
 
         <div class="mb-4">
@@ -38,25 +56,27 @@
 
             <div class="card-body p-4">
 
-                <h4 class="text-secondary mb-3"><i class="fas fa-user-injured me-2"></i>Datos del Paciente</h4>
-
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+                    <h4 class="text-secondary mb-0"><i class="fas fa-user-injured me-2"></i>Datos del Paciente</h4>
+                    <div class="position-relative" id="barra_busqueda_paciente" style="max-width: 380px; flex: 1 1 320px;">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" id="buscar_paciente" class="form-control"
+                                placeholder="Cédula o N° de historia…" autocomplete="off">
+                            <button type="button" class="btn btn-primary text-nowrap" id="btn_buscar_paciente">Buscar</button>
+                            <button type="button" class="btn btn-outline-secondary" id="btn_limpiar_busqueda" title="Limpiar búsqueda">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                        </div>
+                        <small id="mensaje_busqueda" class="position-absolute bottom-100 start-0 w-100 text-center small d-none mb-1" aria-live="polite"></small>
+                    </div>
+                </div>
                 <div class="row g-3 bg-light p-3 rounded mb-4 border">
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Cédula del Paciente *</label>
-                        <div class="input-group">
-                            <select name="cedula_tipo" id="input_cedula_tipo" class="form-select @error('cedula') is-invalid @enderror" style="max-width: 60px;" required>
-                                <option value="V" {{ old('cedula_tipo') == 'E' ? '' : 'selected' }}>V</option>
-                                <option value="E" {{ old('cedula_tipo') == 'E' ? 'selected' : '' }}>E</option>
-                            </select>
-                            <input type="tel" name="cedula" id="input_cedula" class="form-control @error('cedula') is-invalid @enderror" placeholder="12345678"
-                                value="{{ old('cedula') }}" required inputmode="numeric" pattern="[0-9]*" minlength="7" maxlength="20"
-                                oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-                            <button type="button" class="btn btn-secondary" id="btn_buscar_cedula">Buscar</button>
-                        </div>
-                        <small id="mensaje_cedula" class="form-text mt-1 text-primary" aria-live="polite">Ingrese cédula para buscar.</small>
-                        @error('cedula')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                        <label class="form-label fw-bold">N° Historia</label>
+                        <input type="text" name="numero_expediente" id="input_expediente"
+                            class="form-control" placeholder="00-00-00"
+                            value="{{ old('numero_expediente') }}" maxlength="8" autocomplete="off">
                     </div>
 
                     <div class="col-md-4">
@@ -82,6 +102,32 @@
                     </div>
 
                     <div class="col-md-4">
+                        <label class="form-label fw-bold">Cédula</label>
+                        <div class="input-group">
+                            <select name="cedula_tipo" id="input_cedula_tipo" class="form-select @error('cedula') is-invalid @enderror" style="max-width: 60px;" required>
+                                <option value="V" {{ old('cedula_tipo') == 'E' ? '' : 'selected' }}>V</option>
+                                <option value="E" {{ old('cedula_tipo') == 'E' ? 'selected' : '' }}>E</option>
+                            </select>
+                            <input type="tel" name="cedula" id="input_cedula" class="form-control @error('cedula') is-invalid @enderror" placeholder="12345678"
+                                value="{{ old('cedula') }}" required inputmode="numeric" pattern="[0-9]*" minlength="7" maxlength="20"
+                                oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                        </div>
+                        @error('cedula')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" name="telefono" id="input_telefono"
+                            class="form-control @error('telefono') is-invalid @enderror" value="{{ old('telefono') }}"
+                            required pattern="[\d\-\(\)\s\+]+" maxlength="20">
+                        @error('telefono')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="col-md-4">
                         <label class="form-label">F. Nacimiento</label>
                         <input type="date" name="fecha_nacimiento" id="input_fecha"
                             class="form-control @error('fecha_nacimiento') is-invalid @enderror"
@@ -92,11 +138,14 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label">Teléfono</label>
-                        <input type="text" name="telefono" id="input_telefono"
-                            class="form-control @error('telefono') is-invalid @enderror" value="{{ old('telefono') }}"
-                            required pattern="[\d\-\(\)\s\+]+" maxlength="20">
-                        @error('telefono')
+                        <label class="form-label">Rif</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light fw-bold">J</span>
+                            <input type="text" name="rif" id="input_rif"
+                                class="form-control @error('rif') is-invalid @enderror" value="{{ old('rif') }}"
+                                placeholder="123456789" pattern="[0-9]*" maxlength="20" title="Solo números">
+                        </div>
+                        @error('rif')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -118,25 +167,6 @@
                         @error('sexo')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Rif</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light fw-bold">J</span>
-                            <input type="text" name="rif" id="input_rif"
-                                class="form-control @error('rif') is-invalid @enderror" value="{{ old('rif') }}"
-                                placeholder="123456789" pattern="[0-9]*" maxlength="20" title="Solo números">
-                        </div>
-                        @error('rif')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">N° Expediente</label>
-                        <input type="text" id="input_expediente" class="form-control bg-light" readonly
-                            placeholder="Sin asignar">
                     </div>
 
                     <h6 class="text-secondary border-bottom pb-2">Ubicación del Paciente</h6>
@@ -307,115 +337,160 @@
     </div>
 
     <script>
-        document.getElementById('btn_buscar_cedula').addEventListener('click', function () {
-            let cedulaTipo = document.getElementById('input_cedula_tipo').value;
-            let cedulaNum = document.getElementById('input_cedula').value;
-            const cedulaCompleta = cedulaTipo + '-' + cedulaNum;
-            const mensaje = document.getElementById('mensaje_cedula');
+        function llenarFormularioPaciente(datos) {
+            const cedulaParts = datos.cedula ? datos.cedula.split('-') : ['V', ''];
+            document.getElementById('input_cedula_tipo').value = cedulaParts[0] || 'V';
+            document.getElementById('input_cedula').value = cedulaParts.slice(1).join('-') || '';
+            document.getElementById('input_cedula_tipo').disabled = true;
+            document.getElementById('input_cedula').readOnly = true;
 
-            if (!cedulaNum) {
-                mensaje.innerHTML = 'Ingrese un número de cédula.';
-                mensaje.className = 'form-text mt-1 text-danger fw-bold';
+            const rifParts = datos.rif ? datos.rif.split('-') : [];
+            document.getElementById('input_rif').value = rifParts.length > 1 ? rifParts.slice(1).join('-') : '';
+            const inputExpediente = document.getElementById('input_expediente');
+            inputExpediente.value = datos?.expediente?.numero_expediente || '';
+            inputExpediente.readOnly = true;
+            inputExpediente.classList.add('bg-light');
+            document.getElementById('input_nombre').value = datos.nombre;
+            document.getElementById('input_apellido').value = datos.apellido;
+            document.getElementById('input_fecha').value = datos.fecha_nacimiento;
+            document.getElementById('input_telefono').value = datos.telefono;
+            document.getElementById('input_direccion').value = datos.direccion;
+
+            if (datos.sexo === 'Masculino') {
+                document.getElementById('input_sexo_m').checked = true;
+            } else if (datos.sexo === 'Femenino') {
+                document.getElementById('input_sexo_f').checked = true;
+            }
+
+            const p = datos?.parroquia;
+            const m = p?.municipio;
+            const e = m?.estado;
+
+            if (e?.id && m?.id && p?.id) {
+                document.getElementById('select-estado').value = e.id;
+                let selectM = document.getElementById('select-municipio');
+                selectM.innerHTML = `<option value="${m.id}" selected>${m.nombre}</option>`;
+
+                let selectP = document.getElementById('select-parroquia');
+                selectP.innerHTML = `<option value="${p.id}" selected>${p.nombre}</option>`;
+
+                document.getElementById('select-estado').disabled = true;
+                document.getElementById('select-municipio').disabled = true;
+                document.getElementById('select-parroquia').disabled = true;
+            } else {
+                document.getElementById('select-estado').disabled = false;
+                document.getElementById('select-municipio').disabled = false;
+                document.getElementById('select-parroquia').disabled = false;
+            }
+
+            document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = true);
+
+            window.pacienteId = datos.id;
+            actualizarTipoPaciente();
+        }
+
+        function limpiarFormularioPaciente() {
+            document.getElementById('input_cedula_tipo').disabled = false;
+            document.getElementById('input_cedula').readOnly = false;
+            document.getElementById('input_rif').value = '';
+            const inputExpediente = document.getElementById('input_expediente');
+            inputExpediente.value = '';
+            inputExpediente.readOnly = false;
+            inputExpediente.classList.remove('bg-light');
+            document.getElementById('input_nombre').value = '';
+            document.getElementById('input_apellido').value = '';
+            document.getElementById('input_fecha').value = '';
+            document.getElementById('input_telefono').value = '';
+            document.getElementById('input_direccion').value = '';
+            document.getElementById('input_sexo_m').checked = false;
+            document.getElementById('input_sexo_f').checked = false;
+
+            document.getElementById('select-estado').value = '';
+            document.getElementById('select-estado').disabled = false;
+            document.getElementById('select-municipio').innerHTML = '<option value="">Seleccione Municipio</option>';
+            document.getElementById('select-municipio').disabled = false;
+            document.getElementById('select-parroquia').innerHTML = '<option value="">Seleccione Parroquia</option>';
+            document.getElementById('select-parroquia').disabled = false;
+
+            document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = false);
+
+            window.pacienteId = null;
+            setDefaultLocation();
+        }
+
+        let temporizadorMensaje = null;
+
+        function mostrarMensaje(texto, tipo) {
+            const mensaje = document.getElementById('mensaje_busqueda');
+            const colores = {
+                success: 'text-success',
+                danger: 'text-danger',
+                warning: 'text-warning',
+                primary: 'text-primary',
+                muted: 'text-muted'
+            };
+
+            if (temporizadorMensaje) clearTimeout(temporizadorMensaje);
+
+            mensaje.style.transition = 'none';
+            mensaje.classList.remove('d-none', 'opacity-0', 'text-success', 'text-danger', 'text-warning', 'text-primary', 'text-muted');
+            mensaje.textContent = texto;
+            mensaje.classList.add(colores[tipo] || 'text-muted');
+
+            temporizadorMensaje = setTimeout(() => {
+                mensaje.style.transition = 'opacity 0.5s ease';
+                mensaje.classList.add('opacity-0');
+                setTimeout(() => {
+                    mensaje.classList.add('d-none');
+                    mensaje.classList.remove('opacity-0');
+                }, 500);
+            }, 3500);
+        }
+
+        async function buscarPaciente() {
+            const q = document.getElementById('buscar_paciente').value.trim();
+
+            if (!q) {
+                mostrarMensaje('Ingrese una cédula o N° de historia para buscar.', 'danger');
                 return;
             }
-            if (cedulaNum.length < 7) {
-                mensaje.innerHTML = 'La cédula debe tener al menos 7 dígitos.';
-                mensaje.className = 'form-text mt-1 text-danger fw-bold';
-                return;
+
+            mostrarMensaje('Buscando...', 'warning');
+
+            try {
+                const res = await fetch("{{ route('paciente.buscar') }}?q=" + encodeURIComponent(q));
+                const data = await res.json();
+
+                if (data.encontrado) {
+                    llenarFormularioPaciente(data.datos);
+                    mostrarMensaje('Paciente encontrado. Datos autocompletados.', 'success');
+                } else {
+                    limpiarFormularioPaciente();
+                    mostrarMensaje('Paciente no registrado. Llene los campos.', 'primary');
+                }
+            } catch (error) {
+                console.error(error);
+                mostrarMensaje('Error al procesar la solicitud.', 'danger');
             }
+        }
 
-            mensaje.innerHTML = 'Buscando...';
-            mensaje.className = 'form-text mt-1 text-warning';
+        document.getElementById('btn_buscar_paciente').addEventListener('click', buscarPaciente);
 
-            const buscarUrl = '{{ route('paciente.buscar', ['cedula' => '__CEDULA__']) }}';
+        document.getElementById('buscar_paciente').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarPaciente();
+            }
+        });
 
-            fetch(buscarUrl.replace('__CEDULA__', encodeURIComponent(cedulaCompleta)))
-                .then(response => response.json())
-                .then(data => {
-                    if (data.encontrado) {
-                        const cedulaParts = data.datos.cedula ? data.datos.cedula.split('-') : ['V', ''];
-                        document.getElementById('input_cedula_tipo').value = cedulaParts[0] || 'V';
-                        document.getElementById('input_cedula').value = cedulaParts.slice(1).join('-') || '';
-                        document.getElementById('input_cedula_tipo').disabled = true;
-                        document.getElementById('input_cedula').readOnly = true;
-
-                        const rifParts = data.datos.rif ? data.datos.rif.split('-') : [];
-                        document.getElementById('input_rif').value = rifParts.length > 1 ? rifParts.slice(1).join('-') : '';
-                        document.getElementById('input_expediente').value = data.datos?.expediente?.numero_expediente || '';
-                        document.getElementById('input_nombre').value = data.datos.nombre;
-                        document.getElementById('input_apellido').value = data.datos.apellido;
-                        document.getElementById('input_fecha').value = data.datos.fecha_nacimiento;
-                        document.getElementById('input_telefono').value = data.datos.telefono;
-                        document.getElementById('input_direccion').value = data.datos.direccion;
-
-                        if (data.datos.sexo === 'Masculino') {
-                            document.getElementById('input_sexo_m').checked = true;
-                        } else if (data.datos.sexo === 'Femenino') {
-                            document.getElementById('input_sexo_f').checked = true;
-                        }
-
-                        const p = data.datos?.parroquia;
-                        const m = p?.municipio;
-                        const e = m?.estado;
-
-                        if (e?.id && m?.id && p?.id) {
-                            document.getElementById('select-estado').value = e.id;
-                            let selectM = document.getElementById('select-municipio');
-                            selectM.innerHTML = `<option value="${m.id}" selected>${m.nombre}</option>`;
-
-                            let selectP = document.getElementById('select-parroquia');
-                            selectP.innerHTML = `<option value="${p.id}" selected>${p.nombre}</option>`;
-
-                            document.getElementById('select-estado').disabled = true;
-                            document.getElementById('select-municipio').disabled = true;
-                            document.getElementById('select-parroquia').disabled = true;
-                        } else {
-                            document.getElementById('select-estado').disabled = false;
-                            document.getElementById('select-municipio').disabled = false;
-                            document.getElementById('select-parroquia').disabled = false;
-                        }
-
-                        document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = true);
-
-                        window.pacienteId = data.datos.id;
-                        actualizarTipoPaciente();
-
-                        mensaje.innerHTML = 'Paciente encontrado. Datos autocompletados.';
-                        mensaje.className = 'form-text mt-1 text-success fw-bold';
-                    } else {
-                        document.getElementById('input_cedula_tipo').disabled = false;
-                        document.getElementById('input_cedula').readOnly = false;
-                        document.getElementById('input_rif').value = '';
-                        document.getElementById('input_expediente').value = '';
-                        document.getElementById('input_nombre').value = '';
-                        document.getElementById('input_apellido').value = '';
-                        document.getElementById('input_fecha').value = '';
-                        document.getElementById('input_telefono').value = '';
-                        document.getElementById('input_direccion').value = '';
-                        document.getElementById('input_sexo_m').checked = false;
-                        document.getElementById('input_sexo_f').checked = false;
-
-                        document.getElementById('select-estado').value = '';
-                        document.getElementById('select-estado').disabled = false;
-                        document.getElementById('select-municipio').innerHTML = '<option value="">Seleccione Municipio</option>';
-                        document.getElementById('select-municipio').disabled = false;
-                        document.getElementById('select-parroquia').innerHTML = '<option value="">Seleccione Parroquia</option>';
-                        document.getElementById('select-parroquia').disabled = false;
-
-                        document.querySelectorAll('#input_rif, #input_nombre, #input_apellido, #input_fecha, #input_telefono, #input_direccion, #input_cedula').forEach(el => el.readOnly = false);
-
-                        window.pacienteId = null;
-                        setDefaultLocation();
-
-                        mensaje.innerHTML = 'Paciente nuevo. Por favor llene todos los campos.';
-                        mensaje.className = 'form-text mt-1 text-primary fw-bold';
-                    }
-                })
-                .catch(error => {
-                    console.error(error);
-                    mensaje.innerHTML = 'Error al procesar la solicitud.';
-                    mensaje.className = 'form-text mt-1 text-danger';
-                });
+        document.getElementById('btn_limpiar_busqueda').addEventListener('click', function () {
+            document.getElementById('buscar_paciente').value = '';
+            limpiarFormularioPaciente();
+            if (temporizadorMensaje) clearTimeout(temporizadorMensaje);
+            const mensaje = document.getElementById('mensaje_busqueda');
+            mensaje.style.transition = 'none';
+            mensaje.classList.add('d-none');
+            document.getElementById('buscar_paciente').focus();
         });
 
         document.getElementById('select-estado').addEventListener('change', function () {
@@ -473,6 +548,16 @@
         document.addEventListener('DOMContentLoaded', function () {
             actualizarTextoMes();
             renderizarGrid();
+
+            const inputExpediente = document.getElementById('input_expediente');
+            inputExpediente.addEventListener('input', function () {
+                const digitos = this.value.replace(/\D/g, '').slice(0, 6);
+                const partes = digitos.match(/.{1,2}/g) || [];
+                const formateado = partes.join('-');
+                if (this.value !== formateado) {
+                    this.value = formateado;
+                }
+            });
 
             const selectEspecialidad = document.getElementById('select-especialidad');
             const selectMedico = document.getElementById('select-medico');

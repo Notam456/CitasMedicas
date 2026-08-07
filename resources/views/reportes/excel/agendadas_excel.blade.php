@@ -1,6 +1,6 @@
 @php
     $showTipo = $mostrarColumnaTipo ?? true;
-    $totalCols = 6 + ($showTipo ? 1 : 0);
+    $totalCols = 7 + ($showTipo ? 1 : 0);
 
     $tituloFecha = '';
     if ($fecha_desde && $fecha_hasta) {
@@ -41,6 +41,7 @@
     <tr>
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">N° Historia</th>
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Paciente</th>
+        <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Hist. Traída</th>
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Edad</th>
         <th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Sexo</th>
         @if($showTipo)<th style="background-color: #2E7D32; color: #FFFFFF; font-weight: bold; font-size: 12px; padding: 10px; text-align: center; border: 1px solid #1B5E20;">Tipo de Cita</th>@endif
@@ -51,6 +52,7 @@
     <tr>
         <td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }}; text-align: center;">{{ $m->numero_expediente ?? 'Sin asignar' }}</td>
         <td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }};">{{ $m->paciente_nombre }} {{ $m->paciente_apellido }}</td>
+        <td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }}; text-align: center;">{{ $m->historia_traida ? 'TH' : 'FH' }}</td>
         <td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }}; text-align: center;">{{ $m->edad ?? '—' }}</td>
         <td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }}; text-align: center;">{{ $m->sexo ?? '—' }}</td>
         @if($showTipo)<td style="padding: 8px; border: 1px solid #C8E6C9; background-color: {{ $index % 2 == 0 ? '#F1F8E9' : '#FFFFFF' }}; text-align: center;">{{ $m->tipo_paciente === 'primera_vez' ? 'Primera Vez' : ($m->tipo_paciente === 'control' ? 'Sucesiva' : 'Orden Médica') }}</td>@endif
