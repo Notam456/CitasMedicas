@@ -445,7 +445,7 @@ class CitaController extends Controller
 
             Alert::success('¡Éxito!', 'Cita registrada correctamente.');
 
-            return redirect()->route('morbilidad.index');
+            return redirect()->route('Citas.create');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -453,11 +453,11 @@ class CitaController extends Controller
             if ($e->getCode() == '23505') {
                 Alert::error('Error', 'Este paciente ya tiene una cita en ese horario.');
 
-                return redirect()->route('morbilidad.index');
+                return redirect()->route('Citas.create');
             }
             Alert::error('Error', 'No se pudo registrar la cita. Intente de nuevo.');
             
-            return redirect()->route('morbilidad.index');
+            return redirect()->route('Citas.create');
         }
     }
 
