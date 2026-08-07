@@ -11,8 +11,6 @@
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h3 class="mb-0">Atender Citas ({{ now()->format('d/m/Y') }})</h3>
                 <div>
-                    
-
                     @can('Reporte Cita')
                         <a href="{{ route('morbilidad.index') }}" class="btn btn-primary">
                             <i class="bi bi-printer me-1"></i> Reporte de Citas
@@ -86,7 +84,6 @@
                                         <p class="mb-1"><strong>Médico:</strong> <span id="info_medico"></span></p>
                                         <p class="mb-1"><strong>Número de historia:</strong> <span id="nro_historia"></span></p>
                                         <p class="mb-0"><strong>Especialidad:</strong> <span id="info_especialidad"></span></p>
-                                        
                                     </div>
                                 </div>
                             </div>
@@ -96,12 +93,12 @@
                         <div class="mb-4">
                             <label class="form-label fw-bold">Diagnóstico libre (impresión diagnóstica)</label>
                             <textarea name="diagnostico_libre" id="diagnostico_libre" class="form-control" rows="2"
-                                placeholder="Escriba aquí el diagnóstico general..." required></textarea>
+                                placeholder="Escriba aquí el diagnóstico general..."></textarea>
                         </div>
 
                         <!-- Patologías múltiples -->
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Patologías diagnosticadas</label>
+                            <label class="form-label fw-bold">Patologías diagnosticadas (Opcional)</label>
                             <div id="patologias-container">
                                 <div class="input-group mb-2 patologia-item">
                                     <select name="patologias[]" class="form-select select-patologia">
@@ -124,7 +121,7 @@
                                     <label for="semanas_gestacion" class="form-label">Semanas de Gestación</label>
                                     <input type="number" name="semanas_gestacion" id="semanas_gestacion"
                                            class="form-control" min="0" max="42" step="1"
-                                           placeholder="Ej: 24 semanas" required>
+                                           placeholder="Ej: 24 semanas">
                                 </div>
                             </div>
                         </div>
@@ -224,15 +221,14 @@
                 });
             }
 
-            // Agregar nueva patología (clona la primera fila y limpia valores)
+            // Agregar nueva patología
             function addPatologiaRow() {
                 const original = $('.patologia-item:first');
                 const newRow = original.clone();
                 newRow.find('select').val('');
                 newRow.find('.btn-remove-patologia').show();
                 $('#patologias-container').append(newRow);
-                populatePatologiaSelects(); // Asegurar que el nuevo select tenga las opciones
-                // Mostrar el botón de eliminar en la primera fila también (por si estaba oculto)
+                populatePatologiaSelects();
                 $('.patologia-item .btn-remove-patologia').show();
             }
 
@@ -241,12 +237,12 @@
                 addPatologiaRow();
             });
 
-            // Eliminar elementos
+            // Eliminar elementos (si solo queda una fila, limpia la selección)
             $(document).on('click', '.btn-remove-patologia', function() {
                 if ($('.patologia-item').length > 1) {
                     $(this).closest('.patologia-item').remove();
                 } else {
-                    Swal.fire('Advertencia', 'Debe haber al menos una patología seleccionable', 'warning');
+                    $(this).closest('.patologia-item').find('select').val('');
                 }
             });
 
@@ -254,19 +250,21 @@
             $('#tablaPendientes').on('click', '.btn-atender', function() {
                 var citaId = $(this).data('id');
                 $('#cita_id').val(citaId);
+                
+                // Mantiene la URL original que apunta a store()
                 $('#formDiagnostico').attr('action', '/citas/' + citaId + '/diagnostico');
 
                 $('#patologias-container').empty();
 
-                // Agregar una fila base de patología con botón visible
+                // Fila base
                 $('#patologias-container').append(`
-            <div class="input-group mb-2 patologia-item">
-                <select name="patologias[]" class="form-select select-patologia">
-                    <option value="">Seleccione una patología</option>
-                </select>
-                <button type="button" class="btn btn-outline-danger btn-remove-patologia"><i class="bi bi-trash"></i></button>
-            </div>
-        `);
+                    <div class="input-group mb-2 patologia-item">
+                        <select name="patologias[]" class="form-select select-patologia">
+                            <option value="">Seleccione una patología</option>
+                        </select>
+                        <button type="button" class="btn btn-outline-danger btn-remove-patologia"><i class="bi bi-trash"></i></button>
+                    </div>
+                `);
 
                 $.ajax({
                     url: '/diagnosticos/' + citaId + '/edit',
@@ -274,24 +272,21 @@
                     success: function(data) {
                         window.patologiasList = data.patologias_disponibles || [];
 
-                        // Poblar selects de patologías
                         populatePatologiaSelects();
 
-                        // Cargar patologías existentes (si las hay)
                         if (data.cita.patologias && data.cita.patologias.length) {
                             $('#patologias-container').empty();
                             $.each(data.cita.patologias, function(i, pat) {
                                 $('#patologias-container').append(`
-                            <div class="input-group mb-2 patologia-item">
-                                <select name="patologias[]" class="form-select select-patologia">
-                                    <option value="">Seleccione una patología</option>
-                                </select>
-                                <button type="button" class="btn btn-outline-danger btn-remove-patologia"><i class="bi bi-trash"></i></button>
-                            </div>
-                        `);
+                                    <div class="input-group mb-2 patologia-item">
+                                        <select name="patologias[]" class="form-select select-patologia">
+                                            <option value="">Seleccione una patología</option>
+                                        </select>
+                                        <button type="button" class="btn btn-outline-danger btn-remove-patologia"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                `);
                             });
                             populatePatologiaSelects();
-                            // Seleccionar los valores correspondientes
                             $('.patologia-item').each(function(idx) {
                                 let $select = $(this).find('select');
                                 if (data.cita.patologias[idx]) {
@@ -300,20 +295,19 @@
                             });
                         }
 
-                        // Información de la cita
+                        let numero_historia = (data.cita.paciente && data.cita.paciente.expediente && data.cita.paciente.expediente.numero_expediente)
+                            ? data.cita.paciente.expediente.numero_expediente
+                            : "Sin asignar";
+
                         if (data.cita) {
-                            $('#info_paciente').text(data.cita.paciente.nombre + ' ' + data.cita
-                                .paciente.apellido);
+                            $('#info_paciente').text(data.cita.paciente.nombre + ' ' + data.cita.paciente.apellido);
                             $('#info_cedula').text(data.cita.paciente.cedula);
-                            $('#info_fecha').text(new Date(data.cita.fecha_cita)
-                                .toLocaleDateString());
-                            $('#info_medico').text('Dr. ' + data.cita.medico.nombre + ' ' + data
-                                .cita.medico.apellido);
-                            $('#nro_historia').text(data.cita.paciente.expediente.numero_expediente);
+                            $('#info_fecha').text(new Date(data.cita.fecha_cita).toLocaleDateString());
+                            $('#info_medico').text('Dr. ' + data.cita.medico.nombre + ' ' + data.cita.medico.apellido);
+                            $('#nro_historia').text(numero_historia);
                             $('#info_especialidad').text(data.cita.medico.especialidad.nombre);
                             $('#diagnostico_libre').val(data.cita.diagnostico_libre || '');
 
-                            // Sección Aro
                             if (data.es_aro) {
                                 $('#aroSection').removeClass('d-none');
                                 $('#semanas_gestacion').prop('required', true);
@@ -329,8 +323,7 @@
                         }
                     },
                     error: function() {
-                        Swal.fire('Error', 'No se pudo cargar la información de la cita',
-                            'error');
+                        Swal.fire('Error', 'No se pudo cargar la información de la cita', 'error');
                     }
                 });
                 $('#modalAtender').modal('show');

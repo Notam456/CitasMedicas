@@ -155,41 +155,53 @@ class DiagnosticoController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
-    {
-        $cita = Cita::with('medico.especialidad')->findOrFail($id);
-        $esAro = $cita->medico->especialidad->nombre === 'Aro (Embarazados)';
+   public function update(Request $request, $id)
+{
+    $cita = Cita::with('medico.especialidad')->findOrFail($id);
+    $esAro = optional(optional($cita->medico)->especialidad)->nombre === 'Aro (Embarazados)';
 
-        $request->validate([
-            'diagnostico_libre' => 'nullable|string|max:5000',
-            'patologias' => 'array',
-            'patologias.*' => 'exists:patologias,id',
-            'semanas_gestacion' => $esAro ? 'required|integer|min:0|max:42' : 'nullable|integer|min:0|max:42',
+    // Limpiar elementos vacíos ("") del arreglo enviador por el select por defecto
+    if ($request->has('patologias')) {
+        $request->merge([
+            'patologias' => array_filter($request->patologias, function ($val) {
+                return !empty($val);
+            })
         ]);
-
-        DB::beginTransaction();
-        try {
-            $cita->update(['diagnostico_libre' => $request->diagnostico_libre]);
-            $cita->patologias()->sync($request->patologias ?? []);
-
-            if ($request->filled('semanas_gestacion')) {
-                $cita->aroDato()->updateOrCreate(
-                    ['cita_id' => $cita->id],
-                    ['semanas_gestacion' => $request->semanas_gestacion]
-                );
-            }
-
-            DB::commit();
-            Alert::success('Diagnóstico actualizado correctamente.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Alert::error('Error', 'No se pudo actualizar el diagnóstico: ' . $e->getMessage());
-        }
-
-        $redirect = $request->query('redirect_to', 'diagnosticos.index');
-        return redirect()->route($redirect);
     }
 
+    $request->validate([
+        'diagnostico_libre' => 'nullable|string|max:5000',
+        'patologias' => 'nullable|array',
+        'patologias.*' => 'exists:patologias,id',
+        'semanas_gestacion' => $esAro ? 'required|integer|min:0|max:42' : 'nullable|integer|min:0|max:42',
+    ]);
+
+    DB::beginTransaction();
+    try {
+        $cita->update([
+            'diagnostico_libre' => $request->diagnostico_libre
+        ]);
+
+        // Si patologías viene vacío o no se seleccionó ninguna, sync([]) borrará las patologías asignadas
+        $patologias = $request->input('patologias', []);
+        $cita->patologias()->sync($patologias);
+
+        if ($esAro && $request->filled('semanas_gestacion')) {
+            $cita->aroDato()->updateOrCreate(
+                ['cita_id' => $cita->id],
+                ['semanas_gestacion' => $request->semanas_gestacion]
+            );
+        }
+
+        DB::commit();
+        Alert::success('Diagnóstico actualizado correctamente.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Alert::error('Error', 'No se pudo actualizar el diagnóstico: ' . $e->getMessage());
+    }
+
+    return redirect()->back();
+}
    /* public function destroy($id)
     {
         $cita = Cita::findOrFail($id);
@@ -222,48 +234,52 @@ class DiagnosticoController extends Controller
     }
 
     public function store(Request $request, Cita $cita)
-    {
-        $cita->load('medico.especialidad');
-        $esAro = $cita->medico->especialidad->nombre === 'Aro (Embarazados)';
+{
+    $cita->load('medico.especialidad');
+    $esAro = $cita->medico->especialidad->nombre === 'Aro (Embarazados)';
 
-        $request->validate([
-            'diagnostico_libre' => 'nullable|string|max:5000',
-            'patologias' => 'array',
-            'patologias.*' => 'exists:patologias,id',
-            'semanas_gestacion' => $esAro ? 'required|integer|min:0|max:42' : 'nullable|integer|min:0|max:42',
+    // 1. Filtrar valores vacíos de las patologías enviadas por los selects por defecto
+    if ($request->has('patologias')) {
+        $request->merge([
+            'patologias' => array_filter($request->patologias, function ($val) {
+                return !empty($val);
+            })
+        ]);
+    }
+
+    $request->validate([
+        'diagnostico_libre' => 'nullable|string|max:5000',
+        'patologias' => 'nullable|array',
+        'patologias.*' => 'exists:patologias,id',
+        'semanas_gestacion' => $esAro ? 'required|integer|min:0|max:42' : 'nullable|integer|min:0|max:42',
+    ]);
+
+    DB::beginTransaction();
+    try {
+        $cita->update([
+            'diagnostico_libre' => $request->diagnostico_libre,
+            'atendido_por' => Auth::id(),
+            'estado' => 'Atendida',
         ]);
 
-        if ($cita->estado === 'Atendida') {
-            Alert::error('Error', 'Esta cita ya tiene diagnóstico registrado.');
-            return redirect()->route('morbilidad.pendientes');
+        // 2. Sincronizar patologías (o limpiar si el arreglo filtrado está vacío)
+        $patologias = $request->input('patologias', []);
+        $cita->patologias()->sync($patologias);
+
+        if ($request->filled('semanas_gestacion')) {
+            $cita->aroDato()->updateOrCreate(
+                ['cita_id' => $cita->id],
+                ['semanas_gestacion' => $request->semanas_gestacion]
+            );
         }
 
-        DB::beginTransaction();
-        try {
-            $cita->update([
-                'diagnostico_libre' => $request->diagnostico_libre,
-                'atendido_por' => Auth::id(),
-                'estado' => 'Atendida',
-            ]);
-
-            if ($request->has('patologias')) {
-                $cita->patologias()->sync($request->patologias);
-            }
-
-            if ($request->filled('semanas_gestacion')) {
-                $cita->aroDato()->updateOrCreate(
-                    ['cita_id' => $cita->id],
-                    ['semanas_gestacion' => $request->semanas_gestacion]
-                );
-            }
-
-            DB::commit();
-            Alert::success('Éxito', 'Diagnóstico registrado correctamente.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Alert::error('Error', 'No se pudo guardar el diagnóstico: ' . $e->getMessage());
-        }
-
-        return redirect()->route('morbilidad.pendientes');
+        DB::commit();
+        Alert::success('Éxito', 'Diagnóstico registrado correctamente.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Alert::error('Error', 'No se pudo guardar el diagnóstico: ' . $e->getMessage());
     }
+
+    return redirect()->route('morbilidad.pendientes');
+}
 }
