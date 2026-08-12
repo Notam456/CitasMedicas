@@ -332,6 +332,12 @@ class CitaController extends Controller
             'tipo_paciente' => 'required|string|in:primera_vez,control,orden_medica',
         ]);
 
+        if ($request->sexo === 'Masculino' && Especialidad::find($request->especialidad_id)?->esSoloFemenino()) {
+            return redirect()->back()->withInput()->withErrors([
+                'especialidad_id' => 'Esta especialidad es exclusiva para pacientes de sexo femenino.'
+            ]);
+        }
+
         if ($request->tipo_paciente === 'primera_vez') {
             $cedulaCompleta = $request->cedula_tipo.'-'.$request->cedula;
             $paciente = Paciente::where('cedula', $cedulaCompleta)->first();

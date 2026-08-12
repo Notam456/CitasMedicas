@@ -228,6 +228,13 @@ class DiagnosticoController extends Controller
             return redirect()->route('Citas.index');
         }
 
+        $cita->load('paciente', 'medico.especialidad');
+
+        if ($this->esCitaBloqueadaPorSexo($cita)) {
+            Alert::error('Error', 'Esta cita corresponde a una especialidad exclusiva para pacientes de sexo femenino.');
+            return redirect()->route('morbilidad.pendientes');
+        }
+
         $patologias = Patologia::where('especialidad_id', $cita->medico->especialidad_id)->get();
 
         return view('morbilidad.pendientes', compact('cita', 'patologias'));
@@ -235,7 +242,13 @@ class DiagnosticoController extends Controller
 
     public function store(Request $request, Cita $cita)
 {
-    $cita->load('medico.especialidad');
+    $cita->load('medico.especialidad', 'paciente');
+
+    if ($this->esCitaBloqueadaPorSexo($cita)) {
+        Alert::error('Error', 'Esta cita corresponde a una especialidad exclusiva para pacientes de sexo femenino.');
+        return redirect()->route('morbilidad.pendientes');
+    }
+
     $esAro = $cita->medico->especialidad->nombre === 'Aro (Embarazados)';
 
     // 1. Filtrar valores vacíos de las patologías enviadas por los selects por defecto
@@ -282,4 +295,12 @@ class DiagnosticoController extends Controller
 
     return redirect()->route('morbilidad.pendientes');
 }
+
+    private function esCitaBloqueadaPorSexo(Cita $cita): bool
+    {
+        $especialidad = optional(optional($cita->medico)->especialidad);
+
+        return $cita->paciente?->sexo === 'Masculino'
+            && $especialidad?->esSoloFemenino();
+    }
 }
