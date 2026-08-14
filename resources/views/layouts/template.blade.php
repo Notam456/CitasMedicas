@@ -27,7 +27,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Favicon -->
-    <link href="{{asset('assets/img/sagecim_icon.png')}}" rel="icon">
+    <link href="{{asset('assets/img/sagecim_icon.ico')}}?v=2" rel="icon" type="image/x-icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
