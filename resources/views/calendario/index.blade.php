@@ -1,5 +1,5 @@
 @extends('layouts.template')
-@section('title', 'Planificación Trimestral | SAGECIM')
+@section('title', 'Calendario de Disponibilidad | SAGECIM')
 
 @include('layouts.sidebar')
 

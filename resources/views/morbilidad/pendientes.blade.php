@@ -1,5 +1,5 @@
 @extends('layouts.template')
-@section('title', 'Citas Pendientes del Día | SAGECIM')
+@section('title', 'Atender Citas (' . now()->format('d/m/Y') . ') | SAGECIM')
 
 @include('layouts.sidebar')
 
