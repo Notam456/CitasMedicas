@@ -97,7 +97,7 @@ Route::middleware(['auth', 'can:Cita'])->group(function () {
 
     //Rutas resource
     Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita'])->only(['index', 'create', 'show'])->middleware('throttle:citas_flujo');
-    Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita'])->only(['store', 'destroy'])->middleware('throttle:crud_escritura');
+    Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita'])->only(['store'])->middleware('throttle:crud_escritura');
     Route::get('/Citas/{id}/show', [CitaController::class, 'show'])->middleware('throttle:citas_flujo');
 });
 
@@ -133,6 +133,7 @@ Route::middleware(['auth', 'can:Atender Cita'])->group(function () {
     Route::get('/citas/{cita}/atender', [DiagnosticoController::class, 'atender'])->name('citas.atender')->middleware('throttle:detalle_cita');
     Route::post('/citas/{cita}/diagnostico', [DiagnosticoController::class, 'store'])->name('citas.diagnostico.store')->middleware('throttle:crud_escritura');
     Route::get('/diagnosticos/{diagnostico}/edit', [DiagnosticoController::class, 'edit'])->name('diagnosticos.edit')->middleware('throttle:detalle_cita');
+    Route::post('/citas/{cita}/cancelar', [CitaController::class, 'cancelar'])->name('citas.cancelar')->middleware('throttle:crud_escritura');
 });
 Route::middleware(['auth', 'can:Reporte Cita'])->group(function () {
     Route::get('/morbilidad', [MorbilidadController::class, 'index'])->name('morbilidad.index')->middleware('throttle:gestion_citas');

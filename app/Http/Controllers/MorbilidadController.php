@@ -288,16 +288,8 @@ class MorbilidadController extends Controller
             $btnEdit = $row->estado === 'Atendida'
                 ? '<button type="button" data-id="' . $row->id . '" class="btn-edit-cita btn btn-xs btn-square btn-neutral text-info-hover border-info-hover" title="Editar Diagnóstico"><i class="bi bi-pencil"></i></button>'
                 : '';
-            $btnDelete = $row->estado !== 'Cancelada'
-                ? '<form action="' . route('Citas.destroy', $row->id) . '" method="POST" style="display:inline" class="form-delete-cita">
-                    ' . csrf_field() . method_field('DELETE') . '
-                    <button type="submit" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" title="Cancelar Cita">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                   </form>'
-                : '';
 
-            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . $btnDelete . '</div>';
+            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . '</div>';
 
             $numero = $row->numero_expediente ?? '';
             $historiaInput = '<input type="text" class="form-control form-control-sm input-historia"
@@ -402,7 +394,8 @@ class MorbilidadController extends Controller
         $data = $query->skip($start)->take($length)->get();
         $dataFormatted = [];
         foreach ($data as $row) {
-            $btnAtender = '<button type="button" data-id="'.$row->id.'" class="btn-atender btn btn-xs btn-square btn-primary" data-bs-toggle="modal" data-bs-target="#modalAtender"><i class="bi bi-clipboard-plus"></i></button>';
+            $btnAtender = '<button type="button" data-id="'.$row->id.'" class="btn-atender btn btn-xs btn-square btn-primary" data-bs-toggle="modal" data-bs-target="#modalAtender" title="Atender cita"><i class="bi bi-clipboard-plus"></i></button>';
+            $btnCancelar = '<button type="button" data-id="'.$row->id.'" class="btn-cancelar-cita btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" title="Cancelar cita"><i class="bi bi-trash"></i></button>';
 
             if ($row->numero_expediente) {
                 $expedienteBadge = '<span class="badge bg-success">' . e($row->numero_expediente) . '</span>';
@@ -410,7 +403,7 @@ class MorbilidadController extends Controller
                 $expedienteBadge = '<span class="badge bg-secondary">Sin asignar</span>';
             }
 
-            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnAtender . '</div>';
+            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnAtender . $btnCancelar . '</div>';
 
             $dataFormatted[] = [
                 $row->paciente_nombre . ' ' . $row->paciente_apellido,

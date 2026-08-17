@@ -192,6 +192,12 @@ class SuspensionMedicoController extends Controller
                 $admins = User::role('administrador')->get();
                 foreach ($citas as $cita) {
                     $cita->update(['estado' => 'Cancelada']);
+                    $cita->cancelacion()->create([
+                        'motivo' => 'ausencia_medico',
+                        'cancelada_por' => auth()->id(),
+                        'observacion' => $request->motivo ?: 'Médico suspendido sin suplente.',
+                        'fecha_cancelacion' => now(),
+                    ]);
                     Notification::send($admins, new CitaCancelada($cita, auth()->user()));
                 }
             }

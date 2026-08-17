@@ -24,7 +24,7 @@ class CitaCancelada extends Notification
         return [
             'title' => 'Cita cancelada',
             'body' => "{$this->usuario->name} canceló cita de {$this->cita->paciente->nombre} {$this->cita->paciente->apellido} para el {$this->cita->fecha_cita}.",
-            'action_url' => '/Citas',
+            'action_url' => '/morbilidad/pendientes',
         ];
     }
 }

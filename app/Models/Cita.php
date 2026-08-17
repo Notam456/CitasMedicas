@@ -67,4 +67,9 @@ class Cita extends Model
     {
         return $this->hasOne(AroCitaDato::class);
     }
+
+    public function cancelacion()
+    {
+        return $this->hasOne(CitaCancelacion::class);
+    }
 }
