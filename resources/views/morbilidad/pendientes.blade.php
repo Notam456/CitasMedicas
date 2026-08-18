@@ -141,6 +141,7 @@
 @push('scripts')
     <link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
     <script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
+    <script src="{{ asset('vendor/sweetalert/sweetalert.all.js') }}"></script>
     <script>
         $(document).ready(function() {
             var table = $('#tablaPendientes').DataTable({
@@ -334,6 +335,77 @@
                 $('#formDiagnostico')[0].reset();
                 $('#patologias-container').empty();
                 $('#semanas_gestacion').prop('required', false);
+            });
+
+            // Cancelar cita (ausencia del paciente o del médico)
+            $(document).on('click', '.btn-cancelar-cita', function() {
+                var citaId = $(this).data('id');
+                var nombre = $(this).closest('tr').find('td:eq(0)').text().trim();
+
+                Swal.fire({
+                    title: '¿Cancelar cita?',
+                    html:
+                        '<p class="mb-3">Paciente: <strong>' + nombre + '</strong><br><small class="text-muted">La cita pasará al estado "Cancelada".</small></p>' +
+                        '<div class="text-start">' +
+                        '<label class="form-label fw-bold small">Motivo de cancelación</label>' +
+                        '<select id="motivo_cancelacion" class="form-select">' +
+                        '<option value="ausencia_paciente">Ausencia del paciente</option>' +
+                        '<option value="ausencia_medico">Ausencia del médico</option>' +
+                        '</select>' +
+                        '<label class="form-label fw-bold small mt-3">Observación (opcional)</label>' +
+                        '<textarea id="observacion_cancelacion" class="form-control" rows="2" maxlength="500" placeholder="Detalle del motivo..."></textarea>' +
+                        '</div>',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, cancelar cita',
+                    cancelButtonText: 'No, mantener',
+                    confirmButtonColor: '#dc3545',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: function() {
+                        $('#motivo_cancelacion').on('change', function() {
+                            $('#observacion_cancelacion').attr('placeholder',
+                                $(this).val() === 'ausencia_paciente'
+                                    ? 'Ej: paciente no se presentó a la consulta...'
+                                    : 'Ej: médico no asistió al turno...'
+                            );
+                        });
+                    }
+                }).then(function(result) {
+                    if (!result.isConfirmed) return;
+
+                    var url = "{{ route('citas.cancelar', ['cita' => '__CITA__']) }}"
+                        .replace('__CITA__', citaId);
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            motivo: $('#motivo_cancelacion').val(),
+                            observacion: $('#observacion_cancelacion').val()
+                        })
+                    }).then(function(res) {
+                        if (!res.ok) {
+                            return res.json().then(function(data) {
+                                throw new Error(data.message || 'No se pudo cancelar la cita.');
+                            });
+                        }
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Éxito!',
+                            text: 'Cita cancelada correctamente.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        table.ajax.reload();
+                    }).catch(function(err) {
+                        Swal.fire('Error', err.message, 'error');
+                    });
+                });
             });
         });
     </script>

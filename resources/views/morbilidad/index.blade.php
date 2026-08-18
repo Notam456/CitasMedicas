@@ -369,27 +369,6 @@
                 confirmarExportacion('pdf');
             });
 
-            // Cancelar cita
-            $(document).on('submit', '.form-delete-cita', function(e) {
-                e.preventDefault();
-                var form = this;
-                Swal.fire({
-                    title: '¿Cancelar cita?',
-                    text: 'La cita pasará al estado "Cancelada".',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Cancelar cita',
-                    cancelButtonText: 'No, mantener',
-                    confirmButtonColor: '#dc3545',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false
-                }).then(function(result) {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
-            });
-
             // N° Historia inline: máscara y guardado
             function aplicarMascaraHistoria(val) {
                 var digitos = val.replace(/\D/g, '').slice(0, 6);

@@ -289,7 +289,8 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
             'atendidas' => 'Citas Atendidas',
             'primera_vez' => 'Citas de Primera Vez',
             'sucesivas' => 'Citas Sucesivas',
-            'ausentes' => 'Citados Ausentes',
+            'ausentes' => 'Ausencia del Paciente',
+            'ausencia_medico' => 'Ausencia del Médico',
             'adolescentes' => 'Adolescentes 10-19',
         ];
 
@@ -307,7 +308,8 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
             DB::raw($sum("citas.estado = 'Atendida'") . ' as atendidas'),
             DB::raw($sum("citas.tipo_paciente = 'primera_vez'") . ' as primera_vez'),
             DB::raw($sum("citas.tipo_paciente = 'control'") . ' as sucesivas'),
-            DB::raw($sum("citas.estado = 'Cancelada'") . ' as ausentes'),
+            DB::raw($sum("citas.estado = 'Cancelada' AND COALESCE(cc.motivo, 'ausencia_paciente') = 'ausencia_paciente'") . ' as ausentes'),
+            DB::raw($sum("citas.estado = 'Cancelada' AND cc.motivo = 'ausencia_medico'") . ' as ausencia_medico'),
             DB::raw("SUM(CASE WHEN citas.estado = 'Atendida' AND EXTRACT(YEAR FROM AGE(pacientes.fecha_nacimiento)) BETWEEN 10 AND 19 THEN 1 ELSE 0 END) as adolescentes"),
         ];
 
@@ -321,6 +323,7 @@ public function exportarMedicosPorEspecialidadExcel(Request $request)
             ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
             ->leftJoin('aro_cita_datos as acd', 'acd.cita_id', '=', 'citas.id')
+            ->leftJoin('cita_cancelaciones as cc', 'cc.cita_id', '=', 'citas.id')
             ->when($especialidadId, function ($query) use ($especialidadId) {
                 return $query->where('especialidades.id', $especialidadId);
             })

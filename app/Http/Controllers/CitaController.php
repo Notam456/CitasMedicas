@@ -130,8 +130,7 @@ class CitaController extends Controller
                 $accionesHtml = '<div class="hstack gap-2 justify-content-end"><span class="text-muted small">—</span></div>';
             } else {
                 $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
-                $btnDelete = '<a href="'.route('Citas.destroy', $row->id).'" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
-                $accionesHtml = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnDelete.'</div>';
+                $accionesHtml = '<div class="hstack gap-2 justify-content-end">'.$btnShow.'</div>';
             }
 
             $dataFormatted[] = [
@@ -477,20 +476,45 @@ class CitaController extends Controller
         return response()->json($cita);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Cita $cita)
+    public function cancelar(Request $request, Cita $cita)
     {
-        $cita->update(['estado' => 'Cancelada']);
+        $request->validate([
+            'motivo' => 'required|in:ausencia_paciente,ausencia_medico',
+            'observacion' => 'nullable|string|max:500',
+        ]);
+
+        if ($cita->estado !== 'Agendada') {
+            return response()->json([
+                'message' => 'Solo se pueden cancelar citas en estado "Agendada".',
+            ], 409);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $cita->update(['estado' => 'Cancelada']);
+
+            $cita->cancelacion()->create([
+                'motivo' => $request->motivo,
+                'cancelada_por' => Auth::id(),
+                'observacion' => $request->observacion ?: null,
+                'fecha_cancelacion' => now(),
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'No se pudo cancelar la cita. Intente de nuevo.',
+            ], 500);
+        }
 
         if (! auth()->user()->hasRole('administrador')) {
             $admins = User::role('administrador')->get();
             Notification::send($admins, new CitaCancelada($cita, auth()->user()));
         }
 
-        Alert::success('¡Éxito!', 'Cita cancelada correctamente.');
-
-        return redirect()->route('morbilidad.index');
+        return response()->json(['success' => true]);
     }
 }
