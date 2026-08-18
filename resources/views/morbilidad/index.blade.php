@@ -1,5 +1,5 @@
 @extends('layouts.template')
-@section('title', 'Reporte de Citas | SAGECIM')
+@section('title', 'Gestión de Citas | SAGECIM')
 
 @include('layouts.sidebar')
 

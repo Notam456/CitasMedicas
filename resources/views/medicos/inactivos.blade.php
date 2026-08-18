@@ -1,6 +1,6 @@
 @extends('layouts.template')
 
-@section('title', 'Médicos Inactivos | SAGECIM')
+@section('title', 'Gestión de Suspensiones (Médicos Inactivos) | SAGECIM')
 
 @include('layouts.sidebar')
 
