@@ -26,6 +26,9 @@ class CitaSeeder extends Seeder
 
             $pacientesDisponibles = $pacientes->whereNotIn('id', $citasExistentes);
 
+            if (optional($calendario->especialidad)->esSoloFemenino()) {
+                $pacientesDisponibles = $pacientesDisponibles->where('sexo', 'Femenino');
+            }
 
             if ($pacientesDisponibles->isEmpty()) {
                 continue;

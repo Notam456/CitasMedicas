@@ -17,4 +17,9 @@ class Especialidad extends Model
     
     protected $attributes = ['estado' => true,];
 
+    public function esSoloFemenino(): bool
+    {
+        return in_array($this->nombre, config('citas.especialidades_solo_femenino', []));
+    }
+
 }

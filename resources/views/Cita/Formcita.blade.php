@@ -337,6 +337,26 @@
     </div>
 
     <script>
+        const especialidadesSoloFemenino = @json(config('citas.especialidades_solo_femenino'));
+
+        function aplicarRestriccionSexo() {
+            const sexoMasculino = document.getElementById('input_sexo_m').checked;
+            const selectEsp = document.getElementById('select-especialidad');
+
+            if (!selectEsp) return;
+
+            let seleccionBloqueada = false;
+            Array.from(selectEsp.options).forEach(opt => {
+                const esBloqueada = especialidadesSoloFemenino.includes(opt.textContent.trim());
+                opt.disabled = sexoMasculino && esBloqueada;
+                if (esBloqueada && opt.selected) seleccionBloqueada = true;
+            });
+
+            if (seleccionBloqueada) {
+                selectEsp.value = '';
+                selectEsp.dispatchEvent(new Event('change'));
+            }
+        }
         function llenarFormularioPaciente(datos) {
             const cedulaParts = datos.cedula ? datos.cedula.split('-') : ['V', ''];
             document.getElementById('input_cedula_tipo').value = cedulaParts[0] || 'V';
@@ -361,6 +381,9 @@
             } else if (datos.sexo === 'Femenino') {
                 document.getElementById('input_sexo_f').checked = true;
             }
+
+            document.getElementById('input_sexo_m').disabled = true;
+            document.getElementById('input_sexo_f').disabled = true;
 
             const p = datos?.parroquia;
             const m = p?.municipio;
@@ -387,6 +410,7 @@
 
             window.pacienteId = datos.id;
             actualizarTipoPaciente();
+            aplicarRestriccionSexo();
         }
 
         function limpiarFormularioPaciente() {
@@ -404,6 +428,9 @@
             document.getElementById('input_direccion').value = '';
             document.getElementById('input_sexo_m').checked = false;
             document.getElementById('input_sexo_f').checked = false;
+            document.getElementById('input_sexo_m').disabled = false;
+            document.getElementById('input_sexo_f').disabled = false;
+            aplicarRestriccionSexo();
 
             document.getElementById('select-estado').value = '';
             document.getElementById('select-estado').disabled = false;
@@ -633,6 +660,11 @@
 
             // 5. Restaurar datos de validación previa (old input) — sobrescribe defaults si existe
             restoreForm();
+
+            // 6. Restricción de especialidades por sexo
+            document.getElementById('input_sexo_m').addEventListener('change', aplicarRestriccionSexo);
+            document.getElementById('input_sexo_f').addEventListener('change', aplicarRestriccionSexo);
+            aplicarRestriccionSexo();
 
             // 5. Habilitar selects deshabilitados al enviar el formulario
             document.getElementById('form-cita').addEventListener('submit', function () {
