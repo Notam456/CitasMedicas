@@ -27,6 +27,7 @@ class PermissionSeeder extends Seeder
             'Atender Cita',
             'Reporte Cita',
             'Médicos inactivos',
+            'Auditoría',
         ];
 
         foreach ($permissions as $permission) {
