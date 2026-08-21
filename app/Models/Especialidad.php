@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class Especialidad extends Model
+class Especialidad extends Model implements Auditable
 {
+    use \OwenIt\Auditing\Auditable;
     protected $table = 'especialidades';
 
     public function medicos()

@@ -13,6 +13,10 @@
             @can('Usuario')
             <a href="{{ route('users.index') }}" class="nav-item nav-link "><i class="bi bi-people-fill me-2"></i>Usuario</a>
             @endcan
+            
+            @can('Auditoría')
+            <a href="{{ route('auditoria.index') }}" class="nav-link nav-item"><i class="bi bi-shield-check me-2"></i>Auditoría</a>
+            @endcan
 
             @can('Medico')
             <a href="{{ route('medicos.index') }}" class="nav-item nav-link"><i class="bi bi-person-badge me-2"></i>Médico</a>
@@ -68,6 +72,7 @@
             @can('Reportes')
             <a href="{{route('reportes.index')}}" class="nav-link nav-item"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Reporte</a>
             @endcan
+
         </div>
     </nav>
 </div>

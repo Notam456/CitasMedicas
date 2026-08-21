@@ -20,6 +20,7 @@ use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\PatologiaController;
 use App\Http\Controllers\SuspensionMedicoController;
 use App\Http\Controllers\ExpedienteController;
+use App\Http\Controllers\AuditoriaController;
 
 use function PHPUnit\Framework\returnValue;
 use App\Http\Controllers\NotificacionController;
@@ -178,5 +179,10 @@ Route::middleware(['auth', 'can:Médicos inactivos'])->group(function () {
     Route::delete('/suspensiones/{id}', [SuspensionMedicoController::class, 'destroy'])->name('suspensiones.destroy')->middleware('throttle:crud_escritura');
     Route::get('/api/medicos/{medico_id}/suplentes-disponibles', [SuspensionMedicoController::class, 'getSuplentesDisponibles'])->name('api.medicos.suplentes-disponibles')->middleware('throttle:crud_lectura');
     Route::get('/api/medicos/{medico_id}/citas-activas-count', [SuspensionMedicoController::class, 'getCitasActivasCount'])->name('api.medicos.citas-activas-count')->middleware('throttle:crud_lectura');
+});
+
+Route::middleware(['auth', 'can:Auditoría'])->group(function () {
+    Route::get('/auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index')->middleware('throttle:crud_lectura');
+    Route::get('/auditoria/{id}', [AuditoriaController::class, 'show'])->name('auditoria.show')->middleware('throttle:crud_lectura');
 });
 
