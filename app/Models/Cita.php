@@ -74,4 +74,19 @@ class Cita extends Model implements Auditable
     {
         return $this->hasOne(CitaCancelacion::class);
     }
+
+    public function scopeAgendadas($query)
+    {
+        return $query->where('estado', 'Agendada');
+    }
+
+    public function scopeAtendidas($query)
+    {
+        return $query->where('estado', 'Atendida');
+    }
+
+    public function scopeCanceladas($query)
+    {
+        return $query->where('estado', 'Cancelada');
+    }
 }

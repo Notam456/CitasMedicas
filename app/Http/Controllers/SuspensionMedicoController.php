@@ -9,6 +9,7 @@ use App\Models\SuspensionMedico;
 use App\Models\User;
 use App\Notifications\CitaCancelada;
 use Carbon\Carbon;
+use App\Http\Requests\StoreSuspensionRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -93,19 +94,8 @@ class SuspensionMedicoController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreSuspensionRequest $request)
     {
-        $request->validate([
-            'medico_id' => 'required|exists:medicos,id',
-            'fecha_inicio' => 'required|date|after_or_equal:today',
-            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
-            'suplente_id' => 'nullable|exists:medicos,id',
-            'motivo' => 'nullable|string|max:500',
-        ], [
-            'fecha_inicio.after_or_equal' => 'La fecha de inicio de la suspensión no puede ser anterior a hoy.',
-            'fecha_fin.after_or_equal' => 'La fecha de fin de la suspensión debe ser igual o posterior a la fecha de inicio.',
-        ]);
-
         $medico_id = $request->medico_id;
         $fecha_inicio = $request->fecha_inicio;
         $fecha_fin = $request->fecha_fin;

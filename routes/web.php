@@ -22,7 +22,6 @@ use App\Http\Controllers\SuspensionMedicoController;
 use App\Http\Controllers\ExpedienteController;
 use App\Http\Controllers\AuditoriaController;
 
-use function PHPUnit\Framework\returnValue;
 use App\Http\Controllers\NotificacionController;
 
 //Ruta de inicio
@@ -157,7 +156,7 @@ Route::middleware(['auth', 'can:Patologia'])->group(function () {
 Route::middleware(['auth', 'can:Reportes'])->group(function () {
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index')->middleware('throttle:reportes_index');
     Route::get('/reportes/pdf/medicos-por-especialidad', [ReporteController::class, 'medicosPorEspecialidad'])->name('reportes.medicos_especialidad')->middleware('throttle:exportaciones');
-    Route::get('/reportes/excel/medicos/excel', [ReporteController::class, 'exportarMedicosExcel'])->name('reportes.medicos_excel')->middleware('throttle:exportaciones');
+
     Route::get('/reportes/excel/medicos-por-especialidad/excel', [ReporteController::class, 'exportarMedicosPorEspecialidadExcel'])->name('reportes.medicos_especialidad_excel')->middleware('throttle:exportaciones');
 
     Route::get('/reportes/pdf/procedencia-pacientes', [ReporteController::class, 'procedenciaPacientes'])->name('reportes.procedencia_pacientes_pdf')->middleware('throttle:exportaciones');

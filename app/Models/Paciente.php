@@ -19,7 +19,7 @@ class Paciente extends Model implements Auditable
         return $this->belongsTo(Parroquia::class, 'parroquia_id');
     }
 
-    public function Expediente()
+    public function expediente()
     {
         return $this->hasOne(Expediente::class, 'paciente_id');
     }

@@ -101,7 +101,7 @@
     <script src="{{asset('assets/js/main.js')}}"></script>
     <script>
         function cargarNotificaciones() {
-            fetch('/notificaciones/no-leidas')
+            fetch('{{ route("notificaciones.unread") }}')
                 .then(r => r.json())
                 .then(data => {
                     var badge = document.getElementById('notif-count');
@@ -149,7 +149,7 @@
         }
 
         function marcarLeida(id) {
-            fetch('/notificaciones/' + id + '/leida', {
+            fetch('{{ url("notificaciones") }}/' + id + '/leida', {
                 method: 'PUT',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
