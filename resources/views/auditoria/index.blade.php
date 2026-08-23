@@ -42,12 +42,14 @@
                 <label for="filterFechaHasta" class="form-label">Fecha Hasta</label>
                 <input type="date" id="filterFechaHasta" class="form-control">
             </div>
-            <div class="col-12 text-end">
-                <button type="button" id="btnLimpiarFiltros" class="btn btn-secondary btn-sm me-2">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i> Limpiar Filtros
+            <div class="col-md-2">
+                <button type="button" id="btnLimpiarFiltros" class="btn btn-secondary w-100 shadow-sm">
+                    <i class="fas fa-undo me-1"></i>Limpiar
                 </button>
-                <button type="submit" class="btn btn-primary btn-sm">
-                    <i class="bi bi-search me-1"></i> Aplicar Filtros
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100 shadow-sm">
+                    <i class="fas fa-filter me-1"></i>Filtrar
                 </button>
             </div>
         </form>
