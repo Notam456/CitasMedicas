@@ -147,6 +147,7 @@ class ReporteService
         $rangos = self::resolverRangoFechas($data);
         $fecha_desde = $rangos['fecha_desde'];
         $fecha_hasta = $rangos['fecha_hasta'];
+        $fechaTexto = $rangos['titulo'];
 
         $tipoPaciente = $data['tipo_paciente'];
         $edadCondicion = match ($tipoPaciente) {
@@ -317,5 +318,56 @@ class ReporteService
         $titulo = '25 Principales Causas de Consulta Externa';
 
         return compact('queryData', 'titulo', 'fechaTexto');
+    }
+
+    public static function inasistencias(array $data): array
+    {
+        $rangos = self::resolverRangoFechas($data);
+        $fecha_desde = $rangos['fecha_desde'];
+        $fecha_hasta = $rangos['fecha_hasta'];
+        $titulo = 'Inasistencias en Citas - ' . $rangos['titulo'];
+        $fechaTexto = $rangos['titulo'];
+
+        $queryData = Cita::select(
+                'especialidades.nombre as especialidad',
+                DB::raw("COUNT(DISTINCT CASE WHEN citas.estado = 'Cancelada' AND (cc.motivo IS NULL OR cc.motivo = 'ausencia_paciente') THEN citas.id END) as ausencia_paciente"),
+                DB::raw("COUNT(DISTINCT CASE WHEN citas.estado = 'Cancelada' AND cc.motivo = 'ausencia_medico' THEN citas.id END) as ausencia_medico"),
+                DB::raw("COUNT(DISTINCT citas.id) as total_citas")
+            )
+            ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
+            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
+            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->leftJoin('cita_cancelaciones as cc', 'cc.cita_id', '=', 'citas.id')
+            ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
+            ->groupBy('especialidades.id', 'especialidades.nombre')
+            ->orderByDesc(DB::raw('COUNT(DISTINCT citas.id)'))
+            ->get()
+            ->map(function ($item) {
+                $totalInasistencias = $item->ausencia_paciente + $item->ausencia_medico;
+                $totalCitas = (int) $item->total_citas;
+                return [
+                    'especialidad' => $item->especialidad,
+                    'ausencia_paciente' => (int) $item->ausencia_paciente,
+                    'ausencia_paciente_pct' => $totalCitas > 0 ? round(($item->ausencia_paciente / $totalCitas) * 100, 1) : 0,
+                    'ausencia_medico' => (int) $item->ausencia_medico,
+                    'ausencia_medico_pct' => $totalCitas > 0 ? round(($item->ausencia_medico / $totalCitas) * 100, 1) : 0,
+                    'total_inasistencias' => $totalInasistencias,
+                    'total_citas' => $totalCitas,
+                    'tasa_inasistencia' => $totalCitas > 0 ? round(($totalInasistencias / $totalCitas) * 100, 1) : 0,
+                ];
+            })
+            ->toArray();
+
+        $totales = [
+            'ausencia_paciente' => array_sum(array_column($queryData, 'ausencia_paciente')),
+            'ausencia_medico' => array_sum(array_column($queryData, 'ausencia_medico')),
+            'total_inasistencias' => array_sum(array_column($queryData, 'total_inasistencias')),
+            'total_citas' => array_sum(array_column($queryData, 'total_citas')),
+        ];
+        $totales['ausencia_paciente_pct'] = $totales['total_citas'] > 0 ? round(($totales['ausencia_paciente'] / $totales['total_citas']) * 100, 1) : 0;
+        $totales['ausencia_medico_pct'] = $totales['total_citas'] > 0 ? round(($totales['ausencia_medico'] / $totales['total_citas']) * 100, 1) : 0;
+        $totales['tasa_inasistencia'] = $totales['total_citas'] > 0 ? round(($totales['total_inasistencias'] / $totales['total_citas']) * 100, 1) : 0;
+
+        return compact('queryData', 'totales', 'titulo', 'fechaTexto');
     }
 }

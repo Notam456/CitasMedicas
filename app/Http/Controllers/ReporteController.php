@@ -6,6 +6,7 @@ use App\Http\Requests\ReporteRequest;
 use App\Models\Especialidad;
 use App\Services\ReporteService;
 use App\Support\Membrete;
+use Illuminate\Http\Request;
 use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf as Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MedicosPorEspecialidadExport;
@@ -17,14 +18,23 @@ use App\Models\Medico;
 
 class ReporteController extends Controller
 {
+    private function sanitizeFilename(string $name): string
+    {
+        $name = trim($name);
+        $name = preg_replace('/\s+/', '_', $name);
+        $name = preg_replace('/[^a-zA-Z0-9_\-]/', '', $name);
+        return $name;
+    }
+
     public function index()
     {
         $especialidades = Especialidad::where('estado', true)->get();
         return view('reportes.index', compact('especialidades'));
     }
 
-    public function medicosPorEspecialidad(ReporteRequest $request)
+    public function medicosPorEspecialidad(Request $request)
     {
+        $request->validate(['especialidad_id' => 'nullable|exists:especialidades,id']);
         $especialidadId = $request->especialidad_id;
         $medicos = Medico::with('especialidad')
             ->when($especialidadId, fn ($q) => $q->where('especialidad_id', $especialidadId))
@@ -40,8 +50,9 @@ class ReporteController extends Controller
         return $pdf->stream($nombreArchivo . '.pdf');
     }
 
-    public function exportarMedicosPorEspecialidadExcel(ReporteRequest $request)
+    public function exportarMedicosPorEspecialidadExcel(Request $request)
     {
+        $request->validate(['especialidad_id' => 'nullable|exists:especialidades,id']);
         $especialidadId = $request->especialidad_id;
         $medicos = Medico::with('especialidad')
             ->when($especialidadId, fn ($q) => $q->where('especialidad_id', $especialidadId))
@@ -62,9 +73,10 @@ class ReporteController extends Controller
     public function exportarProcedenciaExcel(ReporteRequest $request)
     {
         $data = ReporteService::procedencia($request->validated());
+        $fechaParte = $this->sanitizeFilename($data['fechaTexto']);
         return Excel::download(new ProcedenciaPacientesExport(
             $data['reporteFinal'], $data['totalesGlobales'], $data['titulo'], $data['fecha_desde'], $data['fecha_hasta']
-        ), 'procedencia_pacientes.xlsx');
+        ), "procedencia_pacientes_{$fechaParte}.xlsx");
     }
 
     public function movimientoConsultas(ReporteRequest $request)
@@ -76,11 +88,14 @@ class ReporteController extends Controller
         $data = ReporteService::movimientoConsultas($validated);
 
         if ($request->has('excel')) {
+            $edad = $this->sanitizeFilename($data['tipoPacienteTexto']);
+            $especialidad = $this->sanitizeFilename($data['especialidadNombre']);
+            $fechaParte = $this->sanitizeFilename($data['fechaTexto']);
             return Excel::download(new MovimientoConsultasExport(
                 $data['queryData'], $data['titulo'], $data['tipoPacienteTexto'],
                 $data['fechaTexto'], $data['columnas'], $data['especialidadNombre'],
                 $data['totales'], $data['especialidadSeleccionada']
-            ), 'movimiento_consultas.xlsx');
+            ), "movimiento_consultas_{$edad}_{$especialidad}_{$fechaParte}.xlsx");
         }
 
         $pdf = Pdf::loadView('reportes.pdf.movimiento_consultas_pdf', [
@@ -114,7 +129,8 @@ class ReporteController extends Controller
         }
 
         if ($request->has('excel')) {
-            return Excel::download(new MovimientoConsultaAroExport($data['queryData'], $data['titulo'], $data['fechaTexto'], $data['totales']), 'movimiento_consulta_aro.xlsx');
+            $fechaParte = $this->sanitizeFilename($data['fechaTexto']);
+            return Excel::download(new MovimientoConsultaAroExport($data['queryData'], $data['titulo'], $data['fechaTexto'], $data['totales']), "movimiento_consulta_aro_{$fechaParte}.xlsx");
         }
 
         $pdf = Pdf::loadView('reportes.pdf.movimiento_consulta_aro_pdf', [
@@ -141,7 +157,8 @@ class ReporteController extends Controller
         $data = ReporteService::causasPrincipales($request->validated());
 
         if ($request->has('excel')) {
-            return Excel::download(new CausasPrincipalesExport($data['queryData'], $data['titulo'], $data['fechaTexto']), '25_causas_principales.xlsx');
+            $fechaParte = $this->sanitizeFilename($data['fechaTexto']);
+            return Excel::download(new CausasPrincipalesExport($data['queryData'], $data['titulo'], $data['fechaTexto']), "25_causas_principales_{$fechaParte}.xlsx");
         }
 
         $pdf = Pdf::loadView('reportes.pdf.causas_principales_pdf', [
@@ -160,5 +177,36 @@ class ReporteController extends Controller
     {
         $request->merge(['excel' => true]);
         return $this->causasPrincipales($request);
+    }
+
+    public function inasistencias(ReporteRequest $request)
+    {
+        $data = ReporteService::inasistencias($request->validated());
+
+        if ($request->has('excel')) {
+            $fechaParte = $this->sanitizeFilename($data['fechaTexto']);
+            return Excel::download(
+                new \App\Exports\InasistenciasExport($data['queryData'], $data['totales'], $data['titulo'], $data['fechaTexto']),
+                "inasistencias_citas_{$fechaParte}.xlsx"
+            );
+        }
+
+        $pdf = Pdf::loadView('reportes.pdf.inasistencias_pdf', [
+            'data' => $data['queryData'], 'totales' => $data['totales'],
+            'titulo' => $data['titulo'], 'fechaTexto' => $data['fechaTexto'],
+            'membrete' => Membrete::base64(),
+        ]);
+        return $pdf->stream('inasistencias_citas.pdf');
+    }
+
+    public function inasistenciasPdf(ReporteRequest $request)
+    {
+        return $this->inasistencias($request);
+    }
+
+    public function inasistenciasExcel(ReporteRequest $request)
+    {
+        $request->merge(['excel' => true]);
+        return $this->inasistencias($request);
     }
 }

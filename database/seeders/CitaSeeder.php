@@ -42,7 +42,7 @@ class CitaSeeder extends Seeder
                 
                 $pacientesDisponibles = $pacientesDisponibles->except($paciente->id);
 
-                Cita::create([
+                $cita = Cita::create([
                     'paciente_id' => $paciente->id,
                     'calendario_id' => $calendario->id,
                     'user_id' => $userAdmin->id ?? 1,
@@ -56,6 +56,16 @@ class CitaSeeder extends Seeder
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
+                if ($cita->estado === 'Cancelada') {
+                    $motivos = ['ausencia_paciente', 'ausencia_medico'];
+                    $cita->cancelacion()->create([
+                        'motivo' => $motivos[array_rand($motivos)],
+                        'cancelada_por' => $userAdmin->id ?? 1,
+                        'observacion' => 'Cancelación registrada por seeder.',
+                        'fecha_cancelacion' => $cita->fecha_cita,
+                    ]);
+                }
 
                 // Si se agotan los pacientes disponibles mientras estamos en el loop, salimos
                 if ($pacientesDisponibles->isEmpty()) {
