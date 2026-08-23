@@ -173,6 +173,15 @@ Route::middleware(['auth', 'can:Reportes'])->group(function () {
 
     Route::get('/reportes/pdf/inasistencias-citas/pdf', [ReporteController::class, 'inasistenciasPdf'])->name('reportes.inasistencias_pdf')->middleware('throttle:exportaciones');
     Route::get('/reportes/excel/inasistencias-citas/excel', [ReporteController::class, 'inasistenciasExcel'])->name('reportes.inasistencias_excel')->middleware('throttle:exportaciones');
+
+    Route::get('/reportes/pdf/productividad-medico/pdf', [ReporteController::class, 'productividadMedicoPdf'])->name('reportes.productividad_medico_pdf')->middleware('throttle:exportaciones');
+    Route::get('/reportes/excel/productividad-medico/excel', [ReporteController::class, 'productividadMedicoExcel'])->name('reportes.productividad_medico_excel')->middleware('throttle:exportaciones');
+
+    Route::get('/reportes/pdf/citas-sin-diagnostico/pdf', [ReporteController::class, 'citasSinDiagnosticoPdf'])->name('reportes.citas_sin_diagnostico_pdf')->middleware('throttle:exportaciones');
+    Route::get('/reportes/excel/citas-sin-diagnostico/excel', [ReporteController::class, 'citasSinDiagnosticoExcel'])->name('reportes.citas_sin_diagnostico_excel')->middleware('throttle:exportaciones');
+
+    Route::get('/reportes/pdf/eficiencia-atencion/pdf', [ReporteController::class, 'eficienciaAtencionPdf'])->name('reportes.eficiencia_atencion_pdf')->middleware('throttle:exportaciones');
+    Route::get('/reportes/excel/eficiencia-atencion/excel', [ReporteController::class, 'eficienciaAtencionExcel'])->name('reportes.eficiencia_atencion_excel')->middleware('throttle:exportaciones');
 });
 
 Route::middleware(['auth', 'can:Médicos inactivos'])->group(function () {

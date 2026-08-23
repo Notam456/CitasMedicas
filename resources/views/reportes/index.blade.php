@@ -113,6 +113,61 @@
             @endcomponent
         </div>
     </div>
+
+    {{--TERCERA ROW--}}
+    <div class="row g-4 mt-4">
+
+        {{-- 1 --}}
+        <div class="col-md-4">
+            @component('reportes.card')
+            @slot('card_title','Productividad por Médico')
+
+            @slot('card_desc')
+            Citas totales, atendidas, agendadas, canceladas y tasa de atención por médico.
+            @endslot
+
+            @slot('reporte_bs_target','#modalProductividadMedico')
+
+            @slot('reporte_excel', '#')
+            @slot('excel_modal', true)
+
+            @endcomponent
+        </div>
+
+        {{-- 2 --}}
+        <div class="col-md-4">
+            @component('reportes.card')
+            @slot('card_title','Citas sin Diagnóstico')
+
+            @slot('card_desc')
+            Listado de citas atendidas que no tienen diagnóstico registrado.
+            @endslot
+
+            @slot('reporte_bs_target','#modalCitasSinDiagnostico')
+
+            @slot('reporte_excel', '#')
+            @slot('excel_modal', true)
+
+            @endcomponent
+        </div>
+
+        {{-- 3 --}}
+        <div class="col-md-4">
+            @component('reportes.card')
+            @slot('card_title','Eficiencia de Atención')
+
+            @slot('card_desc')
+            Métricas de gestión: tasas de atención, cancelación, primera vez, control e historial traído.
+            @endslot
+
+            @slot('reporte_bs_target','#modalEficienciaAtencion')
+
+            @slot('reporte_excel', '#')
+            @slot('excel_modal', true)
+
+            @endcomponent
+        </div>
+    </div>
 </div>
 
 @include('reportes.popups')
