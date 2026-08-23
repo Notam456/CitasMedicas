@@ -370,4 +370,174 @@ class ReporteService
 
         return compact('queryData', 'totales', 'titulo', 'fechaTexto');
     }
+
+    public static function productividadMedico(array $data): array
+    {
+        $rangos = self::resolverRangoFechas($data);
+        $fecha_desde = $rangos['fecha_desde'];
+        $fecha_hasta = $rangos['fecha_hasta'];
+        $fechaTexto = $rangos['titulo'];
+        $especialidadId = $data['especialidad_id'] ?? null;
+        $especialidad = $especialidadId ? Especialidad::find($especialidadId) : null;
+
+        $queryData = Cita::select(
+                'medicos.nombre as medico_nombre',
+                'medicos.apellido as medico_apellido',
+                'especialidades.nombre as especialidad',
+                DB::raw("COUNT(*) as total_citas"),
+                DB::raw("SUM(CASE WHEN citas.estado = 'Atendida' THEN 1 ELSE 0 END) as atendidas"),
+                DB::raw("SUM(CASE WHEN citas.estado = 'Agendada' THEN 1 ELSE 0 END) as agendadas"),
+                DB::raw("SUM(CASE WHEN citas.estado = 'Cancelada' THEN 1 ELSE 0 END) as canceladas"),
+                DB::raw("ROUND(SUM(CASE WHEN citas.estado = 'Atendida' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as tasa_atencion")
+            )
+            ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
+            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
+            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->when($especialidadId, fn ($q) => $q->where('especialidades.id', $especialidadId))
+            ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
+            ->groupBy('medicos.id', 'medicos.nombre', 'medicos.apellido', 'especialidades.id', 'especialidades.nombre')
+            ->orderByDesc('total_citas')
+            ->get()
+            ->map(fn ($item) => [
+                'medico' => $item->medico_nombre . ' ' . $item->medico_apellido,
+                'especialidad' => $item->especialidad,
+                'total_citas' => (int) $item->total_citas,
+                'atendidas' => (int) $item->atendidas,
+                'agendadas' => (int) $item->agendadas,
+                'canceladas' => (int) $item->canceladas,
+                'tasa_atencion' => (float) $item->tasa_atencion,
+            ])
+            ->toArray();
+
+        $totales = [
+            'total_citas' => array_sum(array_column($queryData, 'total_citas')),
+            'atendidas' => array_sum(array_column($queryData, 'atendidas')),
+            'agendadas' => array_sum(array_column($queryData, 'agendadas')),
+            'canceladas' => array_sum(array_column($queryData, 'canceladas')),
+        ];
+        $totales['tasa_atencion'] = $totales['total_citas'] > 0
+            ? round($totales['atendidas'] * 100.0 / $totales['total_citas'], 1)
+            : 0;
+
+        $titulo = 'Productividad por Médico - ' . $rangos['titulo'];
+        $especialidadNombre = $especialidad ? $especialidad->nombre : 'Todas';
+
+        return compact('queryData', 'totales', 'titulo', 'fechaTexto', 'especialidadNombre');
+    }
+
+    public static function citasSinDiagnostico(array $data): array
+    {
+        $rangos = self::resolverRangoFechas($data);
+        $fecha_desde = $rangos['fecha_desde'];
+        $fecha_hasta = $rangos['fecha_hasta'];
+        $fechaTexto = $rangos['titulo'];
+        $especialidadId = $data['especialidad_id'] ?? null;
+        $especialidad = $especialidadId ? Especialidad::find($especialidadId) : null;
+
+        $queryData = Cita::select(
+                'medicos.nombre as medico_nombre',
+                'medicos.apellido as medico_apellido',
+                'especialidades.nombre as especialidad',
+                'pacientes.nombre as paciente_nombre',
+                'pacientes.apellido as paciente_apellido',
+                'pacientes.cedula as paciente_cedula',
+                'citas.fecha_cita',
+                'citas.observacion'
+            )
+            ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
+            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
+            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
+            ->where('citas.estado', 'Atendida')
+            ->whereNull('citas.diagnostico_libre')
+            ->when($especialidadId, fn ($q) => $q->where('especialidades.id', $especialidadId))
+            ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
+            ->orderBy('especialidades.nombre')
+            ->orderBy('medicos.apellido')
+            ->orderBy('citas.fecha_cita')
+            ->get()
+            ->map(fn ($item) => [
+                'medico' => $item->medico_nombre . ' ' . $item->medico_apellido,
+                'especialidad' => $item->especialidad,
+                'paciente' => $item->paciente_nombre . ' ' . $item->paciente_apellido,
+                'cedula' => $item->paciente_cedula,
+                'fecha_cita' => $item->fecha_cita,
+                'observacion' => $item->observacion,
+            ])
+            ->toArray();
+
+        $totales = [
+            'sin_diagnostico' => count($queryData),
+        ];
+
+        $titulo = 'Citas sin Diagnóstico - ' . $rangos['titulo'];
+        $especialidadNombre = $especialidad ? $especialidad->nombre : 'Todas';
+
+        return compact('queryData', 'totales', 'titulo', 'fechaTexto', 'especialidadNombre');
+    }
+
+    public static function eficienciaAtencion(array $data): array
+    {
+        $rangos = self::resolverRangoFechas($data);
+        $fecha_desde = $rangos['fecha_desde'];
+        $fecha_hasta = $rangos['fecha_hasta'];
+        $fechaTexto = $rangos['titulo'];
+
+        $queryData = Cita::select(
+                DB::raw("TO_CHAR(citas.fecha_cita, 'YYYY-MM') as mes"),
+                DB::raw("COUNT(*) as total"),
+                DB::raw("SUM(CASE WHEN citas.estado = 'Atendida' THEN 1 ELSE 0 END) as atendidas"),
+                DB::raw("ROUND(SUM(CASE WHEN citas.estado = 'Atendida' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as tasa_atencion"),
+                DB::raw("SUM(CASE WHEN citas.estado = 'Cancelada' THEN 1 ELSE 0 END) as canceladas"),
+                DB::raw("ROUND(SUM(CASE WHEN citas.estado = 'Cancelada' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as tasa_cancelacion"),
+                DB::raw("SUM(CASE WHEN citas.tipo_paciente = 'primera_vez' THEN 1 ELSE 0 END) as primera_vez"),
+                DB::raw("ROUND(SUM(CASE WHEN citas.tipo_paciente = 'primera_vez' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as pct_primera_vez"),
+                DB::raw("SUM(CASE WHEN citas.tipo_paciente = 'control' THEN 1 ELSE 0 END) as control"),
+                DB::raw("ROUND(SUM(CASE WHEN citas.tipo_paciente = 'control' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as pct_control"),
+                DB::raw("SUM(CASE WHEN citas.historia_traida = true THEN 1 ELSE 0 END) as historia_traida"),
+                DB::raw("ROUND(SUM(CASE WHEN citas.historia_traida = true THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as pct_historia_traida"),
+                DB::raw("ROUND(AVG(citas.fecha_cita - citas.fecha_registro), 1) as promedio_dias_espera")
+            )
+            ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
+            ->groupBy(DB::raw("TO_CHAR(citas.fecha_cita, 'YYYY-MM')"))
+            ->orderBy('mes')
+            ->get()
+            ->map(fn ($item) => [
+                'mes' => $item->mes,
+                'total' => (int) $item->total,
+                'atendidas' => (int) $item->atendidas,
+                'tasa_atencion' => (float) $item->tasa_atencion,
+                'canceladas' => (int) $item->canceladas,
+                'tasa_cancelacion' => (float) $item->tasa_cancelacion,
+                'primera_vez' => (int) $item->primera_vez,
+                'pct_primera_vez' => (float) $item->pct_primera_vez,
+                'control' => (int) $item->control,
+                'pct_control' => (float) $item->pct_control,
+                'historia_traida' => (int) $item->historia_traida,
+                'pct_historia_traida' => (float) $item->pct_historia_traida,
+                'promedio_dias_espera' => (float) $item->promedio_dias_espera,
+            ])
+            ->toArray();
+
+        $totales = [
+            'total' => array_sum(array_column($queryData, 'total')),
+            'atendidas' => array_sum(array_column($queryData, 'atendidas')),
+            'canceladas' => array_sum(array_column($queryData, 'canceladas')),
+            'primera_vez' => array_sum(array_column($queryData, 'primera_vez')),
+            'control' => array_sum(array_column($queryData, 'control')),
+            'historia_traida' => array_sum(array_column($queryData, 'historia_traida')),
+        ];
+        $totales['tasa_atencion'] = $totales['total'] > 0 ? round($totales['atendidas'] * 100.0 / $totales['total'], 1) : 0;
+        $totales['tasa_cancelacion'] = $totales['total'] > 0 ? round($totales['canceladas'] * 100.0 / $totales['total'], 1) : 0;
+        $totales['pct_primera_vez'] = $totales['total'] > 0 ? round($totales['primera_vez'] * 100.0 / $totales['total'], 1) : 0;
+        $totales['pct_control'] = $totales['total'] > 0 ? round($totales['control'] * 100.0 / $totales['total'], 1) : 0;
+        $totales['pct_historia_traida'] = $totales['total'] > 0 ? round($totales['historia_traida'] * 100.0 / $totales['total'], 1) : 0;
+        $totales['promedio_dias_espera'] = $totales['total'] > 0
+            ? round(array_sum(array_map(fn ($r) => $r['promedio_dias_espera'] * $r['total'], $queryData)) / $totales['total'], 1)
+            : 0;
+
+        $titulo = 'Eficiencia de Atención - ' . $rangos['titulo'];
+
+        return compact('queryData', 'totales', 'titulo', 'fechaTexto');
+    }
 }

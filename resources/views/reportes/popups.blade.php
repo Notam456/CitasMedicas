@@ -389,6 +389,212 @@
         </div>
     @endcomponent
 
+    {{--8 Productividad por Médico --}}
+    @component('reportes.modal')
+        @slot('modal_id', 'modalProductividadMedico')
+        @slot('modal_title', 'Productividad por Médico')
+        @slot('form_action', route('reportes.productividad_medico_pdf'))
+        @slot('excel_action', route('reportes.productividad_medico_excel'))
+
+        <div class="mb-3">
+            <label class="form-label">Especialidad</label>
+            <x-searchable-select name="especialidad_id" id="prod_med_especialidad_id"
+                :options="$especialidades->pluck('nombre', 'id')"
+                placeholder="Seleccione Especialidad (Todas)" icon="fas fa-stethoscope" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Tipo de rango</label>
+            <div class="d-flex gap-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tipo_rango" id="prod_med_tipo_mes" value="mes" checked>
+                    <label class="form-check-label" for="prod_med_tipo_mes">Mes específico</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tipo_rango" id="prod_med_tipo_rango" value="rango">
+                    <label class="form-check-label" for="prod_med_tipo_rango">Rango de fechas</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3" id="prod_med_div_mes">
+            <label class="form-label">Seleccione el Mes</label>
+            <div class="row">
+                <div class="col-md-6">
+                    <select id="prod_med_mes" class="form-select" required>
+                        <option value="">Mes</option>
+                        @for($i = 1; $i <= 12; $i++)
+                            <option value="{{ $i }}" {{ $i == date('n') ? 'selected' : '' }}>
+                                {{ \Carbon\Carbon::create()->month($i)->locale('es')->translatedFormat('F') }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <select id="prod_med_anio" class="form-select" required>
+                        <option value="">Año</option>
+                        @php
+                            $anioActual = date('Y');
+                            $anioInicio = $anioActual - 5;
+                        @endphp
+                        @for($i = $anioInicio; $i <= $anioActual + 5; $i++)
+                            <option value="{{ $i }}" {{ $i == $anioActual ? 'selected' : '' }}>{{ $i }}</option>
+                        @endfor
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="mes" id="prod_med_mes_hidden">
+        </div>
+
+        <div class="mb-3 d-none" id="prod_med_div_rango">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="prod_med_fecha_desde" class="form-label">Fecha desde</label>
+                    <input type="date" name="fecha_desde" id="prod_med_fecha_desde" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="prod_med_fecha_hasta" class="form-label">Fecha hasta</label>
+                    <input type="date" name="fecha_hasta" id="prod_med_fecha_hasta" class="form-control">
+                </div>
+            </div>
+        </div>
+    @endcomponent
+
+    {{--9 Citas sin Diagnóstico --}}
+    @component('reportes.modal')
+        @slot('modal_id', 'modalCitasSinDiagnostico')
+        @slot('modal_title', 'Citas sin Diagnóstico')
+        @slot('form_action', route('reportes.citas_sin_diagnostico_pdf'))
+        @slot('excel_action', route('reportes.citas_sin_diagnostico_excel'))
+
+        <div class="mb-3">
+            <label class="form-label">Especialidad</label>
+            <x-searchable-select name="especialidad_id" id="sin_diag_especialidad_id"
+                :options="$especialidades->pluck('nombre', 'id')"
+                placeholder="Seleccione Especialidad (Todas)" icon="fas fa-stethoscope" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Tipo de rango</label>
+            <div class="d-flex gap-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tipo_rango" id="sin_diag_tipo_mes" value="mes" checked>
+                    <label class="form-check-label" for="sin_diag_tipo_mes">Mes específico</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tipo_rango" id="sin_diag_tipo_rango" value="rango">
+                    <label class="form-check-label" for="sin_diag_tipo_rango">Rango de fechas</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3" id="sin_diag_div_mes">
+            <label class="form-label">Seleccione el Mes</label>
+            <div class="row">
+                <div class="col-md-6">
+                    <select id="sin_diag_mes" class="form-select" required>
+                        <option value="">Mes</option>
+                        @for($i = 1; $i <= 12; $i++)
+                            <option value="{{ $i }}" {{ $i == date('n') ? 'selected' : '' }}>
+                                {{ \Carbon\Carbon::create()->month($i)->locale('es')->translatedFormat('F') }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <select id="sin_diag_anio" class="form-select" required>
+                        <option value="">Año</option>
+                        @php
+                            $anioActual = date('Y');
+                            $anioInicio = $anioActual - 5;
+                        @endphp
+                        @for($i = $anioInicio; $i <= $anioActual + 5; $i++)
+                            <option value="{{ $i }}" {{ $i == $anioActual ? 'selected' : '' }}>{{ $i }}</option>
+                        @endfor
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="mes" id="sin_diag_mes_hidden">
+        </div>
+
+        <div class="mb-3 d-none" id="sin_diag_div_rango">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="sin_diag_fecha_desde" class="form-label">Fecha desde</label>
+                    <input type="date" name="fecha_desde" id="sin_diag_fecha_desde" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="sin_diag_fecha_hasta" class="form-label">Fecha hasta</label>
+                    <input type="date" name="fecha_hasta" id="sin_diag_fecha_hasta" class="form-control">
+                </div>
+            </div>
+        </div>
+    @endcomponent
+
+    {{--10 Eficiencia de Atención --}}
+    @component('reportes.modal')
+        @slot('modal_id', 'modalEficienciaAtencion')
+        @slot('modal_title', 'Eficiencia de Atención')
+        @slot('form_action', route('reportes.eficiencia_atencion_pdf'))
+        @slot('excel_action', route('reportes.eficiencia_atencion_excel'))
+
+        <div class="mb-3">
+            <label class="form-label">Tipo de rango</label>
+            <div class="d-flex gap-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tipo_rango" id="efic_tipo_mes" value="mes" checked>
+                    <label class="form-check-label" for="efic_tipo_mes">Mes específico</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tipo_rango" id="efic_tipo_rango" value="rango">
+                    <label class="form-check-label" for="efic_tipo_rango">Rango de fechas</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3" id="efic_div_mes">
+            <label class="form-label">Seleccione el Mes</label>
+            <div class="row">
+                <div class="col-md-6">
+                    <select id="efic_mes" class="form-select" required>
+                        <option value="">Mes</option>
+                        @for($i = 1; $i <= 12; $i++)
+                            <option value="{{ $i }}" {{ $i == date('n') ? 'selected' : '' }}>
+                                {{ \Carbon\Carbon::create()->month($i)->locale('es')->translatedFormat('F') }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <select id="efic_anio" class="form-select" required>
+                        <option value="">Año</option>
+                        @php
+                            $anioActual = date('Y');
+                            $anioInicio = $anioActual - 5;
+                        @endphp
+                        @for($i = $anioInicio; $i <= $anioActual + 5; $i++)
+                            <option value="{{ $i }}" {{ $i == $anioActual ? 'selected' : '' }}>{{ $i }}</option>
+                        @endfor
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="mes" id="efic_mes_hidden">
+        </div>
+
+        <div class="mb-3 d-none" id="efic_div_rango">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="efic_fecha_desde" class="form-label">Fecha desde</label>
+                    <input type="date" name="fecha_desde" id="efic_fecha_desde" class="form-control" value="{{ \Carbon\Carbon::now()->subMonths(3)->format('Y-m-d') }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="efic_fecha_hasta" class="form-label">Fecha hasta</label>
+                    <input type="date" name="fecha_hasta" id="efic_fecha_hasta" class="form-control" value="{{ \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d') }}">
+                </div>
+            </div>
+        </div>
+    @endcomponent
+
 <script>
     function initRangoFechas(config) {
         const tipoMes = document.getElementById(config.tipoMesId);
@@ -498,6 +704,51 @@
                 mesHiddenId: 'inas_mes_hidden',
                 fechaDesdeId: 'inas_fecha_desde',
                 fechaHastaId: 'inas_fecha_hasta'
+            });
+        }
+
+        // Productividad por Médico
+        if (document.getElementById('prod_med_tipo_mes')) {
+            initRangoFechas({
+                tipoMesId: 'prod_med_tipo_mes',
+                tipoRangoId: 'prod_med_tipo_rango',
+                divMesId: 'prod_med_div_mes',
+                divRangoId: 'prod_med_div_rango',
+                mesSelectId: 'prod_med_mes',
+                anioSelectId: 'prod_med_anio',
+                mesHiddenId: 'prod_med_mes_hidden',
+                fechaDesdeId: 'prod_med_fecha_desde',
+                fechaHastaId: 'prod_med_fecha_hasta'
+            });
+        }
+
+        // Citas sin Diagnóstico
+        if (document.getElementById('sin_diag_tipo_mes')) {
+            initRangoFechas({
+                tipoMesId: 'sin_diag_tipo_mes',
+                tipoRangoId: 'sin_diag_tipo_rango',
+                divMesId: 'sin_diag_div_mes',
+                divRangoId: 'sin_diag_div_rango',
+                mesSelectId: 'sin_diag_mes',
+                anioSelectId: 'sin_diag_anio',
+                mesHiddenId: 'sin_diag_mes_hidden',
+                fechaDesdeId: 'sin_diag_fecha_desde',
+                fechaHastaId: 'sin_diag_fecha_hasta'
+            });
+        }
+
+        // Eficiencia de Atención
+        if (document.getElementById('efic_tipo_mes')) {
+            initRangoFechas({
+                tipoMesId: 'efic_tipo_mes',
+                tipoRangoId: 'efic_tipo_rango',
+                divMesId: 'efic_div_mes',
+                divRangoId: 'efic_div_rango',
+                mesSelectId: 'efic_mes',
+                anioSelectId: 'efic_anio',
+                mesHiddenId: 'efic_mes_hidden',
+                fechaDesdeId: 'efic_fecha_desde',
+                fechaHastaId: 'efic_fecha_hasta'
             });
         }
     });

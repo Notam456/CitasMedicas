@@ -14,6 +14,9 @@ use App\Exports\ProcedenciaPacientesExport;
 use App\Exports\MovimientoConsultasExport;
 use App\Exports\MovimientoConsultaAroExport;
 use App\Exports\CausasPrincipalesExport;
+use App\Exports\ProductividadMedicoExport;
+use App\Exports\CitasSinDiagnosticoExport;
+use App\Exports\EficienciaAtencionExport;
 use App\Models\Medico;
 
 class ReporteController extends Controller
@@ -208,5 +211,106 @@ class ReporteController extends Controller
     {
         $request->merge(['excel' => true]);
         return $this->inasistencias($request);
+    }
+
+    public function productividadMedico(ReporteRequest $request)
+    {
+        $validated = $request->validated();
+        $validated['especialidad_id'] = $request->especialidad_id;
+        $data = ReporteService::productividadMedico($validated);
+
+        if ($request->has('excel')) {
+            $fechaParte = $this->sanitizeFilename($data['fechaTexto']);
+            $especialidad = $this->sanitizeFilename($data['especialidadNombre']);
+            return Excel::download(
+                new ProductividadMedicoExport($data['queryData'], $data['totales'], $data['titulo'], $data['fechaTexto'], $data['especialidadNombre']),
+                "productividad_medico_{$especialidad}_{$fechaParte}.xlsx"
+            );
+        }
+
+        $pdf = Pdf::loadView('reportes.pdf.productividad_medico_pdf', [
+            'data' => $data['queryData'], 'totales' => $data['totales'],
+            'titulo' => $data['titulo'], 'fechaTexto' => $data['fechaTexto'],
+            'especialidadNombre' => $data['especialidadNombre'],
+            'membrete' => Membrete::base64(),
+        ]);
+        return $pdf->stream('productividad_medico.pdf');
+    }
+
+    public function productividadMedicoPdf(ReporteRequest $request)
+    {
+        return $this->productividadMedico($request);
+    }
+
+    public function productividadMedicoExcel(ReporteRequest $request)
+    {
+        $request->merge(['excel' => true]);
+        return $this->productividadMedico($request);
+    }
+
+    public function citasSinDiagnostico(ReporteRequest $request)
+    {
+        $validated = $request->validated();
+        $validated['especialidad_id'] = $request->especialidad_id;
+        $data = ReporteService::citasSinDiagnostico($validated);
+
+        if ($request->has('excel')) {
+            $fechaParte = $this->sanitizeFilename($data['fechaTexto']);
+            $especialidad = $this->sanitizeFilename($data['especialidadNombre']);
+            return Excel::download(
+                new CitasSinDiagnosticoExport($data['queryData'], $data['totales'], $data['titulo'], $data['fechaTexto'], $data['especialidadNombre']),
+                "citas_sin_diagnostico_{$especialidad}_{$fechaParte}.xlsx"
+            );
+        }
+
+        $pdf = Pdf::loadView('reportes.pdf.citas_sin_diagnostico_pdf', [
+            'data' => $data['queryData'], 'totales' => $data['totales'],
+            'titulo' => $data['titulo'], 'fechaTexto' => $data['fechaTexto'],
+            'especialidadNombre' => $data['especialidadNombre'],
+            'membrete' => Membrete::base64(),
+        ]);
+        return $pdf->stream('citas_sin_diagnostico.pdf');
+    }
+
+    public function citasSinDiagnosticoPdf(ReporteRequest $request)
+    {
+        return $this->citasSinDiagnostico($request);
+    }
+
+    public function citasSinDiagnosticoExcel(ReporteRequest $request)
+    {
+        $request->merge(['excel' => true]);
+        return $this->citasSinDiagnostico($request);
+    }
+
+    public function eficienciaAtencion(ReporteRequest $request)
+    {
+        $data = ReporteService::eficienciaAtencion($request->validated());
+
+        if ($request->has('excel')) {
+            $fechaParte = $this->sanitizeFilename($data['fechaTexto']);
+            return Excel::download(
+                new EficienciaAtencionExport($data['queryData'], $data['totales'], $data['titulo'], $data['fechaTexto']),
+                "eficiencia_atencion_{$fechaParte}.xlsx"
+            );
+        }
+
+        $pdf = Pdf::loadView('reportes.pdf.eficiencia_atencion_pdf', [
+            'data' => $data['queryData'], 'totales' => $data['totales'],
+            'titulo' => $data['titulo'], 'fechaTexto' => $data['fechaTexto'],
+            'membrete' => Membrete::base64(),
+        ]);
+        return $pdf->stream('eficiencia_atencion.pdf');
+    }
+
+    public function eficienciaAtencionPdf(ReporteRequest $request)
+    {
+        return $this->eficienciaAtencion($request);
+    }
+
+    public function eficienciaAtencionExcel(ReporteRequest $request)
+    {
+        $request->merge(['excel' => true]);
+        return $this->eficienciaAtencion($request);
     }
 }
