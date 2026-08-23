@@ -13,6 +13,8 @@ use App\Models\Paciente;
 use App\Models\User;
 use App\Notifications\CitaCancelada;
 use Carbon\Carbon;
+use App\Http\Requests\StoreCitaRequest;
+use App\Services\CitaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -303,33 +305,9 @@ class CitaController extends Controller
         return response()->json(['tieneCitas' => $tiene]);
     }
 
-    public function store(Request $request)
+    public function store(StoreCitaRequest $request)
     {
-        $request->merge([
-            'nombre' => mb_convert_case(trim($request->nombre), MB_CASE_TITLE, 'UTF-8'),
-            'apellido' => mb_convert_case(trim($request->apellido), MB_CASE_TITLE, 'UTF-8'),
-        ]);
-
-        $request->validate([
-            // Datos del paciente
-            'cedula_tipo' => 'required|in:V,E',
-            'cedula' => 'required|string|min:7|max:20|regex:/^[0-9]+$/',
-            'numero_expediente' => 'nullable|regex:/^\d{2}-\d{2}-\d{2}$/',
-            'rif' => 'nullable|string|max:20',
-            'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
-            'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
-            'fecha_nacimiento' => 'required|date',
-            'telefono' => 'required|string|min:7|max:15|regex:/^[\d\-\(\)\s\+]+$/',
-            'parroquia_id' => 'required|numeric|exists:parroquias,id',
-            'direccion' => 'nullable|string|max:255',
-            'sexo' => 'required|in:Masculino,Femenino',
-            // Datos de la cita
-            'calendario_id' => 'required|numeric|exists:calendarios,id',
-            'fecha_cita' => 'required|date|after_or_equal:today',
-            'observacion' => 'nullable|string',
-            'especialidad_id' => 'required|exists:especialidades,id',
-            'tipo_paciente' => 'required|string|in:primera_vez,control,orden_medica',
-        ]);
+        $citaService = new CitaService();
 
         if ($request->sexo === 'Masculino' && Especialidad::find($request->especialidad_id)?->esSoloFemenino()) {
             return redirect()->back()->withInput()->withErrors([
@@ -340,20 +318,10 @@ class CitaController extends Controller
         if ($request->tipo_paciente === 'primera_vez') {
             $cedulaCompleta = $request->cedula_tipo.'-'.$request->cedula;
             $paciente = Paciente::where('cedula', $cedulaCompleta)->first();
-
-            if ($paciente) {
-                $tieneCitas = Cita::where('paciente_id', $paciente->id)
-                    ->whereHas('calendario.medico', function ($q) use ($request) {
-                        $q->where('especialidad_id', $request->especialidad_id);
-                    })
-                    ->whereIn('estado', ['Agendada', 'Atendida'])
-                    ->exists();
-
-                if ($tieneCitas) {
-                    return redirect()->back()->withInput()->withErrors([
-                        'tipo_paciente' => 'Este paciente ya tiene citas en esta especialidad. Seleccione "Control / Sucesivo".'
-                    ]);
-                }
+            if ($paciente && $citaService->verificarPrimeraVez($paciente->id, $request->especialidad_id)) {
+                return redirect()->back()->withInput()->withErrors([
+                    'tipo_paciente' => 'Este paciente ya tiene citas en esta especialidad. Seleccione "Control / Sucesivo".'
+                ]);
             }
         }
 
@@ -364,104 +332,29 @@ class CitaController extends Controller
             if ($calendario->fecha !== $request->fecha_cita) {
                 DB::rollBack();
                 Alert::error('Error de Coherencia', 'La fecha seleccionada no coincide con la planificación del médico.');
-
                 return redirect()->back()->withInput();
             }
 
-            if ($request->tipo_paciente !== 'orden_medica') {
-                $ocupados = Cita::where('calendario_id', $calendario->id)
-                    ->where('tipo_paciente', $request->tipo_paciente)
-                    ->whereIn('estado', ['Agendada', 'Atendida'])
-                    ->count();
-
-                $capacidad_maxima = ($request->tipo_paciente === 'primera_vez')
-                ? $calendario->cupos_primera_vez
-                : $calendario->cupos_sucesivos;
-
-                if ($ocupados >= $capacidad_maxima) {
-                    DB::rollBack();
-                    Alert::error('Sin Cupos', 'Lo sentimos, los cupos para este día se acaban de agotar.');
-
-                    return redirect()->back()->withInput();
-                }
+            if (!$citaService->verificarCupos($request->calendario_id, $request->tipo_paciente)) {
+                DB::rollBack();
+                Alert::error('Sin Cupos', 'Lo sentimos, los cupos para este día se acaban de agotar.');
+                return redirect()->back()->withInput();
             }
 
-            $cedulaCompleta = $request->cedula_tipo.'-'.$request->cedula;
-            $rifCompleto = $request->rif ? 'J-'.$request->rif : '';
-
-            $paciente = Paciente::firstOrCreate(
-                ['cedula' => $cedulaCompleta],
-                [
-                    'rif' => $rifCompleto,
-                    'nombre' => $request->nombre,
-                    'apellido' => $request->apellido,
-                    'fecha_nacimiento' => $request->fecha_nacimiento,
-                    'telefono' => $request->telefono,
-                    'parroquia_id' => $request->parroquia_id,
-                    'direccion' => $request->direccion,
-                    'sexo' => $request->sexo,
-                ]
-            );
-
-            session()->flash('paciente_id', $paciente->id);
-
-            $numeroExpediente = $request->filled('numero_expediente') ? trim($request->numero_expediente) : null;
-
-            if ($numeroExpediente) {
-                $historiaDeOtro = Expediente::where('numero_expediente', $numeroExpediente)
-                    ->where('paciente_id', '!=', $paciente->id)
-                    ->exists();
-
-                if ($historiaDeOtro) {
-                    DB::rollBack();
-                    Alert::error('Número de Historia en uso', 'Ese número de historia ya está asignado a otro paciente.');
-
-                    return redirect()->back()->withInput();
-                }
-
-                if ($paciente->expediente) {
-                    if ($paciente->expediente->numero_expediente !== $numeroExpediente) {
-                        DB::rollBack();
-                        Alert::error('Historia ya asignada', 'El paciente ya tiene un número de historia asignado.');
-
-                        return redirect()->back()->withInput();
-                    }
-                } else {
-                    Expediente::create([
-                        'paciente_id' => $paciente->id,
-                        'numero_expediente' => $numeroExpediente,
-                        'fecha_apertura' => now()->toDateString(),
-                    ]);
-                }
-            }
-
-            Cita::create([
-                'paciente_id' => $paciente->id,
-                'calendario_id' => $request->calendario_id,
-                'user_id' => Auth::id() ?? 1,
-                'fecha_registro' => now()->toDateString(),
-                'fecha_cita' => $request->fecha_cita,
-                'estado' => 'Agendada',
-                'tipo_paciente' => $request->tipo_paciente,
-                'observacion' => $request->observacion,
-            ]);
+            $citaService->crearCita($request->validated());
 
             DB::commit();
 
             Alert::success('¡Éxito!', 'Cita registrada correctamente.');
-
             return redirect()->route('Citas.create');
 
         } catch (\Exception $e) {
             DB::rollBack();
-
             if ($e->getCode() == '23505') {
                 Alert::error('Error', 'Este paciente ya tiene una cita en ese horario.');
-
                 return redirect()->route('Citas.create');
             }
             Alert::error('Error', 'No se pudo registrar la cita. Intente de nuevo.');
-            
             return redirect()->route('Citas.create');
         }
     }

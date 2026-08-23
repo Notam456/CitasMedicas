@@ -48,4 +48,9 @@ class Medico extends Model implements Auditable
             'id'               
         );
     }
+
+    public function scopePorEspecialidad($query, int $especialidadId)
+    {
+        return $query->where('especialidad_id', $especialidadId);
+    }
 }

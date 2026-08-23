@@ -311,7 +311,7 @@ document.addEventListener('click', async function(event) {
             modalInstance.show();
 
             try {
-                const resEstados = await fetch('/api/estados');
+                const resEstados = await fetch('{{ url("/api/estados") }}');
                 if (resEstados.ok) {
                     const estados = await resEstados.json();
                     selectEstado.innerHTML = '<option value="">Seleccione Estado</option>';

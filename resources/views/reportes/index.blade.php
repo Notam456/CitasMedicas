@@ -15,7 +15,7 @@
             Listado de médicos con opción de filtro por especialidad.
             @endslot
             @slot('reporte_bs_target','#modalMedicosEspecialidad')
-            @slot('reporte_excel', route('reportes.medicos_excel')) {{-- se mantiene pero no se usará --}}
+            @slot('reporte_excel', '#')
             @slot('excel_modal', true)
             @endcomponent
         </div>
@@ -107,9 +107,7 @@
 
             @slot('reporte_bs_target','#modalPacienteInasistencia')
             
-            @slot('reporte_excel')
-            {{route('reportes.medicos_excel')}}
-            @endslot
+            @slot('reporte_excel', '#')
             
             @endcomponent
         </div>
@@ -131,9 +129,7 @@
 
             @slot('reporte_bs_target','#modalMedicoInasistencia')
             
-            @slot('reporte_excel')
-            {{route('reportes.medicos_excel')}}
-            @endslot
+            @slot('reporte_excel', '#')
             
             @endcomponent
         </div>

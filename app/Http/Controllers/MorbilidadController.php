@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Cita;
 use App\Models\Especialidad;
+use App\Models\Medico;
+use App\Services\MorbilidadService;
+use App\Support\Membrete;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf as Pdf;
@@ -36,7 +39,7 @@ class MorbilidadController extends Controller
         }
 
         if ($request->has('export_excel') || $request->has('export_pdf')) {
-            $query = $this->buildBaseQuery($request);
+            $query = MorbilidadService::buildBaseQuery($request);
 
             $esAgendadas = $request->estado === 'Agendada';
 
@@ -66,7 +69,7 @@ class MorbilidadController extends Controller
             $fecha_registro_hasta = $request->fecha_registro_hasta;
 
             $medicoModel = $request->filled('medico_id')
-                ? \App\Models\Medico::find($request->medico_id)
+                ? Medico::find($request->medico_id)
                 : null;
             $medicoNombreStr = $medicoModel ? 'Dr. ' . $medicoModel->nombre . ' ' . $medicoModel->apellido : null;
             $especialidadHeader = $especialidad ?: ($medicoModel ? $medicoModel->especialidad->nombre : null);
@@ -119,8 +122,8 @@ class MorbilidadController extends Controller
                 ini_set('memory_limit', '1024M');
                 ini_set('max_execution_time', 300);
                 ini_set('pcre.backtrack_limit', '10000000');
-                $membrete = $this->getMembreteBase64();
                 $morbilidades = $query->get();
+                $membrete = Membrete::base64();
 
                 if ($esAgendadas) {
                     $pdf = Pdf::loadView('reportes.pdf.agendadas_pdf', compact('morbilidades', 'membrete', 'especialidad', 'fecha_desde', 'fecha_hasta', 'tipo_paciente', 'estado', 'fecha_registro_desde', 'fecha_registro_hasta', 'mostrarFechaCita', 'medicoNombreStr', 'mostrarColumnaMedico', 'especialidadHeader', 'mostrarColumnaTipo'));
@@ -131,7 +134,7 @@ class MorbilidadController extends Controller
             }
         }
 
-        $medicos = \App\Models\Medico::with('especialidad')
+        $medicos = Medico::with('especialidad')
             ->orderBy('nombre')
             ->get();
         return view('morbilidad.index', compact('especialidades', 'medicos'));
@@ -168,72 +171,13 @@ class MorbilidadController extends Controller
             'atendidoPor',
         ])->findOrFail($id);
 
-        $membrete = $this->getMembreteBase64();
-        $pdf = Pdf::loadView('reportes.pdf.cita_pdf', compact('cita', 'membrete'));
+        $pdf = Pdf::loadView('reportes.pdf.cita_pdf', ['cita' => $cita, 'membrete' => Membrete::base64()]);
         return $pdf->stream('cita_' . $id . '.pdf');
-    }
-
-    private function buildBaseQuery(Request $request)
-    {
-        $query = Cita::query()
-            ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
-            ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
-            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
-            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
-            ->leftJoin('expedientes', 'pacientes.id', '=', 'expedientes.paciente_id')
-            ->leftJoin(DB::raw("(SELECT cp.cita_id, STRING_AGG(p.nombre, ', ' ORDER BY p.nombre) as patologias_nombres FROM cita_patologias cp JOIN patologias p ON p.id = cp.patologia_id GROUP BY cp.cita_id) as pats"), 'pats.cita_id', '=', 'citas.id')
-            ->select(
-                'citas.id',
-                'citas.paciente_id',
-                'citas.historia_traida',
-                'expedientes.numero_expediente',
-                'pacientes.nombre as paciente_nombre',
-                'pacientes.apellido as paciente_apellido',
-                'pacientes.cedula as paciente_cedula',
-                'citas.fecha_cita',
-                'citas.observacion as cita_observacion',
-                'medicos.nombre as medico_nombre',
-                'medicos.apellido as medico_apellido',
-                'especialidades.nombre as especialidad_nombre',
-                'especialidades.id as especialidad_id',
-                'citas.diagnostico_libre',
-                'citas.estado',
-                'citas.tipo_paciente',
-                'citas.created_at',
-                'pats.patologias_nombres'
-            );
-
-        if ($request->filled('especialidad_id')) {
-            $query->where('especialidades.id', $request->especialidad_id);
-        }
-        if ($request->filled('fecha_desde')) {
-            $query->whereDate('citas.fecha_cita', '>=', $request->fecha_desde);
-        }
-        if ($request->filled('fecha_hasta')) {
-            $query->whereDate('citas.fecha_cita', '<=', $request->fecha_hasta);
-        }
-        if ($request->filled('tipo_paciente')) {
-            $query->where('citas.tipo_paciente', $request->tipo_paciente);
-        }
-        if ($request->filled('estado')) {
-            $query->where('citas.estado', $request->estado);
-        }
-        if ($request->filled('fecha_registro_desde')) {
-            $query->whereDate('citas.created_at', '>=', $request->fecha_registro_desde);
-        }
-        if ($request->filled('fecha_registro_hasta')) {
-            $query->whereDate('citas.created_at', '<=', $request->fecha_registro_hasta);
-        }
-        if ($request->filled('medico_id')) {
-            $query->where('medicos.id', $request->medico_id);
-        }
-
-        return $query;
     }
 
     private function dataTableResponse(Request $request)
     {
-        $query = $this->buildBaseQuery($request);
+        $query = MorbilidadService::buildBaseQuery($request);
         $totalRecords = $query->count();
 
         if ($search = $request->get('search')['value']) {
@@ -330,38 +274,9 @@ class MorbilidadController extends Controller
         ]);
     }
 
-    private function buildBasePendientes(Request $request)
-    {
-        $query = Cita::query()
-            ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
-            ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
-            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
-            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
-            ->leftJoin('expedientes', 'pacientes.id', '=', 'expedientes.paciente_id')
-            ->select(
-                'citas.id',
-                'citas.paciente_id',
-                'pacientes.nombre as paciente_nombre',
-                'pacientes.apellido as paciente_apellido',
-                'pacientes.cedula as paciente_cedula',
-                'citas.fecha_cita',
-                'medicos.nombre as medico_nombre',
-                'medicos.apellido as medico_apellido',
-                'especialidades.nombre as especialidad_nombre',
-                'expedientes.numero_expediente'
-            )
-            ->where('citas.estado', 'Agendada')
-            ->whereDate('citas.fecha_cita', Carbon::today());
-
-        if ($request->filled('especialidad_id')) {
-            $query->where('especialidades.id', $request->especialidad_id);
-        }
-        return $query;
-    }
-
     private function dataTablePendientes(Request $request)
     {
-        $query = $this->buildBasePendientes($request);
+        $query = MorbilidadService::buildBasePendientes($request);
         $totalRecords = $query->count();
         if ($search = $request->get('search')['value']) {
             $query->where(function ($q) use ($search) {
@@ -421,14 +336,5 @@ class MorbilidadController extends Controller
             'recordsFiltered' => $filteredRecords,
             'data' => $dataFormatted,
         ]);
-    }
-
-    private function getMembreteBase64(): string
-    {
-        $ruta = public_path('assets/img/membreteMPPS2.png');
-        if (file_exists($ruta)) {
-            return 'data:image/png;base64,' . base64_encode(file_get_contents($ruta));
-        }
-        return '';
     }
 }
