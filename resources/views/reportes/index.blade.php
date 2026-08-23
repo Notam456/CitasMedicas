@@ -99,37 +99,16 @@
         {{-- 3 --}}
         <div class="col-md-4">
             @component('reportes.card')
-            @slot('card_title','Inasistencia Pacientes, EN PROCESO')
+            @slot('card_title','Inasistencias en Citas')
 
             @slot('card_desc')
-            Reporte Mensual de las Ausencias de Pacientes Ordenadas por Especialidad.
+            Reporte de Ausencias por Especialidad con Tasas de Inasistencia de Pacientes y Médicos.
             @endslot
 
-            @slot('reporte_bs_target','#modalPacienteInasistencia')
+            @slot('reporte_bs_target','#modalInasistenciasCitas')
             
             @slot('reporte_excel', '#')
-            
-            @endcomponent
-        </div>
-    </div>
-
-
-{{--TERCERA ROW--}}
-
-    <div class="row g-4 mt-4">
-
-        {{-- 1 --}}
-        <div class="col-md-4">
-            @component('reportes.card')
-            @slot('card_title','Inasistencia Médicos, EN PROCESO')
-
-            @slot('card_desc')
-            Reporte Mensual con Información Basica de los Pacientes que Perdieron Citas.
-            @endslot
-
-            @slot('reporte_bs_target','#modalMedicoInasistencia')
-            
-            @slot('reporte_excel', '#')
+            @slot('excel_modal', true)
             
             @endcomponent
         </div>

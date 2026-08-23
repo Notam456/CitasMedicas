@@ -170,6 +170,9 @@ Route::middleware(['auth', 'can:Reportes'])->group(function () {
 
     Route::get('/reportes/pdf/causas-principales/pdf', [ReporteController::class, 'causasPrincipalesPdf'])->name('reportes.causas_principales_pdf')->middleware('throttle:exportaciones');
     Route::get('/reportes/excel/causas-principales/excel', [ReporteController::class, 'causasPrincipalesExcel'])->name('reportes.causas_principales_excel')->middleware('throttle:exportaciones');
+
+    Route::get('/reportes/pdf/inasistencias-citas/pdf', [ReporteController::class, 'inasistenciasPdf'])->name('reportes.inasistencias_pdf')->middleware('throttle:exportaciones');
+    Route::get('/reportes/excel/inasistencias-citas/excel', [ReporteController::class, 'inasistenciasExcel'])->name('reportes.inasistencias_excel')->middleware('throttle:exportaciones');
 });
 
 Route::middleware(['auth', 'can:Médicos inactivos'])->group(function () {

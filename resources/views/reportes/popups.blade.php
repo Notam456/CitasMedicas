@@ -266,18 +266,42 @@
 
         <div class="mb-3" id="aro_div_mes">
             <label class="form-label">Seleccione el Mes</label>
-            <input type="month" name="mes" id="aro_mes" class="form-control">
+            <div class="row">
+                <div class="col-md-6">
+                    <select id="aro_mes" class="form-select" required>
+                        <option value="">Mes</option>
+                        @for($i = 1; $i <= 12; $i++)
+                            <option value="{{ $i }}" {{ $i == date('n') ? 'selected' : '' }}>
+                                {{ \Carbon\Carbon::create()->month($i)->locale('es')->translatedFormat('F') }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <select id="aro_anio" class="form-select" required>
+                        <option value="">Año</option>
+                        @php
+                            $anioActual = date('Y');
+                            $anioInicio = $anioActual - 5;
+                        @endphp
+                        @for($i = $anioInicio; $i <= $anioActual + 5; $i++)
+                            <option value="{{ $i }}" {{ $i == $anioActual ? 'selected' : '' }}>{{ $i }}</option>
+                        @endfor
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="mes" id="aro_mes_hidden">
         </div>
 
         <div class="mb-3 d-none" id="aro_div_rango">
             <div class="row">
                 <div class="col-md-6">
                     <label for="aro_fecha_desde" class="form-label">Fecha desde</label>
-                    <input type="date" name="fecha_desde" id="aro_fecha_desde" class="form-control">
+                    <input type="date" name="fecha_desde" id="aro_fecha_desde" class="form-control" value="{{ \Carbon\Carbon::now()->subMonths(3)->format('Y-m-d') }}">
                 </div>
                 <div class="col-md-6">
                     <label for="aro_fecha_hasta" class="form-label">Fecha hasta</label>
-                    <input type="date" name="fecha_hasta" id="aro_fecha_hasta" class="form-control">
+                    <input type="date" name="fecha_hasta" id="aro_fecha_hasta" class="form-control" value="{{ \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d') }}">
                 </div>
             </div>
         </div>
@@ -286,36 +310,82 @@
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 initRangoFechas({
-                    prefix: 'aro',
-                    mesId: 'aro_mes',
                     tipoMesId: 'aro_tipo_mes',
                     tipoRangoId: 'aro_tipo_rango',
                     divMesId: 'aro_div_mes',
                     divRangoId: 'aro_div_rango',
+                    mesSelectId: 'aro_mes',
+                    anioSelectId: 'aro_anio',
+                    mesHiddenId: 'aro_mes_hidden',
+                    fechaDesdeId: 'aro_fecha_desde',
+                    fechaHastaId: 'aro_fecha_hasta'
                 });
             });
         </script>
         @endpush
     @endcomponent
 
-    {{--7 Inasistencia Pacientes (pendiente) --}}
+    {{--7 Inasistencias en Citas --}}
     @component('reportes.modal')
-        @slot('modal_id', 'modalPacienteInasistencia')
-        @slot('modal_title', 'Mes')
-        @slot('form_action', '#')
-        <div class="mb-3">
-            <label class="form-label">En proceso</label>
-        </div>
-    @endcomponent
+        @slot('modal_id', 'modalInasistenciasCitas')
+        @slot('modal_title', 'Reporte Inasistencias en Citas')
+        @slot('form_action', route('reportes.inasistencias_pdf'))
+        @slot('excel_action', route('reportes.inasistencias_excel'))
 
-    {{--8 Inasistencia Médicos (pendiente) --}}
-    @component('reportes.modal')
-        @slot('modal_id', 'modalMedicoInasistencia')
-        @slot('modal_title', 'Mes')
-        @slot('form_action', '#')
         <div class="mb-3">
-            <label for="mes_inasistencia_medicos" class="form-label">Seleccione el Mes</label>
-            <input type="month" name="mes" id="mes_inasistencia_medicos" class="form-control" required>
+            <label class="form-label">Tipo de rango</label>
+            <div class="d-flex gap-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tipo_rango" id="inas_tipo_mes" value="mes" checked>
+                    <label class="form-check-label" for="inas_tipo_mes">Mes específico</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tipo_rango" id="inas_tipo_rango" value="rango">
+                    <label class="form-check-label" for="inas_tipo_rango">Rango de fechas</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3" id="inas_div_mes">
+            <label class="form-label">Seleccione el Mes</label>
+            <div class="row">
+                <div class="col-md-6">
+                    <select id="inas_mes" class="form-select" required>
+                        <option value="">Mes</option>
+                        @for($i = 1; $i <= 12; $i++)
+                            <option value="{{ $i }}" {{ $i == date('n') ? 'selected' : '' }}>
+                                {{ \Carbon\Carbon::create()->month($i)->locale('es')->translatedFormat('F') }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <select id="inas_anio" class="form-select" required>
+                        <option value="">Año</option>
+                        @php
+                            $anioActual = date('Y');
+                            $anioInicio = $anioActual - 5;
+                        @endphp
+                        @for($i = $anioInicio; $i <= $anioActual + 5; $i++)
+                            <option value="{{ $i }}" {{ $i == $anioActual ? 'selected' : '' }}>{{ $i }}</option>
+                        @endfor
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="mes" id="inas_mes_hidden">
+        </div>
+
+        <div class="mb-3 d-none" id="inas_div_rango">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="inas_fecha_desde" class="form-label">Fecha desde</label>
+                    <input type="date" name="fecha_desde" id="inas_fecha_desde" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="inas_fecha_hasta" class="form-label">Fecha hasta</label>
+                    <input type="date" name="fecha_hasta" id="inas_fecha_hasta" class="form-control">
+                </div>
+            </div>
         </div>
     @endcomponent
 
@@ -413,6 +483,21 @@
                 mesHiddenId: 'mov_mes_hidden',
                 fechaDesdeId: 'mov_fecha_desde',
                 fechaHastaId: 'mov_fecha_hasta'
+            });
+        }
+
+        // Inasistencias en Citas
+        if (document.getElementById('inas_tipo_mes')) {
+            initRangoFechas({
+                tipoMesId: 'inas_tipo_mes',
+                tipoRangoId: 'inas_tipo_rango',
+                divMesId: 'inas_div_mes',
+                divRangoId: 'inas_div_rango',
+                mesSelectId: 'inas_mes',
+                anioSelectId: 'inas_anio',
+                mesHiddenId: 'inas_mes_hidden',
+                fechaDesdeId: 'inas_fecha_desde',
+                fechaHastaId: 'inas_fecha_hasta'
             });
         }
     });
