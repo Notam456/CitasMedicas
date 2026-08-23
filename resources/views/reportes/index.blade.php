@@ -5,6 +5,7 @@
 @include('layouts.navbar')
 
 <div class="container-fluid pt-4 px-4">
+
     <div class="row g-4">
 
         {{-- 1 --}}
@@ -168,8 +169,16 @@
             @endcomponent
         </div>
     </div>
+
+    @include('reportes.estadisticas')
 </div>
 
 @include('reportes.popups')
+
+<script>
+    window.routeEstadisticas = "{{ route('reportes.estadisticas.datos') }}";
+</script>
+<script src="{{ asset('assets/js/reportes-estadisticas.js') }}"></script>
+
 @include('layouts.footer')
 @endsection

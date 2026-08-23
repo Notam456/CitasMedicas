@@ -23,6 +23,7 @@ use App\Http\Controllers\ExpedienteController;
 use App\Http\Controllers\AuditoriaController;
 
 use App\Http\Controllers\NotificacionController;
+use App\Http\Controllers\EstadisticaController;
 
 //Ruta de inicio
 Route::get('/', function () {
@@ -155,6 +156,7 @@ Route::middleware(['auth', 'can:Patologia'])->group(function () {
 
 Route::middleware(['auth', 'can:Reportes'])->group(function () {
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index')->middleware('throttle:reportes_index');
+    Route::get('/reportes/estadisticas', [EstadisticaController::class, 'datos'])->name('reportes.estadisticas.datos')->middleware('throttle:reportes_index');
     Route::get('/reportes/pdf/medicos-por-especialidad', [ReporteController::class, 'medicosPorEspecialidad'])->name('reportes.medicos_especialidad')->middleware('throttle:exportaciones');
 
     Route::get('/reportes/excel/medicos-por-especialidad/excel', [ReporteController::class, 'exportarMedicosPorEspecialidadExcel'])->name('reportes.medicos_especialidad_excel')->middleware('throttle:exportaciones');
