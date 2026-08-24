@@ -246,7 +246,7 @@ class CalendarioController extends Controller
             'especialidad_id' => 'required|exists:especialidades,id',
             'fecha_inicio' => 'required|date|after_or_equal:today',
             'duracion_rango' => 'required|in:1_week,1_month,3_months,6_months',
-            'dias_semana' => 'required|array',
+            'dias_semana' => 'required|array|min:1',
             'dias_semana.*' => 'required|integer|between:1,7',
             'hora_inicio' => 'required|date_format:H:i',
             'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
@@ -264,6 +264,9 @@ class CalendarioController extends Controller
             'cupos_sucesivos' => 'required|integer|min:0',
         ], [
             'fecha_inicio.after_or_equal' => 'La fecha de inicio no puede ser una fecha pasada.',
+            'dias_semana.required' => 'Debe seleccionar al menos un día de la semana.',
+            'dias_semana.array' => 'El formato de los días seleccionados no es válido.',
+            'dias_semana.min' => 'Debe seleccionar al menos un día de la semana.',
         ]);
 
         $fechaInicio = Carbon::parse($request->fecha_inicio);

@@ -26,8 +26,8 @@
                             <label class="form-label text-muted fw-bold small">Especialidad *</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-stethoscope"></i></span>
-                                <select id="select-especialidad-masivo" name="especialidad_id" class="form-select border-secondary-subtle"
-                                    required>
+                                <select id="select-especialidad-masivo" name="especialidad_id"
+                                    class="form-select border-secondary-subtle" required>
                                     <option value="">Seleccione Especialidad</option>
                                     @foreach ($especialidades as $e)
                                         <option value="{{ $e->id }}">{{ $e->nombre }}</option>
@@ -36,7 +36,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            
+
                             <label class="form-label text-muted fw-bold small">Médico *</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-user-md"></i></span>
@@ -44,10 +44,13 @@
                                     class="form-select border-secondary-subtle" required>
                                     <option value="">Seleccione Médico</option>
                                 </select>
-                                
+
                             </div>
                             <br>
-                            <div id="aviso_suspension_masivo" class="mb-2 text-danger small fw-bold animate__animated animate__fadeIn" style="display: none; background-color: #f8d7da; border: 1px solid #f5c2c7; padding: 6px 12px; border-radius: .25rem;"></div>
+                            <div id="aviso_suspension_masivo"
+                                class="mb-2 text-danger small fw-bold animate__animated animate__fadeIn"
+                                style="display: none; background-color: #f8d7da; border: 1px solid #f5c2c7; padding: 6px 12px; border-radius: .25rem;">
+                            </div>
                         </div>
 
                         <div class="col-md-6">
@@ -114,8 +117,8 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label text-muted fw-bold small">Cupos 1ra Vez *</label>
-                            <input type="number" name="cupos_primera_vez" class="form-control" min="0" max="9999"
-                                value="{{ old('cupos_primera_vez', '10') }}" required>
+                            <input type="number" name="cupos_primera_vez" class="form-control" min="0"
+                                max="9999" value="{{ old('cupos_primera_vez', '10') }}" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label text-muted fw-bold small">Cupos Sucesivos *</label>
@@ -154,7 +157,10 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <div id="aviso_suspension_manual" class="mb-2 text-danger small fw-bold animate__animated animate__fadeIn" style="display: none; background-color: #f8d7da; border: 1px solid #f5c2c7; padding: 6px 12px; border-radius: .25rem;"></div>
+                            <div id="aviso_suspension_manual"
+                                class="mb-2 text-danger small fw-bold animate__animated animate__fadeIn"
+                                style="display: none; background-color: #f8d7da; border: 1px solid #f5c2c7; padding: 6px 12px; border-radius: .25rem;">
+                            </div>
                             <label class="form-label text-muted fw-bold small">Médico *</label>
                             <select id="select-medico" class="form-select">
                                 <option value="">Seleccione Médico</option>
@@ -207,7 +213,7 @@
                         </div>
                         <div class="row g-3">
                             <input type="hidden" name="medico_id" id="input-medico-id">
-                                <input type="hidden" name="especialidad_id" id="input-especialidad-id">
+                            <input type="hidden" name="especialidad_id" id="input-especialidad-id">
                             <input type="hidden" name="fecha" id="input-fecha">
                             <div class="col-md-6">
                                 <label class="form-label text-muted fw-bold small">Hora Inicio *</label>
@@ -263,31 +269,52 @@
                 actualizarMedicos(this.value, 'select-medico');
             });
 
-            // Validation for massive config form submit
             const formMasivo = document.querySelector('form[action="{{ route('calendario.store') }}"]');
             if (formMasivo) {
                 formMasivo.addEventListener('submit', function(e) {
                     const tipoConfig = this.querySelector('input[name="tipo_configuracion"]').value;
-                    if (tipoConfig === 'masivo' && horarioMedicoActual) {
-                        const hInicio = this.querySelector('input[name="hora_inicio"]').value;
-                        const hFin = this.querySelector('input[name="hora_fin"]').value;
-                        const checkedDays = Array.from(this.querySelectorAll('input[name="dias_semana[]"]:checked')).map(cb => parseInt(cb.value));
-                        
-                        for (let day of checkedDays) {
-                            const sched = horarioMedicoActual.find(h => parseInt(h.dia_semana) === day);
-                            if (sched) {
-                                const ent = sched.hora_entrada.substring(0, 5);
-                                const sal = sched.hora_salida.substring(0, 5);
-                                if (hInicio < ent || hFin > sal) {
-                                    e.preventDefault();
-                                    const diasNombre = {1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo'};
-                                    Swal.fire({
-                                        title: 'Horario fuera de rango',
-                                        text: `La hora seleccionada (${hInicio} - ${hFin}) está fuera del rango de atención del médico para el día ${diasNombre[day]} (${ent} - ${sal}).`,
-                                        icon: 'error',
-                                        confirmButtonColor: '#0d6efd'
-                                    });
-                                    return;
+                    if (tipoConfig === 'masivo') {
+                        const checkedDays = Array.from(this.querySelectorAll(
+                            'input[name="dias_semana[]"]:checked'));
+                        if (checkedDays.length === 0) {
+                            e.preventDefault();
+                            Swal.fire({
+                                title: 'Selección requerida',
+                                text: 'Debe seleccionar al menos un día de la semana para generar la disponibilidad.',
+                                icon: 'warning',
+                                confirmButtonColor: '#0d6efd'
+                            });
+                            return;
+                        }
+
+                        if (horarioMedicoActual) {
+                            const checkedValues = checkedDays.map(cb => parseInt(cb.value));
+                            for (let day of checkedValues) {
+                                const sched = horarioMedicoActual.find(h => parseInt(h.dia_semana) === day);
+                                if (sched) {
+                                    const ent = sched.hora_entrada.substring(0, 5);
+                                    const sal = sched.hora_salida.substring(0, 5);
+                                    const hInicio = this.querySelector('input[name="hora_inicio"]').value;
+                                    const hFin = this.querySelector('input[name="hora_fin"]').value;
+                                    if (hInicio < ent || hFin > sal) {
+                                        e.preventDefault();
+                                        const diasNombre = {
+                                            1: 'Lunes',
+                                            2: 'Martes',
+                                            3: 'Miércoles',
+                                            4: 'Jueves',
+                                            5: 'Viernes',
+                                            6: 'Sábado',
+                                            7: 'Domingo'
+                                        };
+                                        Swal.fire({
+                                            title: 'Horario fuera de rango',
+                                            text: `La hora seleccionada (${hInicio} - ${hFin}) está fuera del rango de atención del médico para el día ${diasNombre[day]} (${ent} - ${sal}).`,
+                                            icon: 'error',
+                                            confirmButtonColor: '#0d6efd'
+                                        });
+                                        return;
+                                    }
                                 }
                             }
                         }
@@ -307,7 +334,8 @@
             selectMed.innerHTML = '<option value="">Seleccione Médico</option>';
             data.forEach(m => {
                 const medicoJson = JSON.stringify(m).replace(/"/g, '&quot;');
-                selectMed.innerHTML += `<option value="${m.id}" data-full='${medicoJson}'>${m.nombre} ${m.apellido}</option>`;
+                selectMed.innerHTML +=
+                    `<option value="${m.id}" data-full='${medicoJson}'>${m.nombre} ${m.apellido}</option>`;
             });
             if (targetId === 'select-medico') cargarCalendario();
         }
@@ -460,7 +488,8 @@
                     div.style.backgroundColor = '#f8f9fa';
                     div.style.opacity = '0.6';
                     div.style.cursor = 'not-allowed';
-                    div.innerHTML += `<div class="position-absolute top-50 start-50 translate-middle text-muted small" style="transform: rotate(-45deg) !important; font-size: 0.7rem; white-space: nowrap;">No laboral</div>`;
+                    div.innerHTML +=
+                        `<div class="position-absolute top-50 start-50 translate-middle text-muted small" style="transform: rotate(-45deg) !important; font-size: 0.7rem; white-space: nowrap;">No laboral</div>`;
                 }
 
                 div.onclick = () => {
@@ -512,16 +541,18 @@
                 day: 'numeric',
                 month: 'long'
             });
-            
+
             const dateObj = new Date(fecha + "T00:00:00");
             const dayOfWeekIso = dateObj.getDay() || 7;
-            const sched = horarioMedicoActual ? horarioMedicoActual.find(h => parseInt(h.dia_semana) === dayOfWeekIso) : null;
+            const sched = horarioMedicoActual ? horarioMedicoActual.find(h => parseInt(h.dia_semana) === dayOfWeekIso) :
+                null;
             let medicoText = "Médico: " + medNombre;
             if (sched) {
-                medicoText += ` (Horario del día: ${sched.hora_entrada.substring(0, 5)} - ${sched.hora_salida.substring(0, 5)})`;
+                medicoText +=
+                    ` (Horario del día: ${sched.hora_entrada.substring(0, 5)} - ${sched.hora_salida.substring(0, 5)})`;
             }
             document.getElementById('display-medico').innerText = medicoText;
-            
+
             document.getElementById('input-medico-id').value = medId;
             document.getElementById('input-especialidad-id').value = espId;
             document.getElementById('input-fecha').value = fecha;
@@ -536,7 +567,7 @@
 
         document.getElementById('form-guardar-cupo').onsubmit = function(e) {
             e.preventDefault();
-            
+
             const tInicio = document.getElementById('input-inicio').value;
             const tFin = document.getElementById('input-fin').value;
             const fechaVal = document.getElementById('input-fecha').value;
@@ -558,7 +589,7 @@
                     }
                 }
             }
-            
+
             const formData = new FormData(this);
 
             fetch("{{ route('calendario.store') }}", {
