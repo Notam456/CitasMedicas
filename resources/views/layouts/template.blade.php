@@ -18,6 +18,13 @@
             transform-origin: center center;
         }
     </style>
+    <script>
+        (function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
     
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
@@ -169,6 +176,31 @@
             cargarNotificaciones();
             setInterval(cargarNotificaciones, 60000);
         });
+    </script>
+    <script>
+        (function() {
+            var html = document.documentElement;
+            var toggle = document.getElementById('darkModeToggle');
+            var saved = localStorage.getItem('theme');
+            if (saved === 'dark') {
+                html.classList.add('dark');
+                if (toggle) {
+                    var icon = toggle.querySelector('i');
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                }
+            }
+            if (toggle) {
+                toggle.addEventListener('click', function() {
+                    html.classList.toggle('dark');
+                    var isDark = html.classList.contains('dark');
+                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                    var icon = this.querySelector('i');
+                    icon.classList.toggle('fa-moon');
+                    icon.classList.toggle('fa-sun');
+                });
+            }
+        })();
     </script>
     @stack('scripts')
 

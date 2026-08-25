@@ -6,6 +6,9 @@
         <a href="#" class="sidebar-toggler flex-shrink-0">
             <i class="fa fa-bars"></i>
         </a>
+        <a href="#" id="darkModeToggle" class="flex-shrink-0 ms-2" title="Cambiar tema">
+            <i class="fa fa-moon"></i>
+        </a>
         <div class="navbar-nav align-items-center ms-auto">
             <!-- <div class="nav-item dropdown">
             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
