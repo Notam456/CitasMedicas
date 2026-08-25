@@ -60,7 +60,7 @@
                     <h4 class="text-secondary mb-0"><i class="fas fa-user-injured me-2"></i>Datos del Paciente</h4>
                     <div class="position-relative" id="barra_busqueda_paciente" style="max-width: 380px; flex: 1 1 320px;">
                         <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                            <span class="input-group-text"><i class="fas fa-search text-muted"></i></span>
                             <input type="text" id="buscar_paciente" class="form-control"
                                 placeholder="Cédula o N° de historia…" autocomplete="off">
                             <button type="button" class="btn btn-primary text-nowrap" id="btn_buscar_paciente">Buscar</button>
