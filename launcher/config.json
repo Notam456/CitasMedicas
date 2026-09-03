@@ -1,0 +1,7 @@
+{
+    "port": 8000,
+    "phpPath": null,
+    "appPath": null,
+    "browser": "auto",
+    "postgresPort": 5432
+}
