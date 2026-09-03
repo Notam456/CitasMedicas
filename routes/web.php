@@ -72,6 +72,8 @@ Route::middleware(['auth', 'can:Procedencia'])->group(function () {
 
     Route::resource('parroquias', ParroquiaController::class)->only(['index', 'create', 'show', 'edit'])->middleware('throttle:crud_lectura');
     Route::resource('parroquias', ParroquiaController::class)->only(['store', 'update', 'destroy'])->middleware('throttle:crud_escritura');
+    Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'getMunicipiosPorEstado'])->middleware('throttle:crud_lectura');
+
 
     Route::resource('distritos', DistritoController::class)->only(['index', 'create', 'show', 'edit'])->middleware('throttle:crud_lectura');
     Route::resource('distritos', DistritoController::class)->only(['store', 'update', 'destroy'])->middleware('throttle:crud_escritura');
@@ -100,15 +102,14 @@ Route::middleware(['auth', 'can:Cita'])->group(function () {
     Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita'])->only(['store'])->middleware('throttle:crud_escritura');
     Route::get('/Citas/{id}/show', [CitaController::class, 'show'])->middleware('throttle:citas_flujo');
 });
+    Route::middleware(['auth', 'can:Planificación'])->group(function () {
+    Route::get('/calendario/medicos/{especialidad}', [CalendarioController::class, 'getMedicos'])->middleware('throttle:crud_lectura');
+    Route::get('/calendario/eventos', [CalendarioController::class, 'getDatosMes'])->middleware('throttle:crud_lectura');
+    Route::resource('calendario', CalendarioController::class)->only(['index', 'create', 'show', 'edit'])->middleware('throttle:crud_lectura');
+    Route::resource('calendario', CalendarioController::class)->only(['store', 'update', 'destroy'])->middleware('throttle:crud_lectura');
+});
 
-Route::get('/calendario/medicos/{especialidad}', [CalendarioController::class, 'getMedicos'])->middleware('throttle:crud_lectura');
-Route::get('/calendario/eventos', [CalendarioController::class, 'getDatosMes'])->middleware('throttle:crud_lectura');
-Route::resource('calendario', CalendarioController::class)->only(['index', 'create', 'show', 'edit'])->middleware(['auth', 'can:Planificación', 'throttle:crud_lectura']);
-Route::resource('calendario', CalendarioController::class)->only(['store', 'update', 'destroy'])->middleware(['auth', 'can:Planificación', 'throttle:crud_escritura']);
 
-
-
-Route::get('/municipios-por-estado/{estado_id}', [ParroquiaController::class, 'getMunicipiosPorEstado'])->middleware('throttle:crud_lectura');
 
 // Notificaciones
 Route::middleware('auth')->group(function () {
