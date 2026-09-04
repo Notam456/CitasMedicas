@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expediente;
+use App\Models\HistoricoNumero;
 use App\Models\Paciente;
 use Illuminate\Http\Request;
 
@@ -35,6 +36,16 @@ class ExpedienteController extends Controller
                 'paciente_id' => $paciente->id,
                 'numero_expediente' => $numero,
                 'fecha_apertura' => now()->toDateString(),
+            ]);
+        }
+
+        HistoricoNumero::asignar($paciente, $numero);
+
+        if ($paciente->estado === 'inactivo') {
+            $paciente->update([
+                'estado' => 'activo',
+                'estado_motivo' => null,
+                'fecha_baja' => null,
             ]);
         }
 

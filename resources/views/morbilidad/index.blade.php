@@ -448,7 +448,7 @@
                 });
             });
 
-            // Switch TH/FH
+            // Switch SH/FH
             $(document).on('click', '.th-fh-switch.editable', function() {
                 var $switch = $(this);
                 var url = "{{ route('citas.historia-traida', ['cita' => '__CITA__']) }}"

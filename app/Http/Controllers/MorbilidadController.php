@@ -229,7 +229,7 @@ class MorbilidadController extends Controller
             };
 
             $btnShow = '<button type="button" data-id="' . $row->id . '" class="btn-show-cita btn btn-xs btn-square btn-neutral" title="Ver detalles"><i class="bi bi-eye"></i></button>';
-            $btnEdit = $row->estado === 'Atendida'
+            $btnEdit = ($row->estado === 'Atendida' && auth()->user()?->can('Editar atencion'))
                 ? '<button type="button" data-id="' . $row->id . '" class="btn-edit-cita btn btn-xs btn-square btn-neutral text-info-hover border-info-hover" title="Editar Diagnóstico"><i class="bi bi-pencil"></i></button>'
                 : '';
 
@@ -248,7 +248,7 @@ class MorbilidadController extends Controller
                 data-cita-id="' . $row->id . '"
                 data-traida="' . ($traida ? '1' : '0') . '"
                 data-editable="' . ($editableTraida ? '1' : '0') . '"
-                title="Historia traída del archivo"><span class="seg th">TH</span><span class="seg fh">FH</span></div>';
+                title="Historia sacada del archivo"><span class="seg th">SH</span><span class="seg fh">FH</span></div>';
 
             $historiaCol = '<div class="historia-inline">' . $historiaInput . $switchTraida . '</div>';
 

@@ -491,6 +491,10 @@
                 if (data.encontrado) {
                     llenarFormularioPaciente(data.datos);
                     mostrarMensaje('Paciente encontrado. Datos autocompletados.', 'success');
+                } else if (data.liberado) {
+                    limpiarFormularioPaciente();
+                    const motivoTxt = { fallecido: 'Paciente fallecido', sin_retorno: 'Sin retorno (muchos años sin asistir)', trasladado: 'Trasladado a otro centro' }[data.motivo] || data.motivo;
+                    mostrarMensaje('Este N° de historia perteneció a ' + data.paciente + ' (' + motivoTxt + ', liberado el ' + data.fecha_liberacion + ') y está libre para asignar. No se puede vincular a un paciente ya registrado.', 'warning');
                 } else {
                     limpiarFormularioPaciente();
                     mostrarMensaje('Paciente no registrado. Llene los campos.', 'primary');
