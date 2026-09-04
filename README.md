@@ -1,59 +1,165 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+<img src="public/assets/img/sagecim_icon.png" alt="SAGECIM" width="110" />
 
-## About Laravel
+# SAGECIM
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**Sistema de Gestión de Citas Médicas**
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+[![PHP](https://img.shields.io/badge/PHP-%5E8.2-8892BF?logo=php&logoColor=white)](https://www.php.net)
+[![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+</div>
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Descripción
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+**SAGECIM** es una aplicación web para la administración de consultas médicas y citas de un centro de salud. Permite gestionar el catálogo de especialidades y médicos, programar citas con control de disponibilidad y cupos, registrar la atención y los diagnósticos de cada paciente, y generar reportes operativos y gerenciales con exportación a **PDF** y **Excel**.
 
-## Laravel Sponsors
+El proyecto incluye además un **lanzador de escritorio** que arranca la aplicación de forma transparente en cualquier equipo, con un solo doble clic.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Características principales
 
-### Premium Partners
+- **Autenticación y control de acceso** mediante roles y permisos (Spatie Permission).
+- **Catálogos (maestros):** especialidades, médicos, pacientes, patologías y procedencia (estados, municipios, parroquias y distritos).
+- **Agenda y planificación:** calendario de disponibilidad por médico, cupos y bloqueos.
+- **Atención de citas:** lista de pendientes, registro de diagnósticos y morbilidad por cita.
+- **Suspensiones de médicos** con asignación de suplentes.
+- **Reportes en PDF y Excel:** médicos por especialidad, procedencia de pacientes, movimiento de consultas, causas principales, inasistencias, productividad de médicos, citas sin diagnóstico y eficiencia de atención.
+- **Notificaciones** internas de la plataforma.
+- **Auditoría de movimientos** sobre las entidades críticas.
+- **Lanzador de escritorio** (`.vbs` + PowerShell) para arrancar el sistema con un clic en equipos locales.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Stack tecnológico
 
-## Contributing
+| Capa | Tecnología |
+| --- | --- |
+| Backend | PHP ^8.2, Laravel 12 |
+| Base de datos | PostgreSQL 17, Eloquent ORM, migraciones y seeders |
+| Frontend | Blade, Tailwind CSS 4, Vite |
+| Paquetes clave | spatie/laravel-permission, owen-it/laravel-auditing, maatwebsite/excel, carlos-meneses/laravel-mpdf, realrashid/sweet-alert |
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Requisitos previos
 
-## Code of Conduct
+- **PHP** ^8.2 con las extensiones habilitadas en `php.ini`:
+  - `pdo_pgsql`
+  - `gd`
+  - `zip`
+  - `xls` (si aplica)
+- **Composer**
+- **Node.js** y **npm**
+- **PostgreSQL** (versión recomendada: 17.6.1)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Instalación y puesta en marcha
 
-## Security Vulnerabilities
+Clona el repositorio y ejecuta los siguientes pasos en la raíz del proyecto:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 1. Crear la base de datos
 
-## License
+Crea una base de datos PostgreSQL (por ejemplo `hospital`) y anota tus credenciales.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 2. Configurar el entorno
+
+```bash
+# Instalar dependencias de PHP
+composer install
+
+# Copiar el archivo de variables de entorno
+cp .env.example .env
+```
+
+Edita `.env` y configura la conexión a PostgreSQL:
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=hospital
+DB_USERNAME=postgres
+DB_PASSWORD=tu_contraseña
+```
+
+> **Importante:** `.env` contiene información sensible y está excluido del control de versiones (`.gitignore`). No debe compartirse.
+
+### 3. Generar la clave de la aplicación
+
+```bash
+php artisan key:generate
+```
+
+### 4. Migrar y sembrar la base de datos
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+> **Nota:** usa siempre `migrate:fresh` (no `migrate`) al sembrar, para que las tablas se creen limpias. Ejecutar el seeder sobre una base ya poblada sin `fresh` provocará errores de clave duplicada (índices únicos *case-insensitive*).
+
+### 5. Compilar los assets frontend
+
+```bash
+npm install
+npm run build
+```
+
+### 6. Iniciar el servidor
+
+```bash
+php artisan serve
+```
+
+Accede desde el navegador en `http://127.0.0.1:8000`.
+
+## Credenciales por defecto (seed)
+
+| Rol | Correo | Contraseña |
+| --- | --- | --- |
+| Administrador | `admin@hospital.gob.ve` | `password` |
+| Usuario | `empleado1@hospital.gob.ve` a `empleado5@hospital.gob.ve` | `password` |
+
+> Estas credenciales son generadas por `UserSeeder` y deben cambiarse en un entorno de producción.
+
+## Lanzador de escritorio
+
+El directorio `launcher/` contiene un lanzador para arrancar el sistema en equipos locales con un doble clic, sin abrir terminales:
+
+| Archivo | Descripción |
+| --- | --- |
+| `SAGECIM.vbs` | Punto de entrada que ejecuta el script de PowerShell de forma oculta. |
+| `sagecim-launcher.ps1` | Verifica PostgreSQL, inicia `php artisan serve`, abre el navegador en una ventana dedicada y limpia los procesos al cerrarla. |
+| `config.json` | Configuración editable: puerto, rutas de PHP/la aplicación, navegador y puerto de PostgreSQL. |
+
+**Requisitos:** tener PostgreSQL en ejecución y PowerShell disponible en el equipo. Al cerrar la ventana del navegador, el lanzador cierra la sesión activa y detiene el servidor PHP.
+
+## Ejecutar los tests
+
+```bash
+composer test
+```
+
+## Estructura del proyecto
+
+```
+app/            Lógica de la aplicación (controladores, modelos, middleware)
+routes/         Definición de rutas web
+database/       Migraciones, factores y seeders
+resources/views Vistas Blade y assets
+launcher/       Lanzador de escritorio (VBS + PowerShell)
+tests/          Pruebas automatizadas
+```
+
+## Contribución
+
+Las contribuciones son bienvenidas. Por favor, abre un *pull request* describiendo los cambios propuestos.
+
+## Autores
+
+José Yajure, Daniel Alejos, Roberto Vielma, Yhoenyer Alvarado, Jose Gonzalez.
+
+## Licencia
+
+Este proyecto está licenciado bajo la [licencia MIT](https://opensource.org/licenses/MIT).

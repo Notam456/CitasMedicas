@@ -20,6 +20,7 @@ use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\PatologiaController;
 use App\Http\Controllers\SuspensionMedicoController;
 use App\Http\Controllers\ExpedienteController;
+use App\Http\Controllers\LanzadorController;
 use App\Http\Controllers\AuditoriaController;
 
 use App\Http\Controllers\NotificacionController;
@@ -36,6 +37,9 @@ Route::middleware('throttle:login')->group(function () {
     Route::post('/iniciar-sesion', [LoginController::class, 'login'])->name('iniciar-sesion');
 });
 Route::post('/cerrar-sesion', [LoginController::class, 'logout'])->name('logout');
+
+Route::post('/lanzador/cerrar-sesion', [LanzadorController::class, 'cerrarSesion'])
+    ->name('lanzador.cerrar-sesion');
 
 //Ruta user
 Route::middleware(['auth', 'can:Usuario'])->group(function () {

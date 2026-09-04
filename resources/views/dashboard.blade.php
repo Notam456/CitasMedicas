@@ -72,7 +72,7 @@
         <div class="bg-light text-center rounded p-4">
             <div class="d-flex align-items-center justify-content-between mb-4">
                 <h6 class="mb-0">Ultimas Citas</h6>
-                <a target="_blank" href="{{ route('Citas.index') }}">Mostrar Todas</a>
+                <a target="" href="{{ route('Citas.index') }}">Mostrar Todas</a>
             </div>
             <div class="table-responsive">
                 <table class="table text-start align-middle table-bordered table-hover mb-0">
