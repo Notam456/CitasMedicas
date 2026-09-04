@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
+    var isDark = document.documentElement.classList.contains('dark');
+    var textColor = isDark ? '#b0b0b0' : '#333';
+    var gridColor = isDark ? '#2d3037' : '#dee2e6';
+    var legendColor = isDark ? '#e0e0e0' : '#333';
+
     // Gráfico municipios
     const ctxMun = document.getElementById('municipiosChart').getContext('2d');
     new Chart(ctxMun, {
@@ -13,7 +18,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 borderWidth: 2
             }]
         },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: legendColor } }
+            },
+            scales: {
+                x: {
+                    ticks: { color: textColor },
+                    grid: { color: gridColor }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: textColor },
+                    grid: { color: gridColor }
+                }
+            }
+        }
     });
 
     // Gráfico especialidades
@@ -30,6 +51,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 borderWidth: 2
             }]
         },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: legendColor } }
+            },
+            scales: {
+                x: {
+                    ticks: { color: textColor },
+                    grid: { color: gridColor }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: textColor },
+                    grid: { color: gridColor }
+                }
+            }
+        }
     });
 });

@@ -53,6 +53,22 @@
             background: #dc3545;
             color: #fff;
         }
+        html.dark .th-fh-switch {
+            border-color: #2d3037;
+        }
+        html.dark .th-fh-switch .seg.th,
+        html.dark .th-fh-switch .seg.fh {
+            background: #252830;
+            color: #b0b0b0;
+        }
+        html.dark .th-fh-switch.th .seg.th {
+            background: #1a6b3a;
+            color: #fff;
+        }
+        html.dark .th-fh-switch.fh .seg.fh {
+            background: #7a1b1b;
+            color: #f08080;
+        }
     </style>
 
     @if (session('error'))

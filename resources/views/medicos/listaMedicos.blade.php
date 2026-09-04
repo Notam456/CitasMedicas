@@ -118,7 +118,7 @@
                                     @foreach($dias as $val => $nom)
                                         @php $isChecked = old("horarios.$val.checked") ? true : false; @endphp
                                         <div class="col-md-6 col-12">
-                                            <div class="card border border-light-subtle shadow-xs h-100 day-card p-3" style="transition: all 0.2s; border-left: 4px solid {{ $isChecked ? '#0d6efd' : '#dee2e6' }} !important; background-color: #fafbfc;">
+                                            <div class="card border border-light-subtle shadow-xs h-100 day-card p-3" style="transition: all 0.2s; border-left: 4px solid {{ $isChecked ? '#0d6efd' : '#dee2e6' }} !important;">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div class="d-flex align-items-center">
                                                         <div class="form-check form-switch me-3 mb-0">
@@ -237,7 +237,7 @@
                                 <div class="row g-3">
                                     @foreach($dias as $val => $nom)
                                         <div class="col-md-6 col-12">
-                                            <div class="card border border-light-subtle shadow-xs h-100 day-card p-3" style="transition: all 0.2s; border-left: 4px solid #dee2e6 !important; background-color: #fafbfc;">
+                                            <div class="card border border-light-subtle shadow-xs h-100 day-card p-3" style="transition: all 0.2s; border-left: 4px solid #dee2e6 !important;">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div class="d-flex align-items-center">
                                                         <div class="form-check form-switch me-3 mb-0">

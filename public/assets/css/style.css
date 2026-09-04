@@ -610,7 +610,7 @@ html.dark .container-fluid.bg-white {
 
 html.dark .sidebar {
     background-color: #1e2128;
-    border-right: 1px solid #2d3037;
+    border-right: 1px solid #1a3a5c;
 }
 
 html.dark .sidebar .navbar.bg-light,
@@ -716,14 +716,14 @@ html.dark a {
 
 html.dark .table {
     color: #b0b0b0;
-    border-color: #2d3037;
+    border-color: #1a3a5c;
 }
 
 html.dark .table-bordered td,
 html.dark .table-bordered th,
 html.dark .table td,
 html.dark .table th {
-    border-color: #2d3037 !important;
+    border-color: #1a3a5c !important;
 }
 
 html.dark .table thead tr {
@@ -758,7 +758,7 @@ html.dark .dropdown-divider {
 html.dark .form-control,
 html.dark .form-select {
     background-color: #252830;
-    border-color: #2d3037;
+    border-color: #4a4e57;
     color: #e0e0e0;
 }
 
@@ -770,6 +770,9 @@ html.dark .form-select:focus {
     box-shadow: 0 0 0 0.2rem rgba(61, 184, 255, 0.25);
 }
 
+html.dark .form-floating > .form-control::placeholder {
+    color: transparent;
+}
 html.dark .form-control::placeholder {
     color: #666;
 }
@@ -777,7 +780,7 @@ html.dark .form-control::placeholder {
 html.dark .card,
 html.dark .rounded {
     background-color: #252830;
-    border-color: #2d3037;
+    border-color: #1a3a5c;
 }
 
 html.dark .modal-content {
@@ -902,7 +905,7 @@ html.dark .nav-tabs .nav-link.active {
 
 html.dark .input-group-text {
     background-color: #2a2d35;
-    border-color: #2d3037;
+    border-color: #1a3a5c;
     color: #b0b0b0;
 }
 
@@ -974,4 +977,190 @@ html.dark .container-fluid.pt-4.px-4 .bg-light.rounded-top {
 
 html.dark .badge.rounded-pill.bg-danger {
     background-color: #dc3545 !important;
+}
+
+
+/*** Dark Mode - Correcciones ***/
+
+/* Form-floating labels - Dark Mode */
+html.dark .form-floating > label {
+    color: #888;
+}
+html.dark .form-floating > .form-control:focus ~ label,
+html.dark .form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: #3db8ff;
+}
+
+/* Botones enlace que son botones visuales */
+html.dark a.btn {
+    color: inherit;
+}
+html.dark .btn-success {
+    color: #fff !important;
+}
+html.dark .btn-primary {
+    color: #fff !important;
+}
+html.dark .btn-danger {
+    color: #fff !important;
+}
+html.dark .btn-warning {
+    color: #1a1d23 !important;
+}
+
+/* DataTables dark mode */
+html.dark .dataTables_wrapper {
+    color: #b0b0b0;
+}
+html.dark table.dataTable tbody tr {
+    background-color: #1a1d23;
+    color: #b0b0b0;
+}
+html.dark table.dataTable tbody tr:nth-child(odd) {
+    background-color: #1e2128;
+}
+html.dark table.dataTable thead th,
+html.dark table.dataTable thead td {
+    background-color: #252830;
+    color: #e0e0e0;
+    border-bottom-color: #2d3037;
+}
+html.dark table.dataTable td,
+html.dark table.dataTable th {
+    border-color: #2d3037;
+}
+html.dark .dataTables_info,
+html.dark .dataTables_length,
+html.dark .dataTables_filter,
+html.dark .dataTables_paginate {
+    color: #b0b0b0;
+}
+html.dark .dataTables_paginate .paginate_button {
+    color: #b0b0b0 !important;
+    background: #252830;
+    border-color: #2d3037;
+}
+html.dark .dataTables_paginate .paginate_button.current {
+    background: #0d5aa7;
+    color: #fff !important;
+    border-color: #0d5aa7;
+}
+html.dark .dataTables_paginate .paginate_button:hover {
+    background: #2a2d35;
+    border-color: #3db8ff;
+    color: #3db8ff !important;
+}
+html.dark .dataTables_filter input {
+    background-color: #252830;
+    border-color: #2d3037;
+    color: #e0e0e0;
+}
+html.dark .dataTables_length select {
+    background-color: #252830;
+    border-color: #2d3037;
+    color: #e0e0e0;
+}
+html.dark .table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: transparent;
+    color: #b0b0b0;
+}
+html.dark .table-striped > tbody > tr:nth-of-type(even) > * {
+    background-color: #1e2128;
+    color: #b0b0b0;
+}
+
+/* Formulario Citas.create - borde card */
+html.dark #form-cita {
+    border: 1px solid #1a3a5c !important;
+}
+
+/* Bordes de contenedores y tablas en dark blue */
+html.dark .table-responsive.border {
+    border-color: #1a3a5c !important;
+}
+html.dark .border {
+    border-color: #1a3a5c !important;
+}
+html.dark hr {
+    border-color: #1a3a5c;
+}
+html.dark .border-bottom {
+    border-bottom-color: #1a3a5c !important;
+}
+html.dark .border-top {
+    border-top-color: #1a3a5c !important;
+}
+
+/* Filtros de fecha - color-scheme dark */
+html.dark input[type="date"] {
+    color-scheme: dark;
+}
+
+/* SweetAlert dark mode completado */
+html.dark .swal2-styled {
+    border-color: #2d3037;
+}
+html.dark .swal2-input,
+html.dark .swal2-select,
+html.dark .swal2-textarea {
+    background-color: #252830;
+    border-color: #2d3037;
+    color: #e0e0e0;
+}
+html.dark .swal2-icon {
+    border-color: #2d3037;
+}
+html.dark .swal2-icon.swal2-success [class^=swal2-success-line] {
+    border-color: #5fd48a;
+}
+html.dark .swal2-icon.swal2-success .swal2-success-ring {
+    border-color: rgba(95, 212, 138, 0.3);
+}
+html.dark .swal2-icon.swal2-error {
+    border-color: #f08080;
+}
+html.dark .swal2-icon.swal2-error [class^=swal2-x-mark-line] {
+    border-color: #f08080;
+}
+html.dark .swal2-icon.swal2-warning {
+    border-color: #ffd54f;
+}
+html.dark .swal2-icon.swal2-info {
+    border-color: #6bd4f0;
+}
+html.dark .swal2-close {
+    color: #b0b0b0;
+}
+html.dark .swal2-close:hover {
+    color: #e0e0e0;
+}
+
+/* Form check labels en modales */
+html.dark .form-check-label {
+    color: #b0b0b0;
+}
+
+/* Inputs de tiempo */
+html.dark input[type="time"] {
+    color-scheme: dark;
+}
+
+/* Botones outline en dark mode */
+html.dark .btn-outline-success {
+    color: #5fd48a;
+    border-color: #2d3037;
+}
+html.dark .btn-outline-success:hover {
+    background-color: #1a6b3a;
+    border-color: #5fd48a;
+    color: #fff;
+}
+html.dark .btn-outline-primary {
+    color: #6bb8ff;
+    border-color: #2d3037;
+}
+html.dark .btn-outline-primary:hover {
+    background-color: #0d5aa7;
+    border-color: #6bb8ff;
+    color: #fff;
 }
