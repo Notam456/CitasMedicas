@@ -221,6 +221,27 @@
                             <p class="form-control" id="mostrarDireccionPaciente"></p>
                         </div>
                     </div>
+
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <h6 class="text-secondary border-bottom pb-2">Historial de números de historia</h6>
+                            <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                <table class="table table-sm table-bordered align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>N° de historia</th>
+                                            <th>Motivo</th>
+                                            <th>Fecha asignación</th>
+                                            <th>Fecha liberación</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historicoNumerosBody"></tbody>
+                                </table>
+                            </div>
+                            <small id="historicoNumerosVacio" class="text-muted d-none">Sin registros de historial.</small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -251,6 +272,59 @@ $(document).ready(function() {
         pageLength: 10,
         lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todas"]],
         order: [[0, 'asc']]
+    });
+
+    // Liberar número de historia
+    $(document).on('click', '.btn-liberar', function() {
+        var id = $(this).data('id');
+        var numero = $(this).data('numero');
+
+        Swal.fire({
+            title: 'Liberar número de historia',
+            html: 'El número <strong>' + numero + '</strong> quedará libre para asignarse a otro paciente.<br><br>El paciente quedará marcado como <strong>inactivo</strong> y conservará su histórico. Esta acción no se puede deshacer.',
+            icon: 'warning',
+            input: 'select',
+            inputOptions: {
+                'fallecido': 'Paciente fallecido',
+                'sin_retorno': 'Sin retorno (muchos años sin asistir)',
+                'trasladado': 'Trasladado a otro centro'
+            },
+            inputPlaceholder: 'Seleccione el motivo',
+            inputValidator: function(value) {
+                return new Promise(function(resolve) {
+                    if (!value) {
+                        resolve('Debe seleccionar un motivo');
+                    } else {
+                        resolve();
+                    }
+                });
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Sí, liberar número',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#d33'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                fetch("{{ route('pacientes.liberar-historia', ['paciente' => '__ID__']) }}".replace('__ID__', id), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ motivo: result.value })
+                }).then(function(res) {
+                    if (!res.ok) {
+                        return res.text().then(function(t) {
+                            throw new Error(t);
+                        });
+                    }
+                    window.location.reload();
+                }).catch(function() {
+                    Swal.fire('Error', 'No se pudo liberar el número. Verifique que el paciente no tenga citas programadas.', 'error');
+                });
+            }
+        });
     });
 });
 </script>
@@ -469,6 +543,40 @@ document.addEventListener('click', async function(event) {
             inputParroquia.innerHTML = data.parroquia ? data.parroquia.nombre : 'N/A';
             inputMunicipio.innerHTML = data.parroquia?.municipio ? data.parroquia.municipio.nombre : 'N/A';
             inputEstado.innerHTML = data.parroquia?.municipio?.estado ? data.parroquia.municipio.estado.nombre : 'N/A';
+
+            // Historial de números de historia
+            const body = document.getElementById('historicoNumerosBody');
+            const vacio = document.getElementById('historicoNumerosVacio');
+            body.innerHTML = '';
+
+            let historial = (data.historico_numeros || []);
+            const motivos = {
+                fallecido: 'Paciente fallecido',
+                sin_retorno: 'Sin retorno (muchos años sin asistir)',
+                trasladado: 'Trasladado a otro centro'
+            };
+            const fmtFecha = function(f) {
+                return f ? new Date(f).toLocaleDateString('es-ES') : '—';
+            };
+
+            if (historial.length === 0) {
+                vacio.classList.remove('d-none');
+            } else {
+                vacio.classList.add('d-none');
+                historial.forEach(function(h) {
+                    const motivo = h.motivo ? (motivos[h.motivo] || h.motivo) : '—';
+                    const estado = h.vigente
+                        ? '<span class="badge bg-success">Vigente</span>'
+                        : '<span class="badge bg-secondary">Liberado</span>';
+                    const fila = document.createElement('tr');
+                    fila.innerHTML = '<td>' + h.numero_expediente + '</td>' +
+                        '<td>' + motivo + '</td>' +
+                        '<td>' + fmtFecha(h.fecha_asignacion) + '</td>' +
+                        '<td>' + fmtFecha(h.fecha_liberacion) + '</td>' +
+                        '<td>' + estado + '</td>';
+                    body.appendChild(fila);
+                });
+            }
 
         } catch (error) {
             console.error('Error:', error);

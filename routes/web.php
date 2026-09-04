@@ -50,6 +50,7 @@ Route::middleware(['auth', 'can:Usuario'])->group(function () {
 Route::middleware(['auth', 'can:Paciente'])->group(function () {
     Route::resource('paciente', PacienteController::class)->only(['index', 'create', 'show', 'edit'])->middleware('throttle:crud_lectura');
     Route::resource('paciente', PacienteController::class)->only(['store', 'update', 'destroy'])->middleware('throttle:crud_escritura');
+    Route::post('/pacientes/{paciente}/liberar-historia', [PacienteController::class, 'liberarNumero'])->name('pacientes.liberar-historia')->middleware(['can:Liberar Historia', 'throttle:crud_escritura']);
 });
 
 Route::middleware(['auth', 'can:Especialidad'])->group(function () {
@@ -133,8 +134,12 @@ Route::middleware(['auth', 'can:Atender Cita'])->group(function () {
     Route::get('/morbilidad/pendientes', [MorbilidadController::class, 'pendientes'])->name('morbilidad.pendientes')->middleware('throttle:atender_citas');
     Route::get('/citas/{cita}/atender', [DiagnosticoController::class, 'atender'])->name('citas.atender')->middleware('throttle:detalle_cita');
     Route::post('/citas/{cita}/diagnostico', [DiagnosticoController::class, 'store'])->name('citas.diagnostico.store')->middleware('throttle:crud_escritura');
-    Route::get('/diagnosticos/{diagnostico}/edit', [DiagnosticoController::class, 'edit'])->name('diagnosticos.edit')->middleware('throttle:detalle_cita');
     Route::post('/citas/{cita}/cancelar', [CitaController::class, 'cancelar'])->name('citas.cancelar')->middleware('throttle:crud_escritura');
+});
+
+Route::middleware(['auth', 'can:Editar atencion'])->group(function () {
+    Route::get('/diagnosticos/{diagnostico}/edit', [DiagnosticoController::class, 'edit'])->name('diagnosticos.edit')->middleware('throttle:detalle_cita');
+    Route::put('/diagnosticos/{diagnostico}', [DiagnosticoController::class, 'update'])->name('diagnosticos.update')->middleware('throttle:crud_escritura');
 });
 Route::middleware(['auth', 'can:Reporte Cita'])->group(function () {
     Route::get('/morbilidad', [MorbilidadController::class, 'index'])->name('morbilidad.index')->middleware('throttle:gestion_citas');

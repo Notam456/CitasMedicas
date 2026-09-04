@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Calendario;
 use App\Models\Cita;
 use App\Models\Expediente;
+use App\Models\HistoricoNumero;
 use App\Models\Paciente;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -93,14 +94,35 @@ class CitaService
         }
 
         if ($paciente->expediente) {
-            if ($paciente->expediente->numero_expediente !== $numeroExpediente) {
+            $numeroActual = $paciente->expediente->numero_expediente;
+
+            if ($numeroActual !== null && $numeroActual !== $numeroExpediente) {
                 abort(422, 'Historia ya asignada');
+            }
+
+            if ($numeroActual !== $numeroExpediente) {
+                $paciente->expediente->update(['numero_expediente' => $numeroExpediente]);
             }
         } else {
             Expediente::create([
                 'paciente_id' => $paciente->id,
                 'numero_expediente' => $numeroExpediente,
                 'fecha_apertura' => now()->toDateString(),
+            ]);
+        }
+
+        $this->registrarAsignacion($paciente, $numeroExpediente);
+    }
+
+    private function registrarAsignacion(Paciente $paciente, string $numeroExpediente): void
+    {
+        HistoricoNumero::asignar($paciente, $numeroExpediente);
+
+        if ($paciente->estado === 'inactivo') {
+            $paciente->update([
+                'estado' => 'activo',
+                'estado_motivo' => null,
+                'fecha_baja' => null,
             ]);
         }
     }

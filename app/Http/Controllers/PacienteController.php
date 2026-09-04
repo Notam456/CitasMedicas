@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Paciente;
+use App\Models\HistoricoNumero;
 use App\Models\Parroquia;
 use App\Models\User;
 use App\Notifications\NuevoPaciente;
 use App\Notifications\PacienteModificado;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -67,14 +69,26 @@ class PacienteController extends Controller
             $btnShow = '<button type="button" data-id="' . $row->id . '" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
             $btnEdit = '<button type="button" data-id="' . $row->id . '" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
             $btnDelete = '<a href="' . route('paciente.destroy', $row->id) . '" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
-            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . $btnDelete . '</div>';
+            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . $btnDelete;
+
+            $puedeLiberar = auth()->user()?->can('Liberar Historia');
+            if ($puedeLiberar && $row->expediente && $row->expediente->numero_expediente) {
+                $acciones .= '<button type="button" data-id="' . $row->id . '" data-numero="' . e($row->expediente->numero_expediente) . '" class="btn-liberar btn btn-xs btn-square btn-neutral text-warning-hover border-warning-hover" title="Liberar número de historia"><i class="bi bi-file-earmark-break"></i></button>';
+            }
+            $acciones .= '</div>';
+
+            $inactivo = $row->estado === 'inactivo';
+            $nombreCol = $row->nombre . ($inactivo ? ' <span class="badge bg-secondary" title="Paciente inactivo">Inactivo</span>' : '');
+            $numeroCol = $inactivo
+                ? '<span class="text-muted">Liberado</span>'
+                : ($row->expediente->numero_expediente ?? 'Sin asignar');
 
             $dataFormatted[] = [
-                $row->nombre,
+                $nombreCol,
                 $row->apellido,
                 $row->cedula,
                 $row->direccion ?? '',
-                $row->expediente->numero_expediente ?? 'Sin asignar',
+                $numeroCol,
                 $acciones,
             ];
         }
@@ -119,6 +133,25 @@ class PacienteController extends Controller
 
         if ($paciente) {
             return response()->json(['encontrado' => true, 'datos' => $paciente]);
+        }
+
+        if (preg_match('/^\d{2}-\d{2}-\d{2}$/', $q)) {
+            $historico = HistoricoNumero::with('paciente')
+                ->where('numero_expediente', $q)
+                ->where('vigente', false)
+                ->latest('fecha_liberacion')
+                ->first();
+
+            if ($historico && $historico->paciente) {
+                return response()->json([
+                    'encontrado' => false,
+                    'liberado' => true,
+                    'numero' => $q,
+                    'paciente' => $historico->paciente->nombre . ' ' . $historico->paciente->apellido,
+                    'motivo' => $historico->motivo,
+                    'fecha_liberacion' => optional($historico->fecha_liberacion)->format('d/m/Y'),
+                ]);
+            }
         }
 
         return response()->json(['encontrado' => false]);
@@ -177,7 +210,7 @@ class PacienteController extends Controller
      */
     public function show(int $id)
     {
-        $pacienteToShow = Paciente::with('parroquia.municipio.estado', 'expediente')->findOrFail($id);
+        $pacienteToShow = Paciente::with('parroquia.municipio.estado', 'expediente', 'historicoNumeros')->findOrFail($id);
         return response()->json($pacienteToShow);
     }
 
@@ -257,5 +290,49 @@ class PacienteController extends Controller
         $paciente->delete();
         Alert::success('Paciente eliminado exitosamente.');
         return redirect()->route('paciente.index');
+    }
+
+    /**
+     * Liberar el número de historia de un paciente, dejando el número libre
+     * para otro paciente. El paciente queda marcado como inactivo con motivo.
+     */
+    public function liberarNumero(Request $request, Paciente $paciente)
+    {
+        $motivos = ['fallecido', 'sin_retorno', 'trasladado'];
+
+        $request->validate([
+            'motivo' => 'required|in:' . implode(',', $motivos),
+        ]);
+
+        if ($paciente->estado === 'inactivo') {
+            Alert::error('Paciente inactivo', 'Este paciente ya fue dado de baja.');
+            return redirect()->route('paciente.index');
+        }
+
+        if (!$paciente->expediente || !$paciente->expediente->numero_expediente) {
+            Alert::error('Sin número de historia', 'El paciente no tiene un número de historia asignado.');
+            return redirect()->route('paciente.index');
+        }
+
+        if ($paciente->citas()->agendadas()->exists()) {
+            Alert::error('No se puede liberar', 'El paciente tiene citas programadas pendientes de atender.');
+            return redirect()->route('paciente.index');
+        }
+
+        return DB::transaction(function () use ($paciente, $request) {
+            $numero = $paciente->expediente->numero_expediente;
+            HistoricoNumero::liberar($paciente, $numero, $request->motivo);
+
+            $paciente->expediente->update(['numero_expediente' => null]);
+
+            $paciente->update([
+                'estado' => 'inactivo',
+                'estado_motivo' => $request->motivo,
+                'fecha_baja' => now()->toDateString(),
+            ]);
+
+            Alert::success('Número liberado', 'El número de historia quedó libre para otro paciente.');
+            return redirect()->route('paciente.index');
+        });
     }
 }
