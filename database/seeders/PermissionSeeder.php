@@ -25,7 +25,7 @@ class PermissionSeeder extends Seeder
             'Reportes',
             'Patologia',
             'Atender Cita',
-            'Reporte Cita',
+            'Gestión de Cita',
             'Médicos inactivos',
             'Auditoría',
             'Liberar Historia',

@@ -50,7 +50,7 @@
             <a href="{{ route('calendario.index') }}" class="nav-item nav-link"><i class="bi bi-calendar-event-fill me-2"></i>Planificación</a>
             @endcan
 
-            @canany(['Cita', 'Reporte Cita', 'Atender Cita'])
+            @canany(['Cita', 'Gestión de Cita', 'Atender Cita'])
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-calendar-check-fill me-2"></i>Cita</a>
                 <div class="dropdown-menu bg-transparent border-0">
@@ -62,7 +62,7 @@
                     <a href="{{ route('morbilidad.pendientes') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-person-check-fill me-2"></i>Atender Cita</a>
                    <!-- <a href="" class="nav-item nav-link dropdown-item"><i class="bi bi-check2-all me-2"></i>Citas Atendidas</a> -->
                     @endcan
-                    @can('Reporte Cita')
+                    @can('Gestión de Cita')
                     <a href="{{ route('morbilidad.index') }}" class="nav-item nav-link dropdown-item"><i class="bi bi-file-earmark-text me-2"></i>Gestión de Citas</a>
                     @endcan
                 </div>

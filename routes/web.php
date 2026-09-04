@@ -141,7 +141,7 @@ Route::middleware(['auth', 'can:Editar atencion'])->group(function () {
     Route::get('/diagnosticos/{diagnostico}/edit', [DiagnosticoController::class, 'edit'])->name('diagnosticos.edit')->middleware('throttle:detalle_cita');
     Route::put('/diagnosticos/{diagnostico}', [DiagnosticoController::class, 'update'])->name('diagnosticos.update')->middleware('throttle:crud_escritura');
 });
-Route::middleware(['auth', 'can:Reporte Cita'])->group(function () {
+Route::middleware(['auth', 'can:Gestión de Cita'])->group(function () {
     Route::get('/morbilidad', [MorbilidadController::class, 'index'])->name('morbilidad.index')->middleware('throttle:gestion_citas');
 
     Route::get('/morbilidad/{cita}', [MorbilidadController::class, 'getCita'])->name('morbilidad.getCita')->middleware('throttle:detalle_cita');
