@@ -225,6 +225,60 @@ class LiberarHistoriaTest extends TestCase
         $this->assertDatabaseMissing('historico_numeros', ['paciente_id' => $paciente->id]);
     }
 
+    // ===== Respuestas JSON/AJAX para el botón "Liberar" de la lista =====
+
+    public function test_json_libera_numero_ok(): void
+    {
+        $this->actingAs($this->admin());
+        $paciente = $this->crearPaciente('X-11111111', '11-11-11');
+
+        $response = $this->postJson(route('pacientes.liberar-historia', $paciente), ['motivo' => 'sin_retorno']);
+
+        $response->assertOk()
+            ->assertJson(['success' => true]);
+        $this->assertNull($paciente->fresh()->expediente->numero_expediente);
+        $this->assertEquals('inactivo', $paciente->fresh()->estado);
+    }
+
+    public function test_json_no_libera_con_citas_agendadas_devuelve_409(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin);
+        $paciente = $this->crearPaciente('X-11111111', '11-11-11');
+        $this->crearCitaAgendada($paciente, $admin->id);
+
+        $response = $this->postJson(route('pacientes.liberar-historia', $paciente), ['motivo' => 'sin_retorno']);
+
+        $response->assertStatus(409)
+            ->assertJson(['success' => false]);
+        $this->assertNotNull($paciente->fresh()->expediente->numero_expediente);
+    }
+
+    public function test_json_no_libera_paciente_inactivo_devuelve_409(): void
+    {
+        $this->actingAs($this->admin());
+        $paciente = $this->crearPaciente('X-11111111', '11-11-11');
+        $paciente->update(['estado' => 'inactivo', 'estado_motivo' => 'fallecido', 'fecha_baja' => now()->toDateString()]);
+        $paciente->expediente->update(['numero_expediente' => null]);
+
+        $response = $this->postJson(route('pacientes.liberar-historia', $paciente), ['motivo' => 'sin_retorno']);
+
+        $response->assertStatus(409)
+            ->assertJson(['success' => false]);
+    }
+
+    public function test_json_no_libera_sin_numero_de_historia_devuelve_422(): void
+    {
+        $this->actingAs($this->admin());
+        $paciente = $this->crearPaciente('X-11111111', '11-11-11');
+        $paciente->expediente->update(['numero_expediente' => null]);
+
+        $response = $this->postJson(route('pacientes.liberar-historia', $paciente), ['motivo' => 'sin_retorno']);
+
+        $response->assertStatus(422)
+            ->assertJson(['success' => false]);
+    }
+
     public function test_paciente_liberado_aparece_en_busqueda_por_numero(): void
     {
         $this->actingAs($this->admin());

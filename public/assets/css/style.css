@@ -1164,3 +1164,54 @@ html.dark .btn-outline-primary:hover {
     border-color: #6bb8ff;
     color: #fff;
 }
+
+
+/*** Scrollbars acorde al tema ***/
+/* Núcleo: espesor y esquinas (Chromium/Edge/Brave/Opera) */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #eef1f5;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c2cad3;
+    border-radius: 8px;
+    border: 2px solid #eef1f5;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary); /* #009CFF */
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Firefox: barras finas con los mismos colores */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #c2cad3 #eef1f5;
+}
+
+/* Variante oscura */
+html.dark ::-webkit-scrollbar-track {
+    background: #1a1d23;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+    background: #3a4250;
+    border-color: #1a1d23;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #3db8ff;
+}
+
+html.dark,
+html.dark * {
+    scrollbar-color: #3a4250 #1a1d23;
+}

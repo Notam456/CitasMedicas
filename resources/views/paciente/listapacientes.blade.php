@@ -42,7 +42,7 @@
                         <input type="hidden" id="id">
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label class="form-label text-muted small fw-bold">Cédula</label>
+                                <label class="form-label text-muted small fw-bold">Cédula <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <select name="cedula_tipo" id="editarCedulaTipoPaciente" class="form-select" style="max-width: 60px;">
                                         <option value="V">V</option>
@@ -70,7 +70,7 @@
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label class="form-label text-muted small fw-bold">Nombres</label>
+                                <label class="form-label text-muted small fw-bold">Nombres <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="editarNombrePaciente" name="nombre" placeholder="Nombres del paciente" required
                                     pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                                 @error('nombre')
@@ -78,7 +78,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label text-muted small fw-bold">Apellidos</label>
+                                <label class="form-label text-muted small fw-bold">Apellidos <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="editarApellidoPaciente" name="apellido" placeholder="Apellidos del paciente" required
                                     pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                                 @error('apellido')
@@ -86,7 +86,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label text-muted small fw-bold">Fecha de Nacimiento</label>
+                                <label class="form-label text-muted small fw-bold">Fecha de Nacimiento <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" id="editarFechaNacimientoPaciente" name="fecha_nacimiento" required>
                                 @error('fecha_nacimiento')
                                     <small class="text-danger">{{ $message }}</small>
@@ -94,7 +94,7 @@
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label class="form-label text-muted small fw-bold">Teléfono</label>
+                                <label class="form-label text-muted small fw-bold">Teléfono <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="editarTelefonoPaciente" name="telefono" placeholder="Teléfono del paciente" required
                                     pattern="[\d\-\(\)\s\+]+" title="Solo se permiten números, guiones, paréntesis y espacios">
                                 @error('telefono')
@@ -102,7 +102,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label text-muted small fw-bold">Sexo</label>
+                                <label class="form-label text-muted small fw-bold">Sexo <span class="text-danger">*</span></label>
                                 <div class="d-flex gap-3 pt-2">
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="sexo" id="editarSexoM" value="Masculino">
@@ -115,7 +115,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label text-muted small fw-bold">Dirección exacta</label>
+                                <label class="form-label text-muted small fw-bold">Dirección exacta <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="editarDireccionPaciente" name="direccion" placeholder="Dirección del paciente" required>
                                 @error('direccion')
                                     <small class="text-danger">{{ $message }}</small>
@@ -139,7 +139,7 @@
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label text-muted small fw-bold">Parroquia</label>
+                                <label class="form-label text-muted small fw-bold">Parroquia <span class="text-danger">*</span></label>
                                 <select name="parroquia_id" id="select-parroquia-edit"
                                     class="form-select @error('parroquia_id') is-invalid @enderror" required>
                                     <option value="">Seleccione Parroquia</option>
@@ -252,6 +252,7 @@
 
 @push('scripts')
 <link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
+<script src="{{ asset('vendor/sweetalert/sweetalert.all.js') }}"></script>
 <script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
 
 <script>
@@ -314,14 +315,18 @@ $(document).ready(function() {
                     },
                     body: JSON.stringify({ motivo: result.value })
                 }).then(function(res) {
-                    if (!res.ok) {
-                        return res.text().then(function(t) {
-                            throw new Error(t);
-                        });
-                    }
+                    return res.json().catch(function() {
+                        return {};
+                    }).then(function(data) {
+                        if (!res.ok) {
+                            throw new Error(data.message || 'No se pudo liberar el número.');
+                        }
+                        return data;
+                    });
+                }).then(function() {
                     window.location.reload();
-                }).catch(function() {
-                    Swal.fire('Error', 'No se pudo liberar el número. Verifique que el paciente no tenga citas programadas.', 'error');
+                }).catch(function(err) {
+                    Swal.fire('Error', err.message || 'No se pudo liberar el número. El paciente podría tener citas programadas.', 'error');
                 });
             }
         });
