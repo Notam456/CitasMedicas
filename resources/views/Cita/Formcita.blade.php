@@ -43,6 +43,9 @@
 
         <div class="mb-4">
             <h2 class="fw-bold text-primary border-bottom pb-2">Agendar Cita</h2>
+            <p class="text-muted small mb-0 mt-2">
+                Los campos marcados con <span class="text-danger fw-bold">*</span> son obligatorios.
+            </p>
         </div>
 
         @php
@@ -75,12 +78,15 @@
                     <div class="col-md-4">
                         <label class="form-label fw-bold">N° Historia</label>
                         <input type="text" name="numero_expediente" id="input_expediente"
-                            class="form-control" placeholder="00-00-00"
+                            class="form-control @error('numero_expediente') is-invalid @enderror" placeholder="00-00-00"
                             value="{{ old('numero_expediente') }}" maxlength="8" autocomplete="off">
+                        @error('numero_expediente')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label">Nombre</label>
+                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
                         <input type="text" name="nombre" id="input_nombre"
                             class="form-control @error('nombre') is-invalid @enderror" value="{{ old('nombre') }}" required
                             pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+" maxlength="255"
@@ -91,7 +97,7 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label">Apellido</label>
+                        <label class="form-label">Apellido <span class="text-danger">*</span></label>
                         <input type="text" name="apellido" id="input_apellido"
                             class="form-control @error('apellido') is-invalid @enderror" value="{{ old('apellido') }}"
                             required pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+" maxlength="255"
@@ -102,7 +108,7 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Cédula</label>
+                        <label class="form-label fw-bold">Cédula <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <select name="cedula_tipo" id="input_cedula_tipo" class="form-select @error('cedula') is-invalid @enderror" style="max-width: 60px;" required>
                                 <option value="V" {{ old('cedula_tipo') == 'E' ? '' : 'selected' }}>V</option>
@@ -118,17 +124,17 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label">Teléfono</label>
+                        <label class="form-label">Teléfono <span class="text-danger">*</span></label>
                         <input type="text" name="telefono" id="input_telefono"
                             class="form-control @error('telefono') is-invalid @enderror" value="{{ old('telefono') }}"
-                            required pattern="[\d\-\(\)\s\+]+" maxlength="20">
+                            required pattern="[\d\-\(\)\s\+]+" maxlength="15">
                         @error('telefono')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label">F. Nacimiento</label>
+                        <label class="form-label">F. Nacimiento <span class="text-danger">*</span></label>
                         <input type="date" name="fecha_nacimiento" id="input_fecha"
                             class="form-control @error('fecha_nacimiento') is-invalid @enderror"
                             value="{{ old('fecha_nacimiento') }}" required min="1900-01-01" max="{{ date('Y-m-d') }}">
@@ -151,7 +157,7 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label">Sexo</label>
+                        <label class="form-label">Sexo <span class="text-danger">*</span></label>
                         <div class="d-flex gap-3 pt-2">
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="sexo" id="input_sexo_m"
@@ -173,7 +179,7 @@
 
                     <!-- Estado -->
                     <div class="col-md-4">
-                        <label class="form-label" for="select-estado">Estado</label>
+                        <label class="form-label" for="select-estado">Estado <span class="text-danger">*</span></label>
                         <select name="estado_id" id="select-estado" class="form-select" required>
                             <option value="">Seleccione Estado</option>
                             @foreach($estados as $estado)
@@ -187,7 +193,7 @@
 
                     <!-- Municipio -->
                     <div class="col-md-4">
-                        <label class="form-label" for="select-municipio">Municipio</label>
+                        <label class="form-label" for="select-municipio">Municipio <span class="text-danger">*</span></label>
                         <select name="municipio_id" id="select-municipio" class="form-select" required>
                             <option value="">Seleccione Municipio</option>
                         </select>
@@ -195,7 +201,7 @@
 
                     <!-- Parroquia -->
                     <div class="col-md-4">
-                        <label class="form-label" for="select-parroquia">Parroquia</label>
+                        <label class="form-label" for="select-parroquia">Parroquia <span class="text-danger">*</span></label>
                         <select name="parroquia_id" id="select-parroquia"
                             class="form-select @error('parroquia_id') is-invalid @enderror" required>
                             <option value="">Seleccione Parroquia</option>
@@ -209,7 +215,7 @@
                     <div class="col-md-12">
                         <label class="form-label">Dirección exacta</label>
                         <input type="text" name="direccion" id="input_direccion" value="{{ old('direccion') }}"
-                            class="form-control @error('direccion') is-invalid @enderror" maxlength="500">
+                            class="form-control @error('direccion') is-invalid @enderror" maxlength="255">
                         @error('direccion')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -219,10 +225,10 @@
                 <h4 class="text-secondary mb-3"><i class="fas fa-calendar-check me-2"></i>Datos de la Cita</h4>
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label fw-bold small text-uppercase text-muted">Especialidad</label>
+                        <label class="form-label fw-bold small text-uppercase text-muted">Especialidad <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-stethoscope"></i></span>
-                            <select name="especialidad_id" id="select-especialidad" class="form-select shadow-none @error('especialidad_id') is-invalid @enderror">
+                            <select name="especialidad_id" id="select-especialidad" class="form-select shadow-none @error('especialidad_id') is-invalid @enderror" required>
                                 <option value="">Seleccione Especialidad</option>
                                 @foreach ($especialidades as $e)
                                     <option value="{{ $e->id }}" {{ old('especialidad_id') == $e->id ? 'selected' : '' }}>{{ $e->nombre }}</option>
@@ -244,7 +250,7 @@
                         </div>
                     </div>
                     <div class="col-md-4 fw-bold small text-uppercase text-muted">
-                        <label class="form-label">Tipo de atención</label>
+                        <label class="form-label">Tipo de atención <span class="text-danger">*</span></label>
                         <select name="tipo_paciente" id="tipo_paciente" class="form-select @error('tipo_paciente') is-invalid @enderror" required>
                             <option value="">Seleccione una opción</option>
                             <option value="primera_vez" {{ old('tipo_paciente') == 'primera_vez' ? 'selected' : '' }}>Primera vez</option>
@@ -294,14 +300,14 @@
 
                 <div class="row g-3">
                     <div class="col-md-4 fw-bold small text-uppercase text-muted">
-                        <label class="form-label">Fecha de Cita</label>
+                        <label class="form-label">Fecha de Cita <span class="text-danger">*</span></label>
                         <input type="date" name="fecha_cita" id="input_fecha_cita"
                             class="form-control @error('fecha_cita') is-invalid @enderror" required readonly
                             value="{{ old('fecha_cita') }}" min="{{ date('Y-m-d') }}">
                         @error('fecha_cita')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
-                        <input type="hidden" name="calendario_id" id="input_calendario_id" required
+                        <input type="hidden" name="calendario_id" id="input_calendario_id"
                             value="{{ old('calendario_id') }}">
                         <span id="old-data"
                             data-especialidad="{{ old('especialidad_id') }}"
@@ -330,14 +336,18 @@
                 </div>
             </div>
             <div class="card-footer bg-white text-end py-3">
-                <a href="{{ route('dashboard') }}" class="btn btn-outline-danger me-2">Cancelar</a>
+                <a href="{{ route('dashboard') }}" id="btn-cancelar-cita" class="btn btn-outline-danger me-2">Cancelar</a>
                 <button type="submit" class="btn btn-success px-5">Confirmar y Agendar Cita</button>
             </div>
         </form>
     </div>
 
+    <script src="{{ asset('vendor/sweetalert/sweetalert.all.js') }}"></script>
     <script>
         const especialidadesSoloFemenino = @json(config('citas.especialidades_solo_femenino'));
+        const HAY_ERRORES_SERVIDOR = {{ $errors->any() ? 'true' : 'false' }};
+        const CITA_REGISTRADA = {{ session('cita_registrada') ? 'true' : 'false' }};
+        const DRAFT_KEY = 'sagecim_cita_draft_{{ (int) auth()->id() }}';
 
         function aplicarRestriccionSexo() {
             const sexoMasculino = document.getElementById('input_sexo_m').checked;
@@ -411,6 +421,7 @@
             window.pacienteId = datos.id;
             actualizarTipoPaciente();
             aplicarRestriccionSexo();
+            guardarDraft();
         }
 
         function limpiarFormularioPaciente() {
@@ -443,6 +454,7 @@
 
             window.pacienteId = null;
             setDefaultLocation();
+            guardarDraft();
         }
 
         let temporizadorMensaje = null;
@@ -497,7 +509,27 @@
                     mostrarMensaje('Este N° de historia perteneció a ' + data.paciente + ' (' + motivoTxt + ', liberado el ' + data.fecha_liberacion + ') y está libre para asignar. No se puede vincular a un paciente ya registrado.', 'warning');
                 } else {
                     limpiarFormularioPaciente();
-                    mostrarMensaje('Paciente no registrado. Llene los campos.', 'primary');
+
+                    const valor = data.valor || '';
+                    if (data.tipo === 'cedula' && valor) {
+                        const partes = valor.split('-');
+                        if (partes.length > 1) {
+                            document.getElementById('input_cedula_tipo').value = partes[0];
+                            document.getElementById('input_cedula').value = partes.slice(1).join('-');
+                        } else {
+                            document.getElementById('input_cedula').value = valor;
+                        }
+                        mostrarMensaje('Paciente no registrado. Complete los datos restantes.', 'primary');
+                    } else if (data.tipo === 'historia' && valor) {
+                        document.getElementById('input_expediente').value = valor;
+                        mostrarMensaje('Paciente no registrado. Complete los datos restantes.', 'primary');
+                    } else if (data.tipo === 'incompleto') {
+                        mostrarMensaje('Número incompleto: cédula (7+ dígitos) o N° de historia (6 dígitos).', 'warning');
+                    } else {
+                        mostrarMensaje('Paciente no registrado. Llene los campos.', 'primary');
+                    }
+
+                    guardarDraft();
                 }
             } catch (error) {
                 console.error(error);
@@ -524,59 +556,91 @@
             document.getElementById('buscar_paciente').focus();
         });
 
-        document.getElementById('select-estado').addEventListener('change', function () {
-            const estadoId = this.value;
+        async function cargarMunicipios(estadoId, selectedId = '') {
             const selectMunicipio = document.getElementById('select-municipio');
             const selectParroquia = document.getElementById('select-parroquia');
 
-            selectMunicipio.innerHTML = '<option value="">Cargando...</option>';
+            selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
             selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
 
-            if (estadoId) {
-                fetch(`/api/municipios/${estadoId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        selectMunicipio.innerHTML = '<option value="">Seleccione Municipio</option>';
-                        const fragmentM = document.createDocumentFragment();
-                        data.forEach(m => {
-                            const opt = document.createElement('option');
-                            opt.value = m.id;
-                            opt.textContent = m.nombre;
-                            fragmentM.appendChild(opt);
-                        });
-                        selectMunicipio.appendChild(fragmentM);
-                    })
-                    .catch(err => console.error(err));
+            if (!estadoId) return;
+
+            try {
+                const res = await fetch(`/api/municipios/${estadoId}`);
+                const data = await res.json();
+                const fragment = document.createDocumentFragment();
+                data.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = m.nombre;
+                    fragment.appendChild(opt);
+                });
+                selectMunicipio.appendChild(fragment);
+                if (selectedId) selectMunicipio.value = selectedId;
+            } catch (err) {
+                console.error(err);
             }
+        }
+
+        async function cargarParroquias(municipioId, selectedId = '') {
+            const selectParroquia = document.getElementById('select-parroquia');
+            selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
+
+            if (!municipioId) return;
+
+            try {
+                const res = await fetch(`/api/parroquias/${municipioId}`);
+                const data = await res.json();
+                const fragment = document.createDocumentFragment();
+                data.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.nombre;
+                    fragment.appendChild(opt);
+                });
+                selectParroquia.appendChild(fragment);
+                if (selectedId) selectParroquia.value = selectedId;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function cargarMedicos(especialidadId, selectedId = '') {
+            const selectMedico = document.getElementById('select-medico');
+            selectMedico.innerHTML = '<option value="">Seleccione Médico</option>';
+
+            if (!especialidadId) return;
+
+            try {
+                const res = await fetch(`/api/especialidades/${especialidadId}/medicos`);
+                const medicos = await res.json();
+                medicos.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = `${m.nombre} ${m.apellido}`;
+                    selectMedico.appendChild(opt);
+                });
+                if (selectedId) selectMedico.value = selectedId;
+            } catch (error) {
+                console.error("Error cargando médicos:", error);
+            }
+        }
+
+        document.getElementById('select-estado').addEventListener('change', function () {
+            cargarMunicipios(this.value);
         });
 
         document.getElementById('select-municipio').addEventListener('change', function () {
-            const municipioId = this.value;
-            const selectParroquia = document.getElementById('select-parroquia');
-
-            selectParroquia.innerHTML = '<option value="">Cargando...</option>';
-
-            if (municipioId) {
-                fetch(`/api/parroquias/${municipioId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        selectParroquia.innerHTML = '<option value="">Seleccione Parroquia</option>';
-                        const fragmentP = document.createDocumentFragment();
-                        data.forEach(p => {
-                            const opt = document.createElement('option');
-                            opt.value = p.id;
-                            opt.textContent = p.nombre;
-                            fragmentP.appendChild(opt);
-                        });
-                        selectParroquia.appendChild(fragmentP);
-                    })
-                    .catch(err => console.error(err));
-            }
+            cargarParroquias(this.value);
         });
 
         let fechaNavegacion = new Date();
 
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', async function () {
+            if (CITA_REGISTRADA) {
+                limpiarDraft();
+            }
+
             actualizarTextoMes();
             renderizarGrid();
 
@@ -598,22 +662,9 @@
             selectEspecialidad.addEventListener('change', async function () {
                 const espId = this.value;
                 document.getElementById('input_especialidad_id').value = espId;
-                selectMedico.innerHTML = '<option value="">Seleccione Médico</option>';
                 limpiarCalendario();
-
-                if (!espId) return;
-
-                try {
-                    const res = await fetch(`/api/especialidades/${espId}/medicos`);
-                    const medicos = await res.json();
-
-                    medicos.forEach(m => {
-                        selectMedico.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellido}</option>`;
-                    });
-                    actualizarTipoPaciente();
-                } catch (error) {
-                    console.error("Error cargando médicos:", error);
-                }
+                await cargarMedicos(espId);
+                actualizarTipoPaciente();
             });
 
             // 2. Escuchar cambios para renderizar calendario
@@ -660,21 +711,163 @@
             document.getElementById('btn-mes-siguiente').addEventListener('click', () => cambiarMes(1));
 
             // 4. Preseleccionar ubicación por defecto (Yaracuy, San Felipe)
-            setDefaultLocation();
+            await setDefaultLocation();
 
             // 5. Restaurar datos de validación previa (old input) — sobrescribe defaults si existe
-            restoreForm();
+            await restoreForm();
 
             // 6. Restricción de especialidades por sexo
             document.getElementById('input_sexo_m').addEventListener('change', aplicarRestriccionSexo);
             document.getElementById('input_sexo_f').addEventListener('change', aplicarRestriccionSexo);
             aplicarRestriccionSexo();
 
-            // 5. Habilitar selects deshabilitados al enviar el formulario
-            document.getElementById('form-cita').addEventListener('submit', function () {
+            // 7. Validar día seleccionado y habilitar selects deshabilitados al enviar
+            const formCita = document.getElementById('form-cita');
+            formCita.addEventListener('submit', function (e) {
+                const fecha = document.getElementById('input_fecha_cita').value;
+                const calendario = document.getElementById('input_calendario_id').value;
+
+                if (!fecha || !calendario) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Seleccione un día',
+                        text: 'Debe elegir una fecha disponible en el calendario para agendar la cita.'
+                    });
+                    return;
+                }
+
                 this.querySelectorAll('[disabled]').forEach(el => el.disabled = false);
             });
+
+            // 8. Autoguardado y restauración del borrador ante recarga accidental
+            formCita.addEventListener('input', guardarDraft);
+            formCita.addEventListener('change', guardarDraft);
+            await restaurarDraft();
+
+            const btnCancelar = document.getElementById('btn-cancelar-cita');
+            if (btnCancelar) {
+                btnCancelar.addEventListener('click', limpiarDraft);
+            }
         });
+
+        // ===== Borrador en sessionStorage (recuperación ante recarga accidental) =====
+        let restaurandoDraft = false;
+
+        function camposFormulario() {
+            return document.querySelectorAll('#form-cita input[name], #form-cita select[name], #form-cita textarea[name]');
+        }
+
+        function guardarDraft() {
+            if (restaurandoDraft) return;
+
+            const datos = {};
+            camposFormulario().forEach(el => {
+                if (el.name === '_token') return;
+
+                if (el.type === 'radio') {
+                    if (el.checked) datos[el.name] = el.value;
+                } else if (el.type === 'checkbox') {
+                    datos[el.name] = el.checked;
+                } else {
+                    datos[el.name] = el.value;
+                }
+            });
+
+            datos.__pacienteId = window.pacienteId || null;
+
+            try {
+                sessionStorage.setItem(DRAFT_KEY, JSON.stringify(datos));
+            } catch (e) {
+                console.warn('No se pudo guardar el borrador de la cita.', e);
+            }
+        }
+
+        function limpiarDraft() {
+            try {
+                sessionStorage.removeItem(DRAFT_KEY);
+            } catch (e) {
+                /* noop */
+            }
+        }
+
+        function leerDraft() {
+            try {
+                return JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null');
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function restaurarDraft() {
+            // Si el servidor devolvió errores/old input, esa fuente tiene prioridad.
+            if (HAY_ERRORES_SERVIDOR) {
+                limpiarDraft();
+                return;
+            }
+
+            const datos = leerDraft();
+            if (!datos) return;
+
+            const claves = Object.keys(datos).filter(k => k !== '__pacienteId');
+            if (claves.length === 0) return;
+
+            restaurandoDraft = true;
+
+            try {
+                // 1. Campos simples (textos, sexo, estado, especialidad, etc.)
+                camposFormulario().forEach(el => {
+                    if (!el.name || !(el.name in datos)) return;
+
+                    if (el.type === 'radio') {
+                        el.checked = (datos[el.name] === el.value);
+                    } else if (el.type === 'checkbox') {
+                        el.checked = !!datos[el.name];
+                    } else {
+                        el.value = datos[el.name];
+                    }
+                });
+
+                window.pacienteId = datos.__pacienteId || null;
+
+                // 2. Cascada Estado → Municipio → Parroquia
+                if (datos.estado_id) {
+                    document.getElementById('select-estado').value = datos.estado_id;
+                    await cargarMunicipios(datos.estado_id, datos.municipio_id || '');
+                    if (datos.municipio_id) {
+                        await cargarParroquias(datos.municipio_id, datos.parroquia_id || '');
+                    }
+                }
+
+                // 3. Cascada Especialidad → Médico
+                if (datos.especialidad_id) {
+                    document.getElementById('input_especialidad_id').value = datos.especialidad_id;
+                    await cargarMedicos(datos.especialidad_id, datos.medico_id || '');
+                }
+
+                // 4. Tipo de paciente y re-aplicar el valor guardado
+                if (window.pacienteId) {
+                    await actualizarTipoPaciente();
+                }
+                if (datos.tipo_paciente) {
+                    document.getElementById('tipo_paciente').value = datos.tipo_paciente;
+                }
+
+                // 5. Re-render del calendario y día seleccionado
+                if (datos.especialidad_id && datos.medico_id && datos.tipo_paciente) {
+                    await cargarCalendario();
+                }
+                if (datos.fecha_cita && datos.calendario_id) {
+                    seleccionarDia(datos.fecha_cita, datos.calendario_id);
+                }
+
+                mostrarMensaje('Se restauraron los datos que había escrito.', 'primary');
+            } catch (e) {
+                console.error('Error restaurando el borrador de la cita:', e);
+            } finally {
+                restaurandoDraft = false;
+            }
+        }
 
         function actualizarTextoMes() {
             const opciones = { month: 'long', year: 'numeric' };
@@ -988,6 +1181,7 @@
             // Autocompletar inputs
             document.getElementById('input_fecha_cita').value = fecha;
             document.getElementById('input_calendario_id').value = calendario_id;
+            guardarDraft();
         }
     </script>
 

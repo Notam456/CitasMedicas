@@ -346,16 +346,24 @@ class CitaController extends Controller
             DB::commit();
 
             Alert::success('¡Éxito!', 'Cita registrada correctamente.');
-            return redirect()->route('Citas.create');
+            return redirect()->route('Citas.create')->with('cita_registrada', true);
 
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->withErrors([
+                'numero_expediente' => $e->getMessage(),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
             if ($e->getCode() == '23505') {
                 Alert::error('Error', 'Este paciente ya tiene una cita en ese horario.');
-                return redirect()->route('Citas.create');
+                return redirect()->back()->withInput();
             }
             Alert::error('Error', 'No se pudo registrar la cita. Intente de nuevo.');
-            return redirect()->route('Citas.create');
+            return redirect()->back()->withInput();
         }
     }
 

@@ -106,28 +106,65 @@ class PacienteController extends Controller
      */
     public function buscarPaciente(Request $request)
     {
-        $q = mb_strtoupper(trim($request->get('q', '')));
+        $q = mb_strtoupper(trim((string) $request->get('q', '')));
 
         if ($q === '') {
             return response()->json(['encontrado' => false]);
         }
 
+        $digits = preg_replace('/\D/', '', $q);
+
+        // Desambiguación cédula vs. N° de historia:
+        // - Cédula: prefijo V/E o 7+ dígitos.
+        // - Historia: formato XX-XX-XX o exactamente 6 dígitos.
+        $tipo = 'invalido';
+        $valor = null;
+        $buscarCedula = null;
+        $buscarHistoria = null;
+
+        if (preg_match('/^([VE])-?(\d+)$/', $q, $m)) {
+            $tipo = 'cedula';
+            $valor = $m[1] . '-' . $m[2];
+            $buscarCedula = $m[2];
+        } elseif (preg_match('/^\d{2}-\d{2}-\d{2}$/', $q)) {
+            $tipo = 'historia';
+            $valor = $q;
+            $buscarHistoria = $q;
+        } elseif (preg_match('/^\d+$/', $q)) {
+            if (strlen($digits) >= 7) {
+                $tipo = 'cedula';
+                $valor = $digits;
+                $buscarCedula = $digits;
+            } elseif (strlen($digits) === 6) {
+                $tipo = 'historia';
+                $valor = implode('-', str_split($digits, 2));
+                $buscarHistoria = $valor;
+            } else {
+                // Número incompleto: se intenta buscar por ambos lados.
+                $tipo = 'incompleto';
+                $buscarCedula = $digits;
+                $buscarHistoria = $digits;
+            }
+        } else {
+            $tipo = 'historia';
+            $valor = $q;
+            $buscarHistoria = $q;
+        }
+
         $consulta = Paciente::with(['parroquia.municipio.estado', 'expediente']);
 
-        if (preg_match('/^(V|E)-\d+$/', $q)) {
-            $consulta->where('cedula', $q);
-        } elseif (preg_match('/^\d+$/', $q)) {
-            $consulta->where(function ($query) use ($q) {
-                $query->where('cedula', 'LIKE', '%-' . $q)
-                    ->orWhereHas('expediente', function ($historia) use ($q) {
-                        $historia->where('numero_expediente', $q);
-                    });
-            });
-        } else {
-            $consulta->whereHas('expediente', function ($historia) use ($q) {
-                $historia->where('numero_expediente', $q);
-            });
-        }
+        $consulta->where(function ($query) use ($buscarCedula, $buscarHistoria) {
+            if ($buscarCedula !== null && $buscarCedula !== '') {
+                $query->where('cedula', 'LIKE', '%-' . $buscarCedula);
+            }
+
+            if ($buscarHistoria !== null && $buscarHistoria !== '') {
+                $metodo = ($buscarCedula !== null && $buscarCedula !== '') ? 'orWhereHas' : 'whereHas';
+                $query->{$metodo}('expediente', function ($historia) use ($buscarHistoria) {
+                    $historia->where('numero_expediente', $buscarHistoria);
+                });
+            }
+        });
 
         $paciente = $consulta->first();
 
@@ -135,9 +172,10 @@ class PacienteController extends Controller
             return response()->json(['encontrado' => true, 'datos' => $paciente]);
         }
 
-        if (preg_match('/^\d{2}-\d{2}-\d{2}$/', $q)) {
+        // ¿El número de historia existió y fue liberado?
+        if ($buscarHistoria !== null && $buscarHistoria !== '') {
             $historico = HistoricoNumero::with('paciente')
-                ->where('numero_expediente', $q)
+                ->where('numero_expediente', $buscarHistoria)
                 ->where('vigente', false)
                 ->latest('fecha_liberacion')
                 ->first();
@@ -146,7 +184,9 @@ class PacienteController extends Controller
                 return response()->json([
                     'encontrado' => false,
                     'liberado' => true,
-                    'numero' => $q,
+                    'tipo' => 'historia',
+                    'valor' => $buscarHistoria,
+                    'numero' => $buscarHistoria,
                     'paciente' => $historico->paciente->nombre . ' ' . $historico->paciente->apellido,
                     'motivo' => $historico->motivo,
                     'fecha_liberacion' => optional($historico->fecha_liberacion)->format('d/m/Y'),
@@ -154,7 +194,11 @@ class PacienteController extends Controller
             }
         }
 
-        return response()->json(['encontrado' => false]);
+        return response()->json([
+            'encontrado' => false,
+            'tipo' => $tipo,
+            'valor' => $valor,
+        ]);
     }
 
     /**
@@ -304,22 +348,36 @@ class PacienteController extends Controller
             'motivo' => 'required|in:' . implode(',', $motivos),
         ]);
 
+        $esAjax = $request->expectsJson() || $request->ajax();
+
         if ($paciente->estado === 'inactivo') {
-            Alert::error('Paciente inactivo', 'Este paciente ya fue dado de baja.');
-            return redirect()->route('paciente.index');
+            return $this->respuestaLiberacion(
+                $esAjax,
+                'Paciente inactivo',
+                'Este paciente ya fue dado de baja.',
+                409
+            );
         }
 
         if (!$paciente->expediente || !$paciente->expediente->numero_expediente) {
-            Alert::error('Sin número de historia', 'El paciente no tiene un número de historia asignado.');
-            return redirect()->route('paciente.index');
+            return $this->respuestaLiberacion(
+                $esAjax,
+                'Sin número de historia',
+                'El paciente no tiene un número de historia asignado.',
+                422
+            );
         }
 
         if ($paciente->citas()->agendadas()->exists()) {
-            Alert::error('No se puede liberar', 'El paciente tiene citas programadas pendientes de atender.');
-            return redirect()->route('paciente.index');
+            return $this->respuestaLiberacion(
+                $esAjax,
+                'No se puede liberar',
+                'El paciente tiene citas programadas pendientes de atender.',
+                409
+            );
         }
 
-        return DB::transaction(function () use ($paciente, $request) {
+        return DB::transaction(function () use ($paciente, $request, $esAjax) {
             $numero = $paciente->expediente->numero_expediente;
             HistoricoNumero::liberar($paciente, $numero, $request->motivo);
 
@@ -331,8 +389,29 @@ class PacienteController extends Controller
                 'fecha_baja' => now()->toDateString(),
             ]);
 
+            if ($esAjax) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'El número de historia quedó libre para otro paciente.',
+                ]);
+            }
+
             Alert::success('Número liberado', 'El número de historia quedó libre para otro paciente.');
             return redirect()->route('paciente.index');
         });
+    }
+
+    /**
+     * Uniforma la respuesta de liberación según el tipo de petición:
+     * JSON (AJAX) o redirección clásica con alerta.
+     */
+    private function respuestaLiberacion(bool $esAjax, string $titulo, string $mensaje, int $status)
+    {
+        if ($esAjax) {
+            return response()->json(['success' => false, 'message' => $mensaje], $status);
+        }
+
+        Alert::error($titulo, $mensaje);
+        return redirect()->route('paciente.index');
     }
 }
