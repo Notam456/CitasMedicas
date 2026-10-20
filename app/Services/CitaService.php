@@ -26,7 +26,7 @@ class CitaService
                 'fecha_nacimiento' => $data['fecha_nacimiento'],
                 'telefono' => $data['telefono'],
                 'parroquia_id' => $data['parroquia_id'],
-                'direccion' => $data['direccion'] ?? null,
+                'direccion' => $data['direccion'] ?? '',
                 'sexo' => $data['sexo'],
             ]
         );
@@ -100,9 +100,13 @@ class CitaService
                 abort(422, 'Historia ya asignada');
             }
 
-            if ($numeroActual !== $numeroExpediente) {
-                $paciente->expediente->update(['numero_expediente' => $numeroExpediente]);
+            // El número no cambió: no se vuelve a registrar en el histórico
+            // (evita filas "liberadas" fantasma por cada cita agendada).
+            if ($numeroActual === $numeroExpediente) {
+                return;
             }
+
+            $paciente->expediente->update(['numero_expediente' => $numeroExpediente]);
         } else {
             Expediente::create([
                 'paciente_id' => $paciente->id,

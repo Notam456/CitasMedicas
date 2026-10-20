@@ -22,6 +22,8 @@ class StoreCitaRequest extends FormRequest
             'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'required|string|min:7|max:15|regex:/^[\d\-\(\)\s\+]+$/',
+            'estado_id' => 'required|numeric|exists:estados,id',
+            'municipio_id' => 'required|numeric|exists:municipios,id',
             'parroquia_id' => 'required|numeric|exists:parroquias,id',
             'direccion' => 'nullable|string|max:255',
             'sexo' => 'required|in:Masculino,Femenino',
@@ -29,6 +31,10 @@ class StoreCitaRequest extends FormRequest
             'fecha_cita' => 'required|date|after_or_equal:today',
             'observacion' => 'nullable|string',
             'especialidad_id' => 'required|exists:especialidades,id',
+            // Algunas especialidades no tienen médico fijo ("Cualquier médico"),
+            // por eso médico es opcional; el día seleccionado (calendario_id) es
+            // la garantía real de que hay disponibilidad.
+            'medico_id' => 'nullable|string',
             'tipo_paciente' => 'required|string|in:primera_vez,control,orden_medica',
         ];
     }
