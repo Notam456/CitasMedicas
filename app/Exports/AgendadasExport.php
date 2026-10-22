@@ -60,7 +60,7 @@ class AgendadasExport implements FromView, WithEvents
         $lastColLetter = chr(64 + $totalCols);
 
         return [
-            AfterSheet::class => function (AfterSheet $event) use ($lastColLetter) {
+            AfterSheet::class => function (AfterSheet $event) use ($lastColLetter, $showTipo) {
                 $sheet = $event->sheet;
                 $highestRow = $sheet->getHighestRow();
 
