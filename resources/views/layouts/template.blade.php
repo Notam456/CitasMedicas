@@ -205,6 +205,7 @@
             }
         })();
     </script>
+    @include('partials.espera-reporte')
     @stack('scripts')
 
 
