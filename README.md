@@ -50,6 +50,8 @@ El proyecto incluye además un **lanzador de escritorio** que arranca la aplicac
   - `gd`
   - `zip`
   - `xls` (si aplica)
+
+  Para habilitarlas, abre el `php.ini` de tu instalación y quita el `;` inicial de cada línea. La ruta depende de cómo instalaste PHP: en XAMPP es `C:\xampp\php\php.ini`; para saber cuál usa tu PHP, ejecuta `php --ini`.
 - **Composer**
 - **Node.js** y **npm**
 - **PostgreSQL** (versión recomendada: 17.6.1)
@@ -79,6 +81,7 @@ DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_DATABASE=hospital
+DB_SCHEMA=public
 DB_USERNAME=postgres
 DB_PASSWORD=tu_contraseña
 ```
