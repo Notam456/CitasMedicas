@@ -41,9 +41,11 @@ class PacienteController extends Controller
         $totalRecords = $query->count();
 
         if ($search = $request->get('search')['value']) {
+            $search = trim((string) $search);
+
             $query->where(function ($q) use ($search) {
-                $q->where('nombre', 'ILIKE', "%{$search}%")
-                    ->orWhere('apellido', 'ILIKE', "%{$search}%")
+                $q->whereRaw('unaccent_immutable(nombre) ILIKE unaccent_immutable(?)', ["%{$search}%"])
+                    ->orWhereRaw('unaccent_immutable(apellido) ILIKE unaccent_immutable(?)', ["%{$search}%"])
                     ->orWhere('cedula', 'ILIKE', "%{$search}%")
                     ->orWhere('direccion', 'ILIKE', "%{$search}%");
             });
