@@ -149,7 +149,7 @@
                             <span class="input-group-text bg-light fw-bold">J</span>
                             <input type="text" name="rif" id="input_rif"
                                 class="form-control @error('rif') is-invalid @enderror" value="{{ old('rif') }}"
-                                placeholder="123456789" pattern="[0-9]*" maxlength="20" title="Solo números">
+                                placeholder="12345678-9" pattern="[0-9-]*" maxlength="20" title="Números y guion">
                         </div>
                         @error('rif')
                             <div class="invalid-feedback">{{ $message }}</div>
