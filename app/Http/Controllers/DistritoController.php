@@ -175,19 +175,21 @@ class DistritoController extends Controller
 
     public function destroy($id)
     {
-        DB::beginTransaction();
+        $distrito = Distrito::findOrFail($id);
+
+        if ($municipios = $distrito->municipios()->count()) {
+            Alert::error('No se puede eliminar', "Este distrito tiene {$municipios} municipio(s) asignado(s). Elimine o reasigne primero sus municipios.");
+            return redirect()->back();
+        }
+
         try {
-            Municipio::where('distrito_id', $id)->update(['distrito_id' => null]);
-
-            Distrito::findOrFail($id)->delete();
-
-            DB::commit();
-            Alert::success('Distrito eliminado exitosamente.');
-            return redirect()->route('distritos.index');
+            $distrito->delete();
         } catch (\Exception $e) {
-            DB::rollBack();
             Alert::error('Error', 'No se pudo eliminar el distrito. Intente de nuevo.');
             return redirect()->back();
         }
+
+        Alert::success('Distrito eliminado exitosamente.');
+        return redirect()->route('distritos.index');
     }
 }
