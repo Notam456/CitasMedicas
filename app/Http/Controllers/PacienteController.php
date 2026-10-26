@@ -47,7 +47,8 @@ class PacienteController extends Controller
                 $q->whereRaw('unaccent_immutable(nombre) ILIKE unaccent_immutable(?)', ["%{$search}%"])
                     ->orWhereRaw('unaccent_immutable(apellido) ILIKE unaccent_immutable(?)', ["%{$search}%"])
                     ->orWhere('cedula', 'ILIKE', "%{$search}%")
-                    ->orWhere('direccion', 'ILIKE', "%{$search}%");
+                    ->orWhere('direccion', 'ILIKE', "%{$search}%")
+                    ->orWhereHas('expediente', fn ($query) => $query->where('numero_expediente', 'ILIKE', "%{$search}%"));
             });
         }
 
