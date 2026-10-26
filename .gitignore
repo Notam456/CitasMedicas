@@ -5,6 +5,7 @@
 .env.production
 .phpactor.json
 MEMORY.md
+hospitalbackup*.sql
 .phpunit.result.cache
 /.fleet
 /.idea

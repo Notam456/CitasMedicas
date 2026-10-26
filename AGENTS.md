@@ -363,4 +363,4 @@ Ver `analisisProblemas-23-06-2026.md` para el reporte completo. Resumen:
 - `README.md` — Documentación de usuario e instalación.
 - `analisisProblemas-23-06-2026.md` — Análisis detallado de deuda técnica y bugs.
 - `leeme.txt` — Nota adicional de instrucciones.
-- `hospitalbackup-*.sql` — Backups de la base de datos (varios fechas).
+- `hospitalbackup-*.sql` — Backups de la base de datos. Ya no se versionan (quedan solo en el equipo local, ignorados por `.gitignore`).
