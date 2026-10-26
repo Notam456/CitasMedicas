@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Estado;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -108,7 +109,18 @@ class EstadoController extends Controller
     public function destroy($id)
     {
         $estado = Estado::findOrFail($id);
-        $estado->delete();
+
+        if ($municipios = $estado->municipios()->count()) {
+            Alert::error('No se puede eliminar', "Este estado tiene {$municipios} municipio(s) asignado(s). Elimine o reasigne primero sus municipios.");
+            return redirect()->back();
+        }
+
+        try {
+            $estado->delete();
+        } catch (QueryException $e) {
+            Alert::error('No se puede eliminar', 'El estado tiene otros registros asociados.');
+            return redirect()->back();
+        }
 
         Alert::success('Estado eliminado exitosamente.');
         return redirect()->route('estados.index');
