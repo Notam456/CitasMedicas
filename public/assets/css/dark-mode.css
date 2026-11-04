@@ -396,6 +396,10 @@ html.dark .badge.rounded-pill.bg-danger {
     background-color: #dc3545 !important;
 }
 
+html.dark .is-invalid {
+    border-color: #dc3545;
+}
+
 
 /*** Dark Mode - Correcciones ***/
 
