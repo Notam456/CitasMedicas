@@ -30,6 +30,7 @@
                     <th>Cédula</th>
                     <th>Teléfono</th>
                     <th>Especialidad</th>
+                    <th>Estado</th>
                     <th class="text-end">Acciones</th>
                 </tr>
             </thead>
@@ -485,6 +486,10 @@
                     },
                     {
                         data: 5,
+                        name: 'estado'
+                    },
+                    {
+                        data: 6,
                         name: 'action',
                         orderable: false,
                         searchable: false,
