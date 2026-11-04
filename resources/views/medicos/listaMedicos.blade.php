@@ -12,9 +12,9 @@
             <h3 class="mb-0">Lista de Médicos</h3>
             <div class="hstack gap-2">
                 @can('Médicos inactivos')
-                <a href="{{ route('suspensiones.index') }}" class="btn btn-outline-primary">
-                    <i class="bi bi-person-x-fill me-1"></i> Médicos inactivos
-                </a>
+                    <a href="{{ route('suspensiones.index') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-x-fill me-1"></i> Médicos inactivos
+                    </a>
                 @endcan
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalMedico">
                     <i class="bi bi-person-plus me-1"></i> Registrar Médico
@@ -37,7 +37,7 @@
         </table>
     </div>
 
-    <!-- Modal Registrar Médico (sin cambios estructurales, solo se mantiene) -->
+    <!-- Modal Registrar Médico -->
     <div class="modal fade" id="modalMedico" tabindex="-1" aria-labelledby="modalMedicoLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -52,7 +52,8 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="cedula" value="{{ old('cedula') }}" class="form-control"
-                                        id="cedulaMedico" placeholder="Cédula" required pattern="[0-9]+" maxlength="20" title="Solo números">
+                                        id="cedulaMedico" placeholder="Cédula" required pattern="[0-9]+" maxlength="20"
+                                        title="Solo números">
                                     <label for="cedulaMedico">Cédula</label>
                                 </div>
                                 @error('cedula')
@@ -64,8 +65,8 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="nombre" value="{{ old('nombre') }}" class="form-control"
-                                        id="nombreMedico" placeholder="Nombre" required
-                                        pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
+                                        id="nombreMedico" placeholder="Nombre" required pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+"
+                                        title="Solo se permiten letras y espacios">
                                     <label for="nombreMedico">Nombres</label>
                                 </div>
                                 @error('nombre')
@@ -74,8 +75,8 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
-                                    <input type="text" name="apellido" value="{{ old('apellido') }}"
-                                        class="form-control" id="apellidoMedico" placeholder="Apellido" required
+                                    <input type="text" name="apellido" value="{{ old('apellido') }}" class="form-control"
+                                        id="apellidoMedico" placeholder="Apellido" required
                                         pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
                                     <label for="apellidoMedico">Apellidos</label>
                                 </div>
@@ -86,9 +87,9 @@
 
                             <div class="col-md-6 mb-3 mt-3">
                                 <div class="form-floating">
-                                    <input type="text" name="telefono" value="{{ old('telefono') }}"
-                                        class="form-control" id="telefonoMedico" placeholder="Teléfono" required
-                                        pattern="[\d\-\(\)\s\+]+" title="Solo se permiten números, guiones, paréntesis y espacios">
+                                    <input type="text" name="telefono" value="{{ old('telefono') }}" class="form-control"
+                                        id="telefonoMedico" placeholder="Teléfono" required pattern="[\d\-\(\)\s\+]+"
+                                        title="Solo se permiten números, guiones, paréntesis y espacios">
                                     <label for="telefonoMedico">Teléfono</label>
                                 </div>
                                 @error('telefono')
@@ -112,39 +113,61 @@
                             </div>
 
                             <div class="col-12 mb-3">
-                                <label class="form-label fw-bold small text-muted text mb-2">Horario de atención (días de la semana y horas)</label>
+                                <label class="form-label fw-bold small text-muted text mb-2">Horario de atención (días de la
+                                    semana y horas)</label>
                                 <div class="row g-3">
                                     @php $dias = [1 => 'Lunes', 2 => 'Martes', 3 => 'Miércoles', 4 => 'Jueves', 5 => 'Viernes', 6 => 'Sábado', 7 => 'Domingo']; @endphp
-                                    @foreach($dias as $val => $nom)
+                                    @foreach ($dias as $val => $nom)
                                         @php $isChecked = old("horarios.$val.checked") ? true : false; @endphp
                                         <div class="col-md-6 col-12">
-                                            <div class="card border border-light-subtle shadow-xs h-100 day-card p-3" style="transition: all 0.2s; border-left: 4px solid {{ $isChecked ? '#0d6efd' : '#dee2e6' }} !important;">
+                                            <div class="card border border-light-subtle shadow-xs h-100 day-card p-3"
+                                                style="transition: all 0.2s; border-left: 4px solid {{ $isChecked ? '#0d6efd' : '#dee2e6' }} !important;">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div class="d-flex align-items-center">
                                                         <div class="form-check form-switch me-3 mb-0">
-                                                            <input class="form-check-input check-dia-reg" type="checkbox" name="horarios[{{ $val }}][checked]" value="1" id="dia_reg_{{ $val }}" {{ $isChecked ? 'checked' : '' }}>
+                                                            <input class="form-check-input check-dia-reg" type="checkbox"
+                                                                name="horarios[{{ $val }}][checked]"
+                                                                value="1" id="dia_reg_{{ $val }}"
+                                                                {{ $isChecked ? 'checked' : '' }}>
                                                         </div>
-                                                        <label class="form-check-label fw-bold mb-0 text-dark" for="dia_reg_{{ $val }}">
-                                                            <i class="bi bi-calendar3 me-1 text-primary opacity-75"></i> {{ $nom }}
+                                                        <label class="form-check-label fw-bold mb-0 text-dark"
+                                                            for="dia_reg_{{ $val }}">
+                                                            <i class="bi bi-calendar3 me-1 text-primary opacity-75"></i>
+                                                            {{ $nom }}
                                                         </label>
                                                     </div>
-                                                    
+
                                                 </div>
-                                                <div class="row g-2 time-inputs-reg mt-1" style="{{ $isChecked ? 'display: flex;' : 'display: none;' }}">
+                                                <div class="row g-2 time-inputs-reg mt-1"
+                                                    style="{{ $isChecked ? 'display: flex;' : 'display: none;' }}">
                                                     <div class="col-6">
-                                                        <label class="small text-muted mb-1" style="font-size: 0.75rem;"><i class="bi bi-clock me-1 text-primary"></i> Entrada</label>
-                                                        <input type="time" name="horarios[{{ $val }}][hora_entrada]" class="form-control form-control-sm" value="{{ old("horarios.$val.hora_entrada") }}" {{ $isChecked ? '' : 'disabled' }}>
+                                                        <label class="small text-muted mb-1"
+                                                            style="font-size: 0.75rem;"><i
+                                                                class="bi bi-clock me-1 text-primary"></i> Entrada</label>
+                                                        <input type="time"
+                                                            name="horarios[{{ $val }}][hora_entrada]"
+                                                            class="form-control form-control-sm"
+                                                            value="{{ old("horarios.$val.hora_entrada") }}"
+                                                            {{ $isChecked ? '' : 'disabled' }}>
                                                     </div>
                                                     <div class="col-6">
-                                                        <label class="small text-muted mb-1" style="font-size: 0.75rem;"><i class="bi bi-clock-fill me-1 text-danger"></i> Salida</label>
-                                                        <input type="time" name="horarios[{{ $val }}][hora_salida]" class="form-control form-control-sm" value="{{ old("horarios.$val.hora_salida") }}" {{ $isChecked ? '' : 'disabled' }}>
+                                                        <label class="small text-muted mb-1"
+                                                            style="font-size: 0.75rem;"><i
+                                                                class="bi bi-clock-fill me-1 text-danger"></i>
+                                                            Salida</label>
+                                                        <input type="time"
+                                                            name="horarios[{{ $val }}][hora_salida]"
+                                                            class="form-control form-control-sm"
+                                                            value="{{ old("horarios.$val.hora_salida") }}"
+                                                            {{ $isChecked ? '' : 'disabled' }}>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     @endforeach
                                 </div>
-                                <small class="text-muted mt-3 d-block">Si no selecciona ningún día, el médico podrá atender cualquier día sin restricciones de horario.</small>
+                                <small class="text-muted mt-3 d-block">Si no selecciona ningún día, el médico podrá atender
+                                    cualquier día sin restricciones de horario.</small>
                             </div>
                         </div>
                     </div>
@@ -157,7 +180,7 @@
         </div>
     </div>
 
-    <!-- Modal Editar Médico (sin cambios estructurales) -->
+    <!-- Modal Editar Médico -->
     <div class="modal fade" id="modalEditarMedico" tabindex="-1" aria-labelledby="modalEditarMedicoLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -175,7 +198,8 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="cedula" class="form-control" id="editarCedulaMedico"
-                                        placeholder="Cédula" required pattern="[0-9]+" maxlength="20" title="Solo números">
+                                        placeholder="Cédula" required pattern="[0-9]+" maxlength="20"
+                                        title="Solo números">
                                     <label for="editarCedulaMedico">Cédula</label>
                                 </div>
                                 @error('cedula')
@@ -187,8 +211,8 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="nombre" class="form-control" id="editarNombreMedico"
-                                        placeholder="Nombre" required
-                                        pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
+                                        placeholder="Nombre" required pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+"
+                                        title="Solo se permiten letras y espacios">
                                     <label for="editarNombreMedico">Nombres</label>
                                 </div>
                                 @error('nombre')
@@ -198,8 +222,8 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="apellido" class="form-control" id="editarApellidoMedico"
-                                        placeholder="Apellido" required
-                                        pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+" title="Solo se permiten letras y espacios">
+                                        placeholder="Apellido" required pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+"
+                                        title="Solo se permiten letras y espacios">
                                     <label for="editarApellidoMedico">Apellidos</label>
                                 </div>
                                 @error('apellido')
@@ -210,8 +234,8 @@
                             <div class="col-md-6 mb-3 mt-3">
                                 <div class="form-floating">
                                     <input type="text" name="telefono" class="form-control" id="editarTelefonoMedico"
-                                        placeholder="Teléfono" required
-                                        pattern="[\d\-\(\)\s\+]+" title="Solo se permiten números, guiones, paréntesis y espacios">
+                                        placeholder="Teléfono" required pattern="[\d\-\(\)\s\+]+"
+                                        title="Solo se permiten números, guiones, paréntesis y espacios">
                                     <label for="editarTelefonoMedico">Teléfono</label>
                                 </div>
                                 @error('telefono')
@@ -233,37 +257,53 @@
                             </div>
 
                             <div class="col-12 mb-3">
-                                <label class="form-label fw-bold small text-muted text mb-2">Horario de atención (días de la semana y horas)</label>
+                                <label class="form-label fw-bold small text-muted text mb-2">Horario de atención (días de
+                                    la semana y horas)</label>
                                 <div class="row g-3">
-                                    @foreach($dias as $val => $nom)
+                                    @foreach ($dias as $val => $nom)
                                         <div class="col-md-6 col-12">
-                                            <div class="card border border-light-subtle shadow-xs h-100 day-card p-3" style="transition: all 0.2s; border-left: 4px solid #dee2e6 !important;">
+                                            <div class="card border border-light-subtle shadow-xs h-100 day-card p-3"
+                                                style="transition: all 0.2s; border-left: 4px solid #dee2e6 !important;">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div class="d-flex align-items-center">
                                                         <div class="form-check form-switch me-3 mb-0">
-                                                            <input class="form-check-input check-dia-edit" type="checkbox" name="horarios[{{ $val }}][checked]" value="1" id="dia_edit_{{ $val }}">
+                                                            <input class="form-check-input check-dia-edit" type="checkbox"
+                                                                name="horarios[{{ $val }}][checked]"
+                                                                value="1" id="dia_edit_{{ $val }}">
                                                         </div>
-                                                        <label class="form-check-label fw-bold mb-0 text-dark" for="dia_edit_{{ $val }}">
-                                                            <i class="bi bi-calendar3 me-1 text-primary opacity-75"></i> {{ $nom }}
+                                                        <label class="form-check-label fw-bold mb-0 text-dark"
+                                                            for="dia_edit_{{ $val }}">
+                                                            <i class="bi bi-calendar3 me-1 text-primary opacity-75"></i>
+                                                            {{ $nom }}
                                                         </label>
                                                     </div>
-                                                   
+
                                                 </div>
                                                 <div class="row g-2 time-inputs-edit mt-1" style="display: none;">
                                                     <div class="col-6">
-                                                        <label class="small text-muted mb-1" style="font-size: 0.75rem;"><i class="bi bi-clock me-1 text-primary"></i> Entrada</label>
-                                                        <input type="time" name="horarios[{{ $val }}][hora_entrada]" class="form-control form-control-sm" disabled>
+                                                        <label class="small text-muted mb-1"
+                                                            style="font-size: 0.75rem;"><i
+                                                                class="bi bi-clock me-1 text-primary"></i> Entrada</label>
+                                                        <input type="time"
+                                                            name="horarios[{{ $val }}][hora_entrada]"
+                                                            class="form-control form-control-sm" disabled>
                                                     </div>
                                                     <div class="col-6">
-                                                        <label class="small text-muted mb-1" style="font-size: 0.75rem;"><i class="bi bi-clock-fill me-1 text-danger"></i> Salida</label>
-                                                        <input type="time" name="horarios[{{ $val }}][hora_salida]" class="form-control form-control-sm" disabled>
+                                                        <label class="small text-muted mb-1"
+                                                            style="font-size: 0.75rem;"><i
+                                                                class="bi bi-clock-fill me-1 text-danger"></i>
+                                                            Salida</label>
+                                                        <input type="time"
+                                                            name="horarios[{{ $val }}][hora_salida]"
+                                                            class="form-control form-control-sm" disabled>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     @endforeach
                                 </div>
-                                <small class="text-muted mt-3 d-block">Si no selecciona ningún día, el médico podrá atender cualquier día sin restricciones de horario.</small>
+                                <small class="text-muted mt-3 d-block">Si no selecciona ningún día, el médico podrá atender
+                                    cualquier día sin restricciones de horario.</small>
                             </div>
                         </div>
                     </div>
@@ -309,7 +349,8 @@
                         </div>
                         <div class="col-12 mb-3">
                             <label class="fw-bold">Horario de Atención</label>
-                            <div id="mostrarHorarioMedico" class="border rounded p-3 bg-white" style="max-height: 250px; overflow-y: auto;"></div>
+                            <div id="mostrarHorarioMedico" class="border rounded p-3 bg-white"
+                                style="max-height: 250px; overflow-y: auto;"></div>
                         </div>
                     </div>
                 </div>
@@ -321,262 +362,310 @@
 @endsection
 
 @push('scripts')
-<link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
-<script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
+    <script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
 
-<script>
-$(document).ready(function() {
-    $('#tablaMedicos').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: '{{ route("medicos.index") }}',
-        columns: [
-            { data: 0, name: 'nombre' },
-            { data: 1, name: 'apellido' },
-            { data: 2, name: 'cedula' },
-            { data: 3, name: 'telefono' },
-            { data: 4, name: 'especialidad' },
-            { data: 5, name: 'action', orderable: false, searchable: false, className: 'text-end' }
-        ],
-        language: { url: "{{ asset('vendor/datatables/es-ES.json') }}" },
-        pageLength: 10,
-        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todas"]],
-        order: [[0, 'asc']]
-    });
-});
-
-// Eventos para editar/mostrar (igual que antes, pero ahora usando delegación de eventos en #tablaMedicos)
-document.addEventListener('click', async function(event) {
-    const btnEdit = event.target.closest('.btn-edit');
-    const btnShow = event.target.closest('.btn-show');
-
-    if (btnEdit) {
-        const medicoId = btnEdit.getAttribute('data-id');
-        const inputNombre = document.getElementById('editarNombreMedico');
-        const inputApellidos = document.getElementById('editarApellidoMedico');
-        const inputCedula = document.getElementById('editarCedulaMedico');
-        const inputTelefono = document.getElementById('editarTelefonoMedico');
-        const inputEspecialidad = document.getElementById('editarEspecialidadMedico');
-
-        try {
-            const modalElement = document.getElementById('modalEditarMedico');
-            let modalInstance = bootstrap.Modal.getInstance(modalElement);
-            if (!modalInstance) {
-                modalInstance = new bootstrap.Modal(modalElement);
-            }
-
-            inputNombre.disabled = true;
-            inputNombre.value = "Cargando...";
-            inputApellidos.disabled = true;
-            inputApellidos.value = "Cargando...";
-            inputCedula.disabled = true;
-            inputCedula.value = "Cargando...";
-            inputTelefono.disabled = true;
-            inputTelefono.value = "Cargando...";
-            inputEspecialidad.disabled = true;
-            inputEspecialidad.value = "Cargando...";
-
-            modalInstance.show();
-            const response = await fetch(`/medicos/${medicoId}/edit`, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
+    <script>
+        $(document).ready(function() {
+            $('#tablaMedicos').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: '{{ route('medicos.index') }}',
+                columns: [{
+                        data: 0,
+                        name: 'nombre'
+                    },
+                    {
+                        data: 1,
+                        name: 'apellido'
+                    },
+                    {
+                        data: 2,
+                        name: 'cedula'
+                    },
+                    {
+                        data: 3,
+                        name: 'telefono'
+                    },
+                    {
+                        data: 4,
+                        name: 'especialidad'
+                    },
+                    {
+                        data: 5,
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-end'
+                    }
+                ],
+                language: {
+                    url: "{{ asset('vendor/datatables/es-ES.json') }}"
+                },
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, "Todas"]
+                ],
+                order: [
+                    [0, 'asc']
+                ]
             });
+        });
 
-            if (!response.ok) throw new Error('Error al obtener datos');
+        // Eventos para editar/mostrar (igual que antes, pero ahora usando delegación de eventos en #tablaMedicos)
+        document.addEventListener('click', async function(event) {
+            const btnEdit = event.target.closest('.btn-edit');
+            const btnShow = event.target.closest('.btn-show');
 
-            const data = await response.json();
+            if (btnEdit) {
+                const medicoId = btnEdit.getAttribute('data-id');
+                const inputNombre = document.getElementById('editarNombreMedico');
+                const inputApellidos = document.getElementById('editarApellidoMedico');
+                const inputCedula = document.getElementById('editarCedulaMedico');
+                const inputTelefono = document.getElementById('editarTelefonoMedico');
+                const inputEspecialidad = document.getElementById('editarEspecialidadMedico');
 
-            document.getElementById('id').value = data.id;
-            inputNombre.value = data.nombre;
-            inputNombre.disabled = false;
-            inputApellidos.disabled = false;
-            inputApellidos.value = data.apellido;
-            inputCedula.disabled = false;
-            inputCedula.value = data.cedula;
-            inputTelefono.disabled = false;
-            inputTelefono.value = data.telefono;
-            inputEspecialidad.disabled = false;
-            inputEspecialidad.value = data.especialidad_id;
+                try {
+                    const modalElement = document.getElementById('modalEditarMedico');
+                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (!modalInstance) {
+                        modalInstance = new bootstrap.Modal(modalElement);
+                    }
 
-            // Limpiar y marcar horarios
-            document.querySelectorAll('.check-dia-edit').forEach(check => {
-                check.checked = false;
-                const parent = check.closest('.day-card');
-                parent.style.borderLeftColor = '#dee2e6';
+                    inputNombre.disabled = true;
+                    inputNombre.value = "Cargando...";
+                    inputApellidos.disabled = true;
+                    inputApellidos.value = "Cargando...";
+                    inputCedula.disabled = true;
+                    inputCedula.value = "Cargando...";
+                    inputTelefono.disabled = true;
+                    inputTelefono.value = "Cargando...";
+                    inputEspecialidad.disabled = true;
+                    inputEspecialidad.value = "Cargando...";
 
-                const timeInputsDiv = parent.querySelector('.time-inputs-edit');
-                timeInputsDiv.style.display = 'none';
-                const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
-                inputs.forEach(input => {
-                    input.disabled = true;
-                    input.required = false;
-                    input.value = '';
-                });
-            });
+                    modalInstance.show();
+                    const response = await fetch(`/medicos/${medicoId}/edit`, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
 
-            if (data.horarios) {
-                data.horarios.forEach(h => {
-                    const check = document.getElementById(`dia_edit_${h.dia_semana}`);
-                    if (check) {
-                        check.checked = true;
+                    if (!response.ok) throw new Error('Error al obtener datos');
+
+                    const data = await response.json();
+
+                    document.getElementById('id').value = data.id;
+                    inputNombre.value = data.nombre;
+                    inputNombre.disabled = false;
+                    inputApellidos.disabled = false;
+                    inputApellidos.value = data.apellido;
+                    inputCedula.disabled = false;
+                    inputCedula.value = data.cedula;
+                    inputTelefono.disabled = false;
+                    inputTelefono.value = data.telefono;
+                    inputEspecialidad.disabled = false;
+                    inputEspecialidad.value = data.especialidad_id;
+
+                    // Limpiar y marcar horarios
+                    document.querySelectorAll('.check-dia-edit').forEach(check => {
+                        check.checked = false;
                         const parent = check.closest('.day-card');
-                        parent.style.borderLeftColor = '#0d6efd';
-            
+                        parent.style.borderLeftColor = '#dee2e6';
 
                         const timeInputsDiv = parent.querySelector('.time-inputs-edit');
-                        timeInputsDiv.style.display = 'flex';
+                        timeInputsDiv.style.display = 'none';
                         const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
                         inputs.forEach(input => {
-                            input.disabled = false;
-                            input.required = true;
+                            input.disabled = true;
+                            input.required = false;
+                            input.value = '';
                         });
-                        const entInput = parent.querySelector(`input[name="horarios[${h.dia_semana}][hora_entrada]"]`);
-                        const salInput = parent.querySelector(`input[name="horarios[${h.dia_semana}][hora_salida]"]`);
-                        if (entInput) entInput.value = h.hora_entrada.substring(0, 5);
-                        if (salInput) salInput.value = h.hora_salida.substring(0, 5);
+                    });
+
+                    if (data.horarios) {
+                        data.horarios.forEach(h => {
+                            const check = document.getElementById(`dia_edit_${h.dia_semana}`);
+                            if (check) {
+                                check.checked = true;
+                                const parent = check.closest('.day-card');
+                                parent.style.borderLeftColor = '#0d6efd';
+
+
+                                const timeInputsDiv = parent.querySelector('.time-inputs-edit');
+                                timeInputsDiv.style.display = 'flex';
+                                const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
+                                inputs.forEach(input => {
+                                    input.disabled = false;
+                                    input.required = true;
+                                });
+                                const entInput = parent.querySelector(
+                                    `input[name="horarios[${h.dia_semana}][hora_entrada]"]`);
+                                const salInput = parent.querySelector(
+                                    `input[name="horarios[${h.dia_semana}][hora_salida]"]`);
+                                if (entInput) entInput.value = h.hora_entrada.substring(0, 5);
+                                if (salInput) salInput.value = h.hora_salida.substring(0, 5);
+                            }
+                        });
                     }
-                });
-            }
 
-            const form = document.querySelector('#modalEditarMedico form');
-            form.action = `/medicos/${data.id}`;
+                    const form = document.querySelector('#modalEditarMedico form');
+                    form.action = `/medicos/${data.id}`;
 
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
-        }
-    }
-
-    if (btnShow) {
-        const medicoId = btnShow.getAttribute('data-id');
-        const inputNombre = document.getElementById('mostrarNombreMedico');
-        const inputApellidos = document.getElementById('mostrarApellidoMedico');
-        const inputCedula = document.getElementById('mostrarCedulaMedico');
-        const inputTelefono = document.getElementById('mostrarTelefonoMedico');
-        const inputEspecialidad = document.getElementById('mostrarEspecialidadMedico');
-
-        try {
-            const modalElement = document.getElementById('modalShowMedico');
-            let modalInstance = bootstrap.Modal.getInstance(modalElement);
-            if (!modalInstance) {
-                modalInstance = new bootstrap.Modal(modalElement);
-            }
-
-            inputNombre.innerHTML = "Cargando...";
-            inputApellidos.innerHTML = "Cargando...";
-            inputCedula.innerHTML = "Cargando...";
-            inputTelefono.innerHTML = "Cargando...";
-            inputEspecialidad.innerHTML = "Cargando...";
-
-            modalInstance.show();
-            const response = await fetch(`/medicos/${medicoId}`, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
                 }
-            });
+            }
 
-            if (!response.ok) throw new Error('Error al obtener datos');
+            if (btnShow) {
+                const medicoId = btnShow.getAttribute('data-id');
+                const inputNombre = document.getElementById('mostrarNombreMedico');
+                const inputApellidos = document.getElementById('mostrarApellidoMedico');
+                const inputCedula = document.getElementById('mostrarCedulaMedico');
+                const inputTelefono = document.getElementById('mostrarTelefonoMedico');
+                const inputEspecialidad = document.getElementById('mostrarEspecialidadMedico');
 
-            const data = await response.json();
+                try {
+                    const modalElement = document.getElementById('modalShowMedico');
+                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (!modalInstance) {
+                        modalInstance = new bootstrap.Modal(modalElement);
+                    }
 
-            inputNombre.innerHTML = data.nombre;
-            inputApellidos.innerHTML = data.apellido;
-            inputCedula.innerHTML = data.cedula;
-            inputTelefono.innerHTML = data.telefono;
-            inputEspecialidad.innerHTML = data.especialidad.nombre;
+                    inputNombre.innerHTML = "Cargando...";
+                    inputApellidos.innerHTML = "Cargando...";
+                    inputCedula.innerHTML = "Cargando...";
+                    inputTelefono.innerHTML = "Cargando...";
+                    inputEspecialidad.innerHTML = "Cargando...";
 
-            // Mostrar horario
-            const container = document.getElementById('mostrarHorarioMedico');
-            container.innerHTML = '';
-            if (data.horarios && data.horarios.length > 0) {
-                const diasNombre = {1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo'};
-                data.horarios.sort((a, b) => a.dia_semana - b.dia_semana);
-                data.horarios.forEach(h => {
-                    const ent = h.hora_entrada.substring(0, 5);
-                    const sal = h.hora_salida.substring(0, 5);
-                    container.innerHTML += `<div class="d-flex justify-content-between border-bottom py-1">
+                    modalInstance.show();
+                    const response = await fetch(`/medicos/${medicoId}`, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Error al obtener datos');
+
+                    const data = await response.json();
+
+                    inputNombre.innerHTML = data.nombre;
+                    inputApellidos.innerHTML = data.apellido;
+                    inputCedula.innerHTML = data.cedula;
+                    inputTelefono.innerHTML = data.telefono;
+                    inputEspecialidad.innerHTML = data.especialidad.nombre;
+
+                    // Mostrar horario
+                    const container = document.getElementById('mostrarHorarioMedico');
+                    container.innerHTML = '';
+                    if (data.horarios && data.horarios.length > 0) {
+                        const diasNombre = {
+                            1: 'Lunes',
+                            2: 'Martes',
+                            3: 'Miércoles',
+                            4: 'Jueves',
+                            5: 'Viernes',
+                            6: 'Sábado',
+                            7: 'Domingo'
+                        };
+                        data.horarios.sort((a, b) => a.dia_semana - b.dia_semana);
+                        data.horarios.forEach(h => {
+                            const ent = h.hora_entrada.substring(0, 5);
+                            const sal = h.hora_salida.substring(0, 5);
+                            container.innerHTML += `<div class="d-flex justify-content-between border-bottom py-1">
                         <span><strong>${diasNombre[h.dia_semana]}:</strong></span>
                         <span>${ent} a ${sal}</span>
                     </div>`;
-                });
-            } else {
-                container.innerHTML = '<span class="text-muted">Sin horario restringido (Disponible todos los días)</span>';
+                        });
+                    } else {
+                        container.innerHTML =
+                            '<span class="text-muted">Sin horario restringido (Disponible todos los días)</span>';
+                    }
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
+                }
+            }
+        });
+
+        // Manejadores de eventos de cambio de checkbox para mostrar/ocultar y habilitar/deshabilitar los campos de tiempo
+        document.addEventListener('change', function(event) {
+            if (event.target.classList.contains('check-dia-reg')) {
+                const checkbox = event.target;
+                const parent = checkbox.closest('.day-card');
+
+                const timeInputsDiv = parent.querySelector('.time-inputs-reg');
+                const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
+                if (checkbox.checked) {
+                    parent.style.borderLeftColor = '#0d6efd';
+
+                    timeInputsDiv.style.display = 'flex';
+                    inputs.forEach(input => {
+                        input.disabled = false;
+                        input.required = true;
+                    });
+                } else {
+                    parent.style.borderLeftColor = '#dee2e6';
+                    timeInputsDiv.style.display = 'none';
+                    inputs.forEach(input => {
+                        input.disabled = true;
+                        input.required = false;
+                        input.value = '';
+                    });
+                }
             }
 
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
-        }
-    }
-});
+            if (event.target.classList.contains('check-dia-edit')) {
+                const checkbox = event.target;
+                const parent = checkbox.closest('.day-card');
 
-// Manejadores de eventos de cambio de checkbox para mostrar/ocultar y habilitar/deshabilitar los campos de tiempo
-document.addEventListener('change', function(event) {
-    if (event.target.classList.contains('check-dia-reg')) {
-        const checkbox = event.target;
-        const parent = checkbox.closest('.day-card');
-    
-        const timeInputsDiv = parent.querySelector('.time-inputs-reg');
-        const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
-        if (checkbox.checked) {
-            parent.style.borderLeftColor = '#0d6efd';
-           
-            timeInputsDiv.style.display = 'flex';
-            inputs.forEach(input => {
-                input.disabled = false;
-                input.required = true;
-            });
-        } else {
-            parent.style.borderLeftColor = '#dee2e6';
-            timeInputsDiv.style.display = 'none';
-            inputs.forEach(input => {
-                input.disabled = true;
-                input.required = false;
-                input.value = '';
-            });
-        }
-    }
+                const timeInputsDiv = parent.querySelector('.time-inputs-edit');
+                const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
+                if (checkbox.checked) {
+                    parent.style.borderLeftColor = '#0d6efd';
+                    timeInputsDiv.style.display = 'flex';
+                    inputs.forEach(input => {
+                        input.disabled = false;
+                        input.required = true;
+                    });
+                } else {
+                    parent.style.borderLeftColor = '#dee2e6';
 
-    if (event.target.classList.contains('check-dia-edit')) {
-        const checkbox = event.target;
-        const parent = checkbox.closest('.day-card');
-        
-        const timeInputsDiv = parent.querySelector('.time-inputs-edit');
-        const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
-        if (checkbox.checked) {
-            parent.style.borderLeftColor = '#0d6efd';
-            timeInputsDiv.style.display = 'flex';
-            inputs.forEach(input => {
-                input.disabled = false;
-                input.required = true;
-            });
-        } else {
-            parent.style.borderLeftColor = '#dee2e6';
-    
-            timeInputsDiv.style.display = 'none';
-            inputs.forEach(input => {
-                input.disabled = true;
-                input.required = false;
-                input.value = '';
-            });
-        }
-    }
-});
+                    timeInputsDiv.style.display = 'none';
+                    inputs.forEach(input => {
+                        input.disabled = true;
+                        input.required = false;
+                        input.value = '';
+                    });
+                }
+            }
+        });
 
-// Mostrar modal de registro si hay errores de validación
-@if ($errors->any() && !isset($medicoToEdit) && !isset($medicoToshow))
-    document.addEventListener('DOMContentLoaded', function() {
-        var modalEl = document.getElementById('modalMedico');
-        if (modalEl) {
-            var modal = new bootstrap.Modal(modalEl);
-            modal.show();
-        }
-    });
-@endif
-</script>
+        // Mostrar modal de registro si hay errores de validación
+        @if ($errors->any() && !isset($medicoToEdit) && !isset($medicoToshow))
+            document.addEventListener('DOMContentLoaded', function() {
+                var modalEl = document.getElementById('modalMedico');
+                if (modalEl) {
+                    var modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                }
+            });
+        @endif
+
+         @if ($errors->any())
+            const errorMessages = @json(implode("\n", $errors->all()));
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: errorMessages
+            });
+        @endif
+    </script>
 @endpush
