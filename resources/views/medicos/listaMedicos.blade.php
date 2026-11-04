@@ -141,23 +141,22 @@
                                                 <div class="row g-2 time-inputs-reg mt-1"
                                                     style="{{ $isChecked ? 'display: flex;' : 'display: none;' }}">
                                                     <div class="col-6">
-                                                        <label class="small text-muted mb-1"
-                                                            style="font-size: 0.75rem;"><i
-                                                                class="bi bi-clock me-1 text-primary"></i> Entrada</label>
+                                                        <label class="small text-muted mb-1" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-clock me-1 text-primary"></i> Entrada
+                                                        </label>
                                                         <input type="time"
                                                             name="horarios[{{ $val }}][hora_entrada]"
-                                                            class="form-control form-control-sm"
+                                                            class="form-control form-control-sm @error("horarios.$val.hora_entrada") is-invalid @enderror"
                                                             value="{{ old("horarios.$val.hora_entrada") }}"
                                                             {{ $isChecked ? '' : 'disabled' }}>
                                                     </div>
                                                     <div class="col-6">
-                                                        <label class="small text-muted mb-1"
-                                                            style="font-size: 0.75rem;"><i
-                                                                class="bi bi-clock-fill me-1 text-danger"></i>
-                                                            Salida</label>
+                                                        <label class="small text-muted mb-1" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-clock-fill me-1 text-danger"></i> Salida
+                                                        </label>
                                                         <input type="time"
                                                             name="horarios[{{ $val }}][hora_salida]"
-                                                            class="form-control form-control-sm"
+                                                            class="form-control form-control-sm @error("horarios.$val.hora_salida") is-invalid @enderror"
                                                             value="{{ old("horarios.$val.hora_salida") }}"
                                                             {{ $isChecked ? '' : 'disabled' }}>
                                                     </div>
@@ -189,17 +188,21 @@
                     <h5 class="modal-title" id="modalEditarMedicoLabel">Editar Médico</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <form action="" method="POST">
+                <!-- Se asigna la URL dinámicamente si existe un error previo en la edición -->
+                <form action="{{ old('_method') == 'PUT' && old('id') ? url('/medicos/' . old('id')) : '' }}"
+                    method="POST">
                     @csrf
                     @method('PUT')
                     <div class="modal-body">
-                        <input type="hidden" id="id">
+                        <!-- Es vital añadir name="id" para recuperar el ID con old() -->
+                        <input type="hidden" id="id" name="id"
+                            value="{{ old('_method') == 'PUT' ? old('id') : '' }}">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
                                     <input type="text" name="cedula" class="form-control" id="editarCedulaMedico"
                                         placeholder="Cédula" required pattern="[0-9]+" maxlength="20"
-                                        title="Solo números">
+                                        title="Solo números" value="{{ old('_method') == 'PUT' ? old('cedula') : '' }}">
                                     <label for="editarCedulaMedico">Cédula</label>
                                 </div>
                                 @error('cedula')
@@ -212,7 +215,8 @@
                                 <div class="form-floating">
                                     <input type="text" name="nombre" class="form-control" id="editarNombreMedico"
                                         placeholder="Nombre" required pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+"
-                                        title="Solo se permiten letras y espacios">
+                                        title="Solo se permiten letras y espacios"
+                                        value="{{ old('_method') == 'PUT' ? old('nombre') : '' }}">
                                     <label for="editarNombreMedico">Nombres</label>
                                 </div>
                                 @error('nombre')
@@ -223,7 +227,8 @@
                                 <div class="form-floating">
                                     <input type="text" name="apellido" class="form-control" id="editarApellidoMedico"
                                         placeholder="Apellido" required pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ\s]+"
-                                        title="Solo se permiten letras y espacios">
+                                        title="Solo se permiten letras y espacios"
+                                        value="{{ old('_method') == 'PUT' ? old('apellido') : '' }}">
                                     <label for="editarApellidoMedico">Apellidos</label>
                                 </div>
                                 @error('apellido')
@@ -235,7 +240,8 @@
                                 <div class="form-floating">
                                     <input type="text" name="telefono" class="form-control" id="editarTelefonoMedico"
                                         placeholder="Teléfono" required pattern="[\d\-\(\)\s\+]+"
-                                        title="Solo se permiten números, guiones, paréntesis y espacios">
+                                        title="Solo se permiten números, guiones, paréntesis y espacios"
+                                        value="{{ old('_method') == 'PUT' ? old('telefono') : '' }}">
                                     <label for="editarTelefonoMedico">Teléfono</label>
                                 </div>
                                 @error('telefono')
@@ -248,7 +254,10 @@
                                     style="padding: 0.58rem 0.75rem;" required>
                                     <option value="">Seleccione una especialidad</option>
                                     @foreach ($especialidades as $especialidad)
-                                        <option value="{{ $especialidad->id }}">{{ $especialidad->nombre }}</option>
+                                        <option value="{{ $especialidad->id }}"
+                                            {{ old('_method') == 'PUT' && old('especialidad_id') == $especialidad->id ? 'selected' : '' }}>
+                                            {{ $especialidad->nombre }}
+                                        </option>
                                     @endforeach
                                 </select>
                                 @error('especialidad_id')
@@ -261,15 +270,17 @@
                                     la semana y horas)</label>
                                 <div class="row g-3">
                                     @foreach ($dias as $val => $nom)
+                                        @php $isCheckedEdit = (old('_method') == 'PUT' && old("horarios.$val.checked")) ? true : false; @endphp
                                         <div class="col-md-6 col-12">
                                             <div class="card border border-light-subtle shadow-xs h-100 day-card p-3"
-                                                style="transition: all 0.2s; border-left: 4px solid #dee2e6 !important;">
+                                                style="transition: all 0.2s; border-left: 4px solid {{ $isCheckedEdit ? '#0d6efd' : '#dee2e6' }} !important;">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div class="d-flex align-items-center">
                                                         <div class="form-check form-switch me-3 mb-0">
                                                             <input class="form-check-input check-dia-edit" type="checkbox"
                                                                 name="horarios[{{ $val }}][checked]"
-                                                                value="1" id="dia_edit_{{ $val }}">
+                                                                value="1" id="dia_edit_{{ $val }}"
+                                                                {{ $isCheckedEdit ? 'checked' : '' }}>
                                                         </div>
                                                         <label class="form-check-label fw-bold mb-0 text-dark"
                                                             for="dia_edit_{{ $val }}">
@@ -279,23 +290,27 @@
                                                     </div>
 
                                                 </div>
-                                                <div class="row g-2 time-inputs-edit mt-1" style="display: none;">
+                                                <div class="row g-2 time-inputs-edit mt-1"
+                                                    style="{{ $isCheckedEdit ? 'display: flex;' : 'display: none;' }}">
                                                     <div class="col-6">
-                                                        <label class="small text-muted mb-1"
-                                                            style="font-size: 0.75rem;"><i
-                                                                class="bi bi-clock me-1 text-primary"></i> Entrada</label>
+                                                        <label class="small text-muted mb-1" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-clock me-1 text-primary"></i> Entrada
+                                                        </label>
                                                         <input type="time"
                                                             name="horarios[{{ $val }}][hora_entrada]"
-                                                            class="form-control form-control-sm" disabled>
+                                                            class="form-control form-control-sm @error("horarios.$val.hora_entrada") is-invalid @enderror"
+                                                            value="{{ old('_method') == 'PUT' ? old("horarios.$val.hora_entrada") : '' }}"
+                                                            {{ $isCheckedEdit ? '' : 'disabled' }}>
                                                     </div>
                                                     <div class="col-6">
-                                                        <label class="small text-muted mb-1"
-                                                            style="font-size: 0.75rem;"><i
-                                                                class="bi bi-clock-fill me-1 text-danger"></i>
-                                                            Salida</label>
+                                                        <label class="small text-muted mb-1" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-clock-fill me-1 text-danger"></i> Salida
+                                                        </label>
                                                         <input type="time"
                                                             name="horarios[{{ $val }}][hora_salida]"
-                                                            class="form-control form-control-sm" disabled>
+                                                            class="form-control form-control-sm @error("horarios.$val.hora_salida") is-invalid @enderror"
+                                                            value="{{ old('_method') == 'PUT' ? old("horarios.$val.hora_salida") : '' }}"
+                                                            {{ $isCheckedEdit ? '' : 'disabled' }}>
                                                     </div>
                                                 </div>
                                             </div>
@@ -648,23 +663,30 @@
         });
 
         // Mostrar modal de registro si hay errores de validación
-        @if ($errors->any() && !isset($medicoToEdit) && !isset($medicoToshow))
+        @if ($errors->any())
             document.addEventListener('DOMContentLoaded', function() {
-                var modalEl = document.getElementById('modalMedico');
-                if (modalEl) {
-                    var modal = new bootstrap.Modal(modalEl);
-                    modal.show();
-                }
-            });
-        @endif
+                @if (old('_method') === 'PUT')
+                    // Si el error ocurrió en la edición, mostramos el modal de editar
+                    var modalEditEl = document.getElementById('modalEditarMedico');
+                    if (modalEditEl) {
+                        var modalEdit = new bootstrap.Modal(modalEditEl);
+                        modalEdit.show();
+                    }
+                @else
+                    // Si no, asumimos que fue al registrar, mostramos el modal de registro
+                    var modalRegEl = document.getElementById('modalMedico');
+                    if (modalRegEl) {
+                        var modalReg = new bootstrap.Modal(modalRegEl);
+                        modalReg.show();
+                    }
+                @endif
+                const errorMessages = @json(implode("\n", $errors->all()));
 
-         @if ($errors->any())
-            const errorMessages = @json(implode("\n", $errors->all()));
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: errorMessages
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorMessages
+                });
             });
         @endif
     </script>
