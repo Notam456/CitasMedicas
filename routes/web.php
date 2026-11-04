@@ -90,7 +90,7 @@ Route::middleware(['auth', 'can:Procedencia'])->group(function () {
 
 // Rutas de API
 
-Route::middleware(['auth', 'can:Cita,Pacientes'])->group(function () {
+Route::middleware(['auth', 'can:Cita'])->group(function () {
     Route::get('/api/municipios/{estado_id}', [MunicipioController::class, 'getMunicipios'])->middleware('throttle:citas_flujo');
     Route::get('/api/parroquias/{municipio_id}', [ParroquiaController::class, 'getParroquias'])->middleware('throttle:citas_flujo');
 });
@@ -105,7 +105,6 @@ Route::middleware(['auth', 'can:Cita'])->group(function () {
     //Rutas resource
     Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita'])->only(['index', 'create', 'show'])->middleware('throttle:citas_flujo');
     Route::resource('Citas', CitaController::class)->parameters(['Citas' => 'cita'])->only(['store'])->middleware('throttle:crud_escritura');
-    Route::get('/Citas/{id}/show', [CitaController::class, 'show'])->middleware('throttle:citas_flujo');
 });
     Route::middleware(['auth', 'can:Planificación'])->group(function () {
     Route::get('/calendario/medicos/{especialidad}', [CalendarioController::class, 'getMedicos'])->middleware('throttle:crud_lectura');

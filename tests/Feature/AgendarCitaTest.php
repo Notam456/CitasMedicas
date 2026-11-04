@@ -279,4 +279,28 @@ class AgendarCitaTest extends TestCase
         $response->assertSessionHasErrors('telefono');
         $this->assertDatabaseCount('citas', 0);
     }
+
+    // ===== RIF con guion (formato del seeder: J-12345678-5) =====
+
+    public function test_agenda_cita_guarda_rif_con_guion_completo(): void
+    {
+        $this->actingAs($this->admin());
+
+        $this->post(route('Citas.store'), $this->payload(['rif' => '12345678-5']));
+
+        $this->assertDatabaseHas('pacientes', [
+            'cedula' => 'V-123456789',
+            'rif' => 'J-12345678-5',
+        ]);
+    }
+
+    public function test_formulario_de_cita_acepta_rif_con_guion(): void
+    {
+        $this->actingAs($this->admin());
+
+        $this->get(route('Citas.create'))
+            ->assertOk()
+            ->assertSee('name="rif"', false)
+            ->assertSee('pattern="[0-9-]*"', false);
+    }
 }

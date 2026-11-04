@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Municipio;
 use App\Models\Estado;
 use App\Models\Distrito;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Validation\Rule;
@@ -167,7 +168,18 @@ class MunicipioController extends Controller
             }
         }
 
-        $municipio->delete();
+        if ($parroquias = $municipio->parroquias()->count()) {
+            Alert::error('No se puede eliminar', "Este municipio tiene {$parroquias} parroquia(s) asignada(s). Elimine o reasigne primero sus parroquias.");
+            return redirect()->back();
+        }
+
+        try {
+            $municipio->delete();
+        } catch (QueryException $e) {
+            Alert::error('No se puede eliminar', 'El municipio tiene otros registros asociados.');
+            return redirect()->back();
+        }
+
         Alert::success('Municipio eliminado exitosamente.');
         return redirect()->route('municipios.index');
     }

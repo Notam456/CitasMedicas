@@ -58,7 +58,7 @@
                                 <label class="form-label text-muted small fw-bold">RIF</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light fw-bold">J</span>
-                                    <input type="text" class="form-control" id="editarRifPaciente" name="rif" placeholder="123456789" pattern="[0-9]*" maxlength="20" title="Solo números">
+                                    <input type="text" class="form-control" id="editarRifPaciente" name="rif" placeholder="12345678-9" pattern="[0-9-]*" maxlength="20" title="Números y guion">
                                 </div>
                                 @error('rif')
                                     <small class="text-danger">{{ $message }}</small>

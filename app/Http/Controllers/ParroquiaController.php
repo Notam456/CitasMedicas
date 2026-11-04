@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Parroquia;
 use App\Models\Municipio;
 use App\Models\Estado;
+use App\Models\Paciente;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Validation\Rule;
@@ -144,7 +146,18 @@ class ParroquiaController extends Controller
     public function destroy($id)
     {
         $parroquia = Parroquia::findOrFail($id);
-        $parroquia->delete();
+
+        if ($pacientes = Paciente::where('parroquia_id', $id)->count()) {
+            Alert::error('No se puede eliminar', "La parroquia tiene {$pacientes} paciente(s) asignado(s). Reasigne su procedencia antes de eliminarla.");
+            return redirect()->back();
+        }
+
+        try {
+            $parroquia->delete();
+        } catch (QueryException $e) {
+            Alert::error('No se puede eliminar', 'La parroquia tiene otros registros asociados.');
+            return redirect()->back();
+        }
 
         Alert::success('Parroquia eliminada exitosamente.');
         return redirect()->route('parroquias.index');
