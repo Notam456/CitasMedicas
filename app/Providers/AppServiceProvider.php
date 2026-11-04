@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureRateLimiters();
+
+        Gate::define('suspender-medicos', function ($user) {
+            return $user->hasRole('administrador') || $user->hasAnyPermission(['Médicos inactivos', 'Medico']);
+        });
     }
 
     /**
@@ -48,6 +53,6 @@ class AppServiceProvider extends ServiceProvider
         }
 
         return Limit::perMinutes($config['decay'], $config['attempts'])
-            ->by(($name === 'gestion_citas' && $export ? 'export:' : '') . ($request->user()?->id ?? $request->ip()));
+            ->by(($name === 'gestion_citas' && $export ? 'export:' : '').($request->user()?->id ?? $request->ip()));
     }
 }

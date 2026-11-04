@@ -64,10 +64,11 @@ class MedicoController extends Controller
 
         $dataFormatted = [];
         foreach ($data as $row) {
-            $btnShow = '<button type="button" data-id="' . $row->id . '" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
-            $btnEdit = '<button type="button" data-id="' . $row->id . '" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
+            $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
+            $btnEdit = '<button type="button" data-id="'.$row->id.'" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
+            $btnSuspender = '<button type="button" data-id="'.$row->id.'" data-nombre="'.e($row->nombre.' '.$row->apellido).'" data-especialidad-id="'.$row->especialidad_id.'" data-especialidad-nombre="'.e($row->especialidad->nombre ?? 'N/A').'" class="btn-suspender btn btn-xs btn-square btn-neutral"><i class="bi bi-person-x"></i></button>';
             // $btnDelete = '<a href="' . route('medicos.destroy', $row->id) . '" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
-            $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . /* $btnDelete . */ '</div>';
+            $acciones = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnEdit.$btnSuspender.'</div>';
 
             $dataFormatted[] = [
                 $row->nombre,
@@ -95,6 +96,7 @@ class MedicoController extends Controller
     public function show(int $id)
     {
         $medicoToShow = Medico::with('especialidad', 'horarios')->findOrFail($id);
+
         return response()->json($medicoToShow);
     }
 
@@ -145,12 +147,14 @@ class MedicoController extends Controller
         Notification::send(User::all(), new NuevoMedico($medico));
 
         alert()->success('Médico creado exitosamente.');
+
         return redirect()->route('medicos.index');
     }
 
     public function edit(int $id)
     {
         $medicoToEdit = Medico::with('especialidad', 'horarios')->findOrFail($id);
+
         return response()->json($medicoToEdit);
     }
 
@@ -165,7 +169,7 @@ class MedicoController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
             'apellido' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u',
-            'cedula' => 'required|string|unique:medicos,cedula,' . $id,
+            'cedula' => 'required|string|unique:medicos,cedula,'.$id,
             'telefono' => 'required|string|max:20|regex:/^[\d\-\(\)\s\+]+$/',
             'especialidad_id' => 'required|exists:especialidades,id',
             'horarios' => 'nullable|array',
@@ -192,11 +196,11 @@ class MedicoController extends Controller
             }
         }
 
-        if (!empty($diasPermitidos)) {
+        if (! empty($diasPermitidos)) {
             $planificaciones = $medico->calendarios()->where('fecha', '>=', now()->toDateString())->get();
             foreach ($planificaciones as $plan) {
                 $diaSemana = Carbon::parse($plan->fecha)->dayOfWeekIso;
-                if (!isset($diasPermitidos[$diaSemana])) {
+                if (! isset($diasPermitidos[$diaSemana])) {
                     $conflictos++;
                 } else {
                     $planInicio = Carbon::parse($plan->hora_inicio)->format('H:i');
@@ -220,7 +224,7 @@ class MedicoController extends Controller
         ]));
 
         $medico->horarios()->delete();
-        if (!empty($diasPermitidos)) {
+        if (! empty($diasPermitidos)) {
             foreach ($diasPermitidos as $dia => $h) {
                 $medico->horarios()->create([
                     'dia_semana' => $dia,
@@ -236,7 +240,7 @@ class MedicoController extends Controller
             alert()->success('Médico actualizado exitosamente.');
         }
 
-        if (!auth()->user()->hasRole('administrador')) {
+        if (! auth()->user()->hasRole('administrador')) {
             $admins = User::role('administrador')->get();
             Notification::send($admins, new MedicoModificado($medico, auth()->user()));
         }
@@ -249,11 +253,13 @@ class MedicoController extends Controller
         $medico = Medico::withCount('citas')->findOrFail($id);
         if ($medico->citas_count > 0) {
             alert()->error('No se puede eliminar', 'Este médico tiene citas médicas asociadas en el sistema.');
+
             return redirect()->route('medicos.index');
         }
         $medico->delete();
 
         alert()->success('Médico eliminado exitosamente.');
+
         return redirect()->route('medicos.index');
     }
 }

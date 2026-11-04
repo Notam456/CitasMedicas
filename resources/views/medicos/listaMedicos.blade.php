@@ -194,9 +194,7 @@
                     @csrf
                     @method('PUT')
                     <div class="modal-body">
-                        <!-- Es vital añadir name="id" para recuperar el ID con old() -->
-                        <input type="hidden" id="id" name="id"
-                            value="{{ old('_method') == 'PUT' ? old('id') : '' }}">
+                        <input type="hidden" id="id">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
@@ -373,321 +371,514 @@
         </div>
     </div>
 
+    <!-- Modal Suspender Médico -->
+    <div class="modal fade" id="modalSuspenderMedico" tabindex="-1" aria-labelledby="modalSuspenderMedicoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalSuspenderMedicoLabel"><i class="bi bi-person-x-fill me-2 text-danger"></i>Registrar Suspensión</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form id="formSuspenderMedico" action="{{ route('suspensiones.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="medico_id" id="suspender_medico_id_hidden">
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Especialidad (Deshabilitado / Solo lectura) -->
+                            <div class="col-md-12 mb-3">
+                                <label for="suspender_especialidad_id" class="form-label fw-bold">Especialidad</label>
+                                <select id="suspender_especialidad_id" class="form-select" disabled>
+                                    <option value="">Seleccione una especialidad</option>
+                                    @foreach ($especialidades as $esp)
+                                        <option value="{{ $esp->id }}">{{ $esp->nombre }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Médico a suspender (Deshabilitado / Solo lectura) -->
+                            <div class="col-md-12 mb-3">
+                                <label for="suspender_medico_id_display" class="form-label fw-bold">Médico a suspender</label>
+                                <select id="suspender_medico_id_display" class="form-select" disabled>
+                                    <option value="">Cargando médico...</option>
+                                </select>
+                            </div>
+
+                            <!-- Fechas -->
+                            <div class="col-md-6 mb-3">
+                                <label for="suspender_fecha_inicio" class="form-label fw-bold">Fecha de Inicio</label>
+                                <input type="date" name="fecha_inicio" id="suspender_fecha_inicio" class="form-control" required min="{{ date('Y-m-d') }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="suspender_fecha_fin" class="form-label fw-bold">Fecha de Fin</label>
+                                <input type="date" name="fecha_fin" id="suspender_fecha_fin" class="form-control" required min="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <!-- Médico Suplente -->
+                            <div class="col-md-12 mb-3">
+                                <label for="suspender_suplente_id" class="form-label fw-bold">Médico Suplente (Opcional)</label>
+                                <select name="suplente_id" id="suspender_suplente_id" class="form-select" disabled>
+                                    <option value="">Seleccione primero el rango de fechas</option>
+                                </select>
+                                <small class="text-muted d-block mt-1">Si no selecciona ningún suplente, las citas agendadas en este periodo de tiempo se cancelarán automáticamente.</small>
+                            </div>
+
+                            <!-- Motivo -->
+                            <div class="col-md-12 mb-3">
+                                <label for="suspender_motivo" class="form-label fw-bold">Motivo (Opcional)</label>
+                                <textarea name="motivo" id="suspender_motivo" rows="3" class="form-control" placeholder="Escriba el motivo de la suspensión..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-person-dash-fill me-1"></i> Suspender Médico</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     @include('layouts.footer')
 @endsection
 
 @push('scripts')
-    <link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
-    <script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
+<link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
+<script src="{{ asset('vendor/datatables/datatables.min.js') }}"></script>
+<script src="{{ asset('vendor/sweetalert/sweetalert.all.js') }}"></script>
 
-    <script>
-        $(document).ready(function() {
-            $('#tablaMedicos').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('medicos.index') }}',
-                columns: [{
-                        data: 0,
-                        name: 'nombre'
-                    },
-                    {
-                        data: 1,
-                        name: 'apellido'
-                    },
-                    {
-                        data: 2,
-                        name: 'cedula'
-                    },
-                    {
-                        data: 3,
-                        name: 'telefono'
-                    },
-                    {
-                        data: 4,
-                        name: 'especialidad'
-                    },
-                    {
-                        data: 5,
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-end'
-                    }
-                ],
-                language: {
-                    url: "{{ asset('vendor/datatables/es-ES.json') }}"
-                },
-                pageLength: 10,
-                lengthMenu: [
-                    [10, 25, 50, -1],
-                    [10, 25, 50, "Todas"]
-                ],
-                order: [
-                    [0, 'asc']
-                ]
+<script>
+let tablaMedicosInstance = null;
+
+$(document).ready(function() {
+    tablaMedicosInstance = $('#tablaMedicos').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: '{{ route("medicos.index") }}',
+        columns: [
+            { data: 0, name: 'nombre' },
+            { data: 1, name: 'apellido' },
+            { data: 2, name: 'cedula' },
+            { data: 3, name: 'telefono' },
+            { data: 4, name: 'especialidad' },
+            { data: 5, name: 'action', orderable: false, searchable: false, className: 'text-end' }
+        ],
+        language: { url: "{{ asset('vendor/datatables/es-ES.json') }}" },
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todas"]],
+        order: [[0, 'asc']]
+    });
+
+    // Elementos del modal de suspensión
+    const inputSuspenderMedicoHidden = $('#suspender_medico_id_hidden');
+    const selectSuspenderEspecialidad = $('#suspender_especialidad_id');
+    const selectSuspenderMedicoDisplay = $('#suspender_medico_id_display');
+    const inputSuspenderInicio = $('#suspender_fecha_inicio');
+    const inputSuspenderFin = $('#suspender_fecha_fin');
+    const selectSuspenderSuplente = $('#suspender_suplente_id');
+    const formSuspender = $('#formSuspenderMedico');
+
+    // Función para actualizar médicos suplentes disponibles
+    async function actualizarSuplentesSuspension() {
+        const medicoId = inputSuspenderMedicoHidden.val();
+        const start = inputSuspenderInicio.val();
+        const end = inputSuspenderFin.val();
+
+        if (!medicoId || !start || !end) {
+            selectSuspenderSuplente.html('<option value="">Seleccione primero el rango de fechas</option>');
+            selectSuspenderSuplente.prop('disabled', true);
+            return;
+        }
+
+        try {
+            selectSuspenderSuplente.prop('disabled', true);
+            selectSuspenderSuplente.html('<option value="">Cargando suplentes disponibles...</option>');
+
+            const response = await fetch(`/api/medicos/${medicoId}/suplentes-disponibles?fecha_inicio=${start}&fecha_fin=${end}`);
+            if (!response.ok) throw new Error('Error al obtener suplentes');
+
+            const suplentes = await response.json();
+
+            let options = '<option value="">Ninguno (Se cancelarán las citas agendadas)</option>';
+            suplentes.forEach(s => {
+                options += `<option value="${s.id}">Dr. ${s.nombre} ${s.apellido}</option>`;
             });
-        });
 
-        // Eventos para editar/mostrar (igual que antes, pero ahora usando delegación de eventos en #tablaMedicos)
-        document.addEventListener('click', async function(event) {
-            const btnEdit = event.target.closest('.btn-edit');
-            const btnShow = event.target.closest('.btn-show');
+            selectSuspenderSuplente.html(options);
+            selectSuspenderSuplente.prop('disabled', false);
+        } catch (error) {
+            console.error('Error:', error);
+            selectSuspenderSuplente.html('<option value="">Error al cargar suplentes</option>');
+        }
+    }
 
-            if (btnEdit) {
-                const medicoId = btnEdit.getAttribute('data-id');
-                const inputNombre = document.getElementById('editarNombreMedico');
-                const inputApellidos = document.getElementById('editarApellidoMedico');
-                const inputCedula = document.getElementById('editarCedulaMedico');
-                const inputTelefono = document.getElementById('editarTelefonoMedico');
-                const inputEspecialidad = document.getElementById('editarEspecialidadMedico');
+    inputSuspenderInicio.on('change', function() {
+        inputSuspenderFin.attr('min', inputSuspenderInicio.val());
+        actualizarSuplentesSuspension();
+    });
+    inputSuspenderFin.on('change', actualizarSuplentesSuspension);
 
-                try {
-                    const modalElement = document.getElementById('modalEditarMedico');
-                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (!modalInstance) {
-                        modalInstance = new bootstrap.Modal(modalElement);
-                    }
+    // Evento submit de suspensión
+    formSuspender.on('submit', async function(e) {
+        e.preventDefault();
 
-                    inputNombre.disabled = true;
-                    inputNombre.value = "Cargando...";
-                    inputApellidos.disabled = true;
-                    inputApellidos.value = "Cargando...";
-                    inputCedula.disabled = true;
-                    inputCedula.value = "Cargando...";
-                    inputTelefono.disabled = true;
-                    inputTelefono.value = "Cargando...";
-                    inputEspecialidad.disabled = true;
-                    inputEspecialidad.value = "Cargando...";
+        const medicoId = inputSuspenderMedicoHidden.val();
+        const start = inputSuspenderInicio.val();
+        const end = inputSuspenderFin.val();
+        const suplenteId = selectSuspenderSuplente.val();
 
-                    modalInstance.show();
-                    const response = await fetch(`/medicos/${medicoId}/edit`, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
+        if (!medicoId || !start || !end) {
+            Swal.fire('Atención', 'Por favor complete todos los campos obligatorios.', 'warning');
+            return;
+        }
+
+        // Si no se selecciona suplente, verificar si hay citas para mostrar confirmación SweetAlert
+        if (!suplenteId) {
+            try {
+                const response = await fetch(`/api/medicos/${medicoId}/citas-activas-count?fecha_inicio=${start}&fecha_fin=${end}`);
+                if (!response.ok) throw new Error('Error al consultar citas');
+
+                const data = await response.json();
+
+                if (data.count > 0) {
+                    const confirmRes = await Swal.fire({
+                        title: '¿Confirmar cancelación de citas?',
+                        text: `El médico tiene ${data.count} cita(s) agendada(s) para este rango de fechas. Si no selecciona un suplente, se cancelarán automáticamente y se enviará una notificación a los administradores.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Sí, cancelar y suspender',
+                        cancelButtonText: 'Cancelar'
                     });
 
-                    if (!response.ok) throw new Error('Error al obtener datos');
-
-                    const data = await response.json();
-
-                    document.getElementById('id').value = data.id;
-                    inputNombre.value = data.nombre;
-                    inputNombre.disabled = false;
-                    inputApellidos.disabled = false;
-                    inputApellidos.value = data.apellido;
-                    inputCedula.disabled = false;
-                    inputCedula.value = data.cedula;
-                    inputTelefono.disabled = false;
-                    inputTelefono.value = data.telefono;
-                    inputEspecialidad.disabled = false;
-                    inputEspecialidad.value = data.especialidad_id;
-
-                    // Limpiar y marcar horarios
-                    document.querySelectorAll('.check-dia-edit').forEach(check => {
-                        check.checked = false;
-                        const parent = check.closest('.day-card');
-                        parent.style.borderLeftColor = '#dee2e6';
-
-                        const timeInputsDiv = parent.querySelector('.time-inputs-edit');
-                        timeInputsDiv.style.display = 'none';
-                        const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
-                        inputs.forEach(input => {
-                            input.disabled = true;
-                            input.required = false;
-                            input.value = '';
-                        });
-                    });
-
-                    if (data.horarios) {
-                        data.horarios.forEach(h => {
-                            const check = document.getElementById(`dia_edit_${h.dia_semana}`);
-                            if (check) {
-                                check.checked = true;
-                                const parent = check.closest('.day-card');
-                                parent.style.borderLeftColor = '#0d6efd';
-
-
-                                const timeInputsDiv = parent.querySelector('.time-inputs-edit');
-                                timeInputsDiv.style.display = 'flex';
-                                const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
-                                inputs.forEach(input => {
-                                    input.disabled = false;
-                                    input.required = true;
-                                });
-                                const entInput = parent.querySelector(
-                                    `input[name="horarios[${h.dia_semana}][hora_entrada]"]`);
-                                const salInput = parent.querySelector(
-                                    `input[name="horarios[${h.dia_semana}][hora_salida]"]`);
-                                if (entInput) entInput.value = h.hora_entrada.substring(0, 5);
-                                if (salInput) salInput.value = h.hora_salida.substring(0, 5);
-                            }
-                        });
+                    if (!confirmRes.isConfirmed) {
+                        return;
                     }
-
-                    const form = document.querySelector('#modalEditarMedico form');
-                    form.action = `/medicos/${data.id}`;
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
                 }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // Enviar la suspensión vía AJAX
+        try {
+            Swal.fire({
+                title: 'Procesando...',
+                text: 'Por favor espere mientras registramos la suspensión.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const formData = new FormData(this);
+            const storeRes = await fetch('{{ route("suspensiones.store") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            const storeData = await storeRes.json();
+
+            if (storeData.error) {
+                Swal.fire('Error', storeData.message, 'error');
+            } else {
+                Swal.fire('¡Éxito!', storeData.message, 'success').then(() => {
+                    $('#modalSuspenderMedico').modal('hide');
+                    formSuspender[0].reset();
+                    selectSuspenderSuplente.html('<option value="">Seleccione primero el rango de fechas</option>').prop('disabled', true);
+                    if (tablaMedicosInstance) {
+                        tablaMedicosInstance.ajax.reload(null, false);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudo completar el registro de la suspensión.', 'error');
+        }
+    });
+});
+
+// Eventos para editar/mostrar/suspender (delegación de eventos en #tablaMedicos)
+document.addEventListener('click', async function(event) {
+    const btnEdit = event.target.closest('.btn-edit');
+    const btnShow = event.target.closest('.btn-show');
+    const btnSuspender = event.target.closest('.btn-suspender');
+
+    if (btnSuspender) {
+        const medicoId = btnSuspender.getAttribute('data-id');
+        const medicoNombre = btnSuspender.getAttribute('data-nombre');
+        const especialidadId = btnSuspender.getAttribute('data-especialidad-id');
+        const especialidadNombre = btnSuspender.getAttribute('data-especialidad-nombre');
+
+        const modalElement = document.getElementById('modalSuspenderMedico');
+        let modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (!modalInstance) {
+            modalInstance = new bootstrap.Modal(modalElement);
+        }
+
+        // Resetear formulario
+        const form = document.getElementById('formSuspenderMedico');
+        form.reset();
+
+        document.getElementById('suspender_medico_id_hidden').value = medicoId;
+
+        // Establecer especialidad (deshabilitada)
+        const selectEsp = document.getElementById('suspender_especialidad_id');
+        if (selectEsp) {
+            selectEsp.value = especialidadId;
+        }
+
+        // Establecer médico display (deshabilitado)
+        const selectMed = document.getElementById('suspender_medico_id_display');
+        if (selectMed) {
+            selectMed.innerHTML = `<option value="${medicoId}" selected>${medicoNombre}</option>`;
+        }
+
+        // Resetear suplentes y fechas
+        const selectSuplente = document.getElementById('suspender_suplente_id');
+        selectSuplente.innerHTML = '<option value="">Seleccione primero el rango de fechas</option>';
+        selectSuplente.disabled = true;
+
+        const hoy = new Date().toISOString().split('T')[0];
+        document.getElementById('suspender_fecha_inicio').value = '';
+        document.getElementById('suspender_fecha_inicio').min = hoy;
+        document.getElementById('suspender_fecha_fin').value = '';
+        document.getElementById('suspender_fecha_fin').min = hoy;
+
+        modalInstance.show();
+    }
+
+    if (btnEdit) {
+        const medicoId = btnEdit.getAttribute('data-id');
+        const inputNombre = document.getElementById('editarNombreMedico');
+        const inputApellidos = document.getElementById('editarApellidoMedico');
+        const inputCedula = document.getElementById('editarCedulaMedico');
+        const inputTelefono = document.getElementById('editarTelefonoMedico');
+        const inputEspecialidad = document.getElementById('editarEspecialidadMedico');
+
+        try {
+            const modalElement = document.getElementById('modalEditarMedico');
+            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (!modalInstance) {
+                modalInstance = new bootstrap.Modal(modalElement);
             }
 
-            if (btnShow) {
-                const medicoId = btnShow.getAttribute('data-id');
-                const inputNombre = document.getElementById('mostrarNombreMedico');
-                const inputApellidos = document.getElementById('mostrarApellidoMedico');
-                const inputCedula = document.getElementById('mostrarCedulaMedico');
-                const inputTelefono = document.getElementById('mostrarTelefonoMedico');
-                const inputEspecialidad = document.getElementById('mostrarEspecialidadMedico');
+            inputNombre.disabled = true;
+            inputNombre.value = "Cargando...";
+            inputApellidos.disabled = true;
+            inputApellidos.value = "Cargando...";
+            inputCedula.disabled = true;
+            inputCedula.value = "Cargando...";
+            inputTelefono.disabled = true;
+            inputTelefono.value = "Cargando...";
+            inputEspecialidad.disabled = true;
+            inputEspecialidad.value = "Cargando...";
 
-                try {
-                    const modalElement = document.getElementById('modalShowMedico');
-                    let modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (!modalInstance) {
-                        modalInstance = new bootstrap.Modal(modalElement);
+            modalInstance.show();
+            const response = await fetch(`/medicos/${medicoId}/edit`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al obtener datos');
+
+            const data = await response.json();
+
+            document.getElementById('id').value = data.id;
+            inputNombre.value = data.nombre;
+            inputNombre.disabled = false;
+            inputApellidos.disabled = false;
+            inputApellidos.value = data.apellido;
+            inputCedula.disabled = false;
+            inputCedula.value = data.cedula;
+            inputTelefono.disabled = false;
+            inputTelefono.value = data.telefono;
+            inputEspecialidad.disabled = false;
+            inputEspecialidad.value = data.especialidad_id;
+
+            // Limpiar y marcar horarios
+            document.querySelectorAll('.check-dia-edit').forEach(check => {
+                check.checked = false;
+                const parent = check.closest('.day-card');
+                parent.style.borderLeftColor = '#dee2e6';
+
+                const timeInputsDiv = parent.querySelector('.time-inputs-edit');
+                timeInputsDiv.style.display = 'none';
+                const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
+                inputs.forEach(input => {
+                    input.disabled = true;
+                    input.required = false;
+                    input.value = '';
+                });
+            });
+
+            if (data.horarios) {
+                data.horarios.forEach(h => {
+                    const check = document.getElementById(`dia_edit_${h.dia_semana}`);
+                    if (check) {
+                        check.checked = true;
+                        const parent = check.closest('.day-card');
+                        parent.style.borderLeftColor = '#0d6efd';
+            
+
+                        const timeInputsDiv = parent.querySelector('.time-inputs-edit');
+                        timeInputsDiv.style.display = 'flex';
+                        const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
+                        inputs.forEach(input => {
+                            input.disabled = false;
+                            input.required = true;
+                        });
+                        const entInput = parent.querySelector(`input[name="horarios[${h.dia_semana}][hora_entrada]"]`);
+                        const salInput = parent.querySelector(`input[name="horarios[${h.dia_semana}][hora_salida]"]`);
+                        if (entInput) entInput.value = h.hora_entrada.substring(0, 5);
+                        if (salInput) salInput.value = h.hora_salida.substring(0, 5);
                     }
+                });
+            }
 
-                    inputNombre.innerHTML = "Cargando...";
-                    inputApellidos.innerHTML = "Cargando...";
-                    inputCedula.innerHTML = "Cargando...";
-                    inputTelefono.innerHTML = "Cargando...";
-                    inputEspecialidad.innerHTML = "Cargando...";
+            const form = document.querySelector('#modalEditarMedico form');
+            form.action = `/medicos/${data.id}`;
 
-                    modalInstance.show();
-                    const response = await fetch(`/medicos/${medicoId}`, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    });
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
+        }
+    }
 
-                    if (!response.ok) throw new Error('Error al obtener datos');
+    if (btnShow) {
+        const medicoId = btnShow.getAttribute('data-id');
+        const inputNombre = document.getElementById('mostrarNombreMedico');
+        const inputApellidos = document.getElementById('mostrarApellidoMedico');
+        const inputCedula = document.getElementById('mostrarCedulaMedico');
+        const inputTelefono = document.getElementById('mostrarTelefonoMedico');
+        const inputEspecialidad = document.getElementById('mostrarEspecialidadMedico');
 
-                    const data = await response.json();
+        try {
+            const modalElement = document.getElementById('modalShowMedico');
+            let modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (!modalInstance) {
+                modalInstance = new bootstrap.Modal(modalElement);
+            }
 
-                    inputNombre.innerHTML = data.nombre;
-                    inputApellidos.innerHTML = data.apellido;
-                    inputCedula.innerHTML = data.cedula;
-                    inputTelefono.innerHTML = data.telefono;
-                    inputEspecialidad.innerHTML = data.especialidad.nombre;
+            inputNombre.innerHTML = "Cargando...";
+            inputApellidos.innerHTML = "Cargando...";
+            inputCedula.innerHTML = "Cargando...";
+            inputTelefono.innerHTML = "Cargando...";
+            inputEspecialidad.innerHTML = "Cargando...";
 
-                    // Mostrar horario
-                    const container = document.getElementById('mostrarHorarioMedico');
-                    container.innerHTML = '';
-                    if (data.horarios && data.horarios.length > 0) {
-                        const diasNombre = {
-                            1: 'Lunes',
-                            2: 'Martes',
-                            3: 'Miércoles',
-                            4: 'Jueves',
-                            5: 'Viernes',
-                            6: 'Sábado',
-                            7: 'Domingo'
-                        };
-                        data.horarios.sort((a, b) => a.dia_semana - b.dia_semana);
-                        data.horarios.forEach(h => {
-                            const ent = h.hora_entrada.substring(0, 5);
-                            const sal = h.hora_salida.substring(0, 5);
-                            container.innerHTML += `<div class="d-flex justify-content-between border-bottom py-1">
+            modalInstance.show();
+            const response = await fetch(`/medicos/${medicoId}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al obtener datos');
+
+            const data = await response.json();
+
+            inputNombre.innerHTML = data.nombre;
+            inputApellidos.innerHTML = data.apellido;
+            inputCedula.innerHTML = data.cedula;
+            inputTelefono.innerHTML = data.telefono;
+            inputEspecialidad.innerHTML = data.especialidad.nombre;
+
+            // Mostrar horario
+            const container = document.getElementById('mostrarHorarioMedico');
+            container.innerHTML = '';
+            if (data.horarios && data.horarios.length > 0) {
+                const diasNombre = {1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo'};
+                data.horarios.sort((a, b) => a.dia_semana - b.dia_semana);
+                data.horarios.forEach(h => {
+                    const ent = h.hora_entrada.substring(0, 5);
+                    const sal = h.hora_salida.substring(0, 5);
+                    container.innerHTML += `<div class="d-flex justify-content-between border-bottom py-1">
                         <span><strong>${diasNombre[h.dia_semana]}:</strong></span>
                         <span>${ent} a ${sal}</span>
                     </div>`;
-                        });
-                    } else {
-                        container.innerHTML =
-                            '<span class="text-muted">Sin horario restringido (Disponible todos los días)</span>';
-                    }
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
-                }
-            }
-        });
-
-        // Manejadores de eventos de cambio de checkbox para mostrar/ocultar y habilitar/deshabilitar los campos de tiempo
-        document.addEventListener('change', function(event) {
-            if (event.target.classList.contains('check-dia-reg')) {
-                const checkbox = event.target;
-                const parent = checkbox.closest('.day-card');
-
-                const timeInputsDiv = parent.querySelector('.time-inputs-reg');
-                const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
-                if (checkbox.checked) {
-                    parent.style.borderLeftColor = '#0d6efd';
-
-                    timeInputsDiv.style.display = 'flex';
-                    inputs.forEach(input => {
-                        input.disabled = false;
-                        input.required = true;
-                    });
-                } else {
-                    parent.style.borderLeftColor = '#dee2e6';
-                    timeInputsDiv.style.display = 'none';
-                    inputs.forEach(input => {
-                        input.disabled = true;
-                        input.required = false;
-                        input.value = '';
-                    });
-                }
-            }
-
-            if (event.target.classList.contains('check-dia-edit')) {
-                const checkbox = event.target;
-                const parent = checkbox.closest('.day-card');
-
-                const timeInputsDiv = parent.querySelector('.time-inputs-edit');
-                const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
-                if (checkbox.checked) {
-                    parent.style.borderLeftColor = '#0d6efd';
-                    timeInputsDiv.style.display = 'flex';
-                    inputs.forEach(input => {
-                        input.disabled = false;
-                        input.required = true;
-                    });
-                } else {
-                    parent.style.borderLeftColor = '#dee2e6';
-
-                    timeInputsDiv.style.display = 'none';
-                    inputs.forEach(input => {
-                        input.disabled = true;
-                        input.required = false;
-                        input.value = '';
-                    });
-                }
-            }
-        });
-
-        // Mostrar modal de registro si hay errores de validación
-        @if ($errors->any())
-            document.addEventListener('DOMContentLoaded', function() {
-                @if (old('_method') === 'PUT')
-                    // Si el error ocurrió en la edición, mostramos el modal de editar
-                    var modalEditEl = document.getElementById('modalEditarMedico');
-                    if (modalEditEl) {
-                        var modalEdit = new bootstrap.Modal(modalEditEl);
-                        modalEdit.show();
-                    }
-                @else
-                    // Si no, asumimos que fue al registrar, mostramos el modal de registro
-                    var modalRegEl = document.getElementById('modalMedico');
-                    if (modalRegEl) {
-                        var modalReg = new bootstrap.Modal(modalRegEl);
-                        modalReg.show();
-                    }
-                @endif
-                const errorMessages = @json(implode("\n", $errors->all()));
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: errorMessages
                 });
+            } else {
+                container.innerHTML = '<span class="text-muted">Sin horario restringido (Disponible todos los días)</span>';
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudieron cargar los datos del médico', 'error');
+        }
+    }
+});
+
+// Manejadores de eventos de cambio de checkbox para mostrar/ocultar y habilitar/deshabilitar los campos de tiempo
+document.addEventListener('change', function(event) {
+    if (event.target.classList.contains('check-dia-reg')) {
+        const checkbox = event.target;
+        const parent = checkbox.closest('.day-card');
+    
+        const timeInputsDiv = parent.querySelector('.time-inputs-reg');
+        const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
+        if (checkbox.checked) {
+            parent.style.borderLeftColor = '#0d6efd';
+           
+            timeInputsDiv.style.display = 'flex';
+            inputs.forEach(input => {
+                input.disabled = false;
+                input.required = true;
             });
-        @endif
-    </script>
+        } else {
+            parent.style.borderLeftColor = '#dee2e6';
+            timeInputsDiv.style.display = 'none';
+            inputs.forEach(input => {
+                input.disabled = true;
+                input.required = false;
+                input.value = '';
+            });
+        }
+    }
+
+    if (event.target.classList.contains('check-dia-edit')) {
+        const checkbox = event.target;
+        const parent = checkbox.closest('.day-card');
+        
+        const timeInputsDiv = parent.querySelector('.time-inputs-edit');
+        const inputs = timeInputsDiv.querySelectorAll('input[type="time"]');
+        if (checkbox.checked) {
+            parent.style.borderLeftColor = '#0d6efd';
+            timeInputsDiv.style.display = 'flex';
+            inputs.forEach(input => {
+                input.disabled = false;
+                input.required = true;
+            });
+        } else {
+            parent.style.borderLeftColor = '#dee2e6';
+    
+            timeInputsDiv.style.display = 'none';
+            inputs.forEach(input => {
+                input.disabled = true;
+                input.required = false;
+                input.value = '';
+            });
+        }
+    }
+});
+
+// Mostrar modal de registro si hay errores de validación
+@if ($errors->any() && !isset($medicoToEdit) && !isset($medicoToshow))
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalEl = document.getElementById('modalMedico');
+        if (modalEl) {
+            var modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+    });
+@endif
+</script>
 @endpush
