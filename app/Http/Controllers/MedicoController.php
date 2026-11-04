@@ -30,63 +30,73 @@ class MedicoController extends Controller
     }
 
     private function dataTableResponse(Request $request)
-    {
-        $query = Medico::with('especialidad')->select('medicos.*');
+{
+    $query = Medico::with('especialidad')->select('medicos.*');
 
-        $totalRecords = $query->count();
+    $totalRecords = $query->count();
 
-        if ($search = $request->get('search')['value']) {
-            $query->where(function ($q) use ($search) {
-                $q->where('nombre', 'ILIKE', "%{$search}%")
-                    ->orWhere('apellido', 'ILIKE', "%{$search}%")
-                    ->orWhere('cedula', 'ILIKE', "%{$search}%")
-                    ->orWhere('telefono', 'ILIKE', "%{$search}%")
-                    ->orWhereHas('especialidad', function ($q2) use ($search) {
-                        $q2->where('nombre', 'ILIKE', "%{$search}%");
-                    });
-            });
-        }
-
-        $filteredRecords = $query->count();
-
-        $orderColumn = $request->get('order')[0]['column'] ?? 0;
-        $orderDir = $request->get('order')[0]['dir'] ?? 'asc';
-        $columns = ['nombre', 'apellido', 'cedula', 'telefono', 'especialidad_id'];
-        if (isset($columns[$orderColumn])) {
-            $query->orderBy($columns[$orderColumn], $orderDir);
-        } else {
-            $query->orderBy('nombre', 'asc');
-        }
-
-        $start = $request->get('start', 0);
-        $length = $request->get('length', 10);
-        $data = $query->skip($start)->take($length)->get();
-
-        $dataFormatted = [];
-        foreach ($data as $row) {
-            $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
-            $btnEdit = '<button type="button" data-id="'.$row->id.'" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
-            $btnSuspender = '<button type="button" data-id="'.$row->id.'" data-nombre="'.e($row->nombre.' '.$row->apellido).'" data-especialidad-id="'.$row->especialidad_id.'" data-especialidad-nombre="'.e($row->especialidad->nombre ?? 'N/A').'" class="btn-suspender btn btn-xs btn-square btn-neutral"><i class="bi bi-person-x"></i></button>';
-            // $btnDelete = '<a href="' . route('medicos.destroy', $row->id) . '" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
-            $acciones = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnEdit.$btnSuspender.'</div>';
-
-            $dataFormatted[] = [
-                $row->nombre,
-                $row->apellido,
-                $row->cedula,
-                $row->telefono,
-                $row->especialidad->nombre ?? 'N/A',
-                $acciones,
-            ];
-        }
-
-        return response()->json([
-            'draw' => intval($request->draw),
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $filteredRecords,
-            'data' => $dataFormatted,
-        ]);
+    if ($search = $request->get('search')['value']) {
+        $query->where(function ($q) use ($search) {
+            $q->where('nombre', 'ILIKE', "%{$search}%")
+                ->orWhere('apellido', 'ILIKE', "%{$search}%")
+                ->orWhere('cedula', 'ILIKE', "%{$search}%")
+                ->orWhere('telefono', 'ILIKE', "%{$search}%")
+                ->orWhereHas('especialidad', function ($q2) use ($search) {
+                    $q2->where('nombre', 'ILIKE', "%{$search}%");
+                });
+        });
     }
+
+    $filteredRecords = $query->count();
+
+    $orderColumn = $request->get('order')[0]['column'] ?? 0;
+    $orderDir = $request->get('order')[0]['dir'] ?? 'asc';
+    $columns = ['nombre', 'apellido', 'cedula', 'telefono', 'especialidad_id'];
+    
+    if (isset($columns[$orderColumn])) {
+        $query->orderBy($columns[$orderColumn], $orderDir);
+    } else {
+        $query->orderBy('nombre', 'asc');
+    }
+
+    $start = $request->get('start', 0);
+    $length = $request->get('length', 10);
+    $data = $query->skip($start)->take($length)->get();
+
+    $puedeSuspender = $request->user() && $request->user()->can('Médicos inactivos');
+
+    $dataFormatted = [];
+    foreach ($data as $row) {
+        $btnShow = '<button type="button" data-id="'.$row->id.'" class="btn-show btn btn-xs btn-square btn-neutral"><i class="bi bi-eye"></i></button>';
+        $btnEdit = '<button type="button" data-id="'.$row->id.'" class="btn-edit btn btn-xs btn-square btn-neutral"><i class="bi bi-pencil"></i></button>';
+        
+        $btnSuspender = '';
+        
+        if ($puedeSuspender) {
+            $btnSuspender = '<button type="button" data-id="'.$row->id.'" data-nombre="'.e($row->nombre.' '.$row->apellido).'" data-especialidad-id="'.$row->especialidad_id.'" data-especialidad-nombre="'.e($row->especialidad->nombre ?? 'N/A').'" class="btn-suspender btn btn-xs btn-square btn-neutral"><i class="bi bi-person-x"></i></button>';
+        }
+
+        // $btnDelete = '<a href="' . route('medicos.destroy', $row->id) . '" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
+        
+        $acciones = '<div class="hstack gap-2 justify-content-end">'.$btnShow.$btnEdit.$btnSuspender.'</div>';
+
+        $dataFormatted[] = [
+            $row->nombre,
+            $row->apellido,
+            $row->cedula,
+            $row->telefono,
+            $row->especialidad->nombre ?? 'N/A',
+            $acciones,
+        ];
+    }
+
+    return response()->json([
+        'draw' => intval($request->draw),
+        'recordsTotal' => $totalRecords,
+        'recordsFiltered' => $filteredRecords,
+        'data' => $dataFormatted,
+    ]);
+}
 
     public function create()
     {
