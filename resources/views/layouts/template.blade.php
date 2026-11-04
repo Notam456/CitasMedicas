@@ -54,6 +54,9 @@
 
     <!-- Template Stylesheet -->
     <link href="{{asset('assets/css/style.css')}}" rel="stylesheet">
+
+    <!-- Dark Mode Stylesheet -->
+    <link href="{{asset('assets/css/dark-mode.css')}}" rel="stylesheet">
 </head>
 
 <body class="@stack('body-class')">
