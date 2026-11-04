@@ -355,10 +355,23 @@
                     allowOutsideClick: false,
                     allowEscapeKey: false
                 }).then(function(result) {
-                    if (result.isConfirmed) {
-                        if (formato === 'pdf') window.open(url, '_blank');
-                        else window.location.href = url;
+                    if (!result.isConfirmed) {
+                        return;
                     }
+
+                    if (formato === 'pdf') {
+                        window.open(url, '_blank');
+                        return;
+                    }
+
+                    if (typeof window.mostrarEsperaReporte !== 'function') {
+                        window.location.href = url;
+                        return;
+                    }
+
+                    window.mostrarEsperaReporte(function(token) {
+                        window.location.href = url + '&descarga_token=' + encodeURIComponent(token);
+                    });
                 });
             }
 

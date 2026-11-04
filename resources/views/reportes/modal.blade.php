@@ -37,7 +37,17 @@
         // Si es válido, construir la URL con los parámetros
         var formData = new FormData(form);
         var params = new URLSearchParams(formData).toString();
-        window.open(url + '?' + params, '_blank');
+        var destino = url + '?' + params;
+
+        if (typeof window.mostrarEsperaReporte !== 'function') {
+            window.open(destino, '_blank');
+            return;
+        }
+
+        window.mostrarEsperaReporte(function(token) {
+            var ventana = window.open(destino + '&descarga_token=' + encodeURIComponent(token), '_blank');
+            return ventana !== null;
+        });
     }
 </script>
 @endisset
