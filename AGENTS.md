@@ -236,7 +236,20 @@ Permite arrancar el sistema con un doble clic en Windows:
 |---------|-------------|
 | `SAGECIM.vbs` | Punto de entrada que ejecuta PowerShell oculto |
 | `sagecim-launcher.ps1` | Verifica PostgreSQL, inicia `php artisan serve`, abre navegador, limpia procesos al cerrar |
-| `config.json` | Config editable: puerto, rutas de PHP/app, navegador, puerto de PostgreSQL |
+| `config.json` | Config editable: puerto, rutas de PHP/app, navegador, puerto de PostgreSQL, modo (`host` por defecto / `local`) |
+
+Modos:
+
+- **host** (predeterminado): escucha en `0.0.0.0`, muestra/copia la URL `http://<IP LAN>:<puerto>`, crea la regla de firewall acotada a `php.exe` + puerto + perfil `Private` + `RemoteAddress LocalSubnet` (pide elevación), y al cerrar la ventana pregunta antes de detener el servidor (por defecto lo deja encendido). Arranca el proceso PHP con `APP_ENV=production`, `APP_DEBUG=false` y `APP_URL` de la LAN, sin tocar el `.env`.
+- **local**: se activa con `"mode": "local"` en `config.json`; escucha en `127.0.0.1` y al cerrar la ventana detiene PHP.
+
+Si no se detecta IP de red, el modo host avisa y arranca accesible solo desde esa PC.
+
+Logs del servidor: `%LOCALAPPDATA%\SAGECIM\server.out.log` y `server.err.log`.
+
+`sagecim-launcher.ps1` debe guardarse en **UTF-8 con BOM**: Windows PowerShell 5.1 lee los `.ps1` sin BOM como ANSI y los acentos de los diálogos salen como `Â¿`.
+
+Límite conocido: en Windows `php artisan serve` atiende una petición a la vez; sirve para 2-3 equipos, no para más.
 
 Endpoint relacionado: `POST /lanzador/cerrar-sesion` (`LanzadorController@cerrarSesion`).
 

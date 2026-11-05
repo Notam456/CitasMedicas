@@ -3,5 +3,6 @@
     "phpPath": null,
     "appPath": null,
     "browser": "auto",
-    "postgresPort": 5432
+    "postgresPort": 5432,
+    "mode": "host"
 }
