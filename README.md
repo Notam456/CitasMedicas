@@ -136,7 +136,31 @@ El directorio `launcher/` contiene un lanzador para arrancar el sistema en equip
 | `sagecim-launcher.ps1` | Verifica PostgreSQL, inicia `php artisan serve`, abre el navegador en una ventana dedicada y limpia los procesos al cerrarla. |
 | `config.json` | Configuración editable: puerto, rutas de PHP/la aplicación, navegador y puerto de PostgreSQL. |
 
-**Requisitos:** tener PostgreSQL en ejecución y PowerShell disponible en el equipo. Al cerrar la ventana del navegador, el lanzador cierra la sesión activa y detiene el servidor PHP.
+**Requisitos:** tener PostgreSQL en ejecución y PowerShell disponible en el equipo. En modo local, al cerrar la ventana del navegador el lanzador cierra la sesión activa y detiene el servidor PHP.
+
+### Modo host (varios equipos en la red local)
+
+El lanzador arranca **en modo host por defecto**: el servidor escucha en `0.0.0.0` y los demás equipos acceden por la IP de esta PC. No hay que editar nada.
+
+En modo host el lanzador:
+
+1. Muestra (y copia al portapapeles) la dirección `http://<IP-de-la-PC>:8000` para compartir.
+2. Comprueba el perfil de red y la regla de firewall. Si falta la regla, ofrece crearla pidiendo permisos de administrador, acotada al ejecutable `php.exe`, al puerto, al perfil **Privada** y a la **subred local**.
+3. Al cerrar la ventana, pregunta antes de detener el servidor (por defecto lo deja encendido, para no cortar a los demás).
+4. Arranca PHP con `APP_ENV=production` y `APP_DEBUG=false` (sin editar el `.env`), para no mostrar trazas ni credenciales a los usuarios de la red. Si existía un cache de configuración, lo elimina para que esos valores se apliquen.
+
+Si el equipo no tiene red, avisa y arranca igual, accesible solo desde esa PC.
+
+Para uso en una sola PC sin compartir, cambia `"mode": "host"` por `"mode": "local"` en `launcher/config.json`: escucha en `127.0.0.1` y al cerrar la ventana detiene el servidor.
+
+Requisitos y límites:
+
+- La red de Windows debe estar en **Privada**; si está en Pública, el firewall bloquea el acceso aunque exista la regla.
+- No reenvíes el puerto en el router: la regla solo admite la subred local.
+- PostgreSQL sigue escuchando únicamente en localhost (`pg_hba.conf`), así que no queda expuesto.
+- El tráfico dentro de la red viaja **sin cifrar** (HTTP). Para datos clínicos conviene HTTPS o una red de confianza.
+- `php artisan serve` en Windows atiende una petición a la vez: es suficiente para 2-3 equipos, pero una exportación PDF larga hace esperar al resto.
+- Logs del servidor: `%LOCALAPPDATA%\SAGECIM\server.out.log` y `server.err.log`.
 
 ## Ejecutar los tests
 
