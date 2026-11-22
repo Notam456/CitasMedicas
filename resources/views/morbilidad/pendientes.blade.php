@@ -6,6 +6,20 @@
 @section('content')
     @include('layouts.navbar')
 
+    @if ($errors->any())
+        <div class="container-fluid pt-3">
+            <div class="alert alert-danger alert-dismissible fade show mb-0" role="alert">
+                <strong>Revise el formulario:</strong>
+                <ul class="mb-0 mt-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+        </div>
+    @endif
+
     <div class="container-fluid py-4">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
@@ -92,8 +106,12 @@
                         <!-- Diagnóstico libre -->
                         <div class="mb-4">
                             <label class="form-label fw-bold">Diagnóstico libre (impresión diagnóstica)</label>
-                            <textarea name="diagnostico_libre" id="diagnostico_libre" class="form-control" rows="2"
+                            <textarea name="diagnostico_libre" id="diagnostico_libre" rows="2" required
+                                class="form-control @error('diagnostico_libre') is-invalid @enderror"
                                 placeholder="Escriba aquí el diagnóstico general..."></textarea>
+                            @error('diagnostico_libre')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <!-- Patologías múltiples -->

@@ -153,14 +153,14 @@ class DiagnosticoController extends Controller
         return response()->json([
             'cita' => $cita,
             'patologias_disponibles' => $patologiasDisponibles,
-            'es_aro' => $cita->medico->especialidad->nombre === 'Aro (Embarazados)',
+            'es_aro' => (bool) optional($cita->medico->especialidad)->esAro(),
         ]);
     }
 
    public function update(Request $request, $id)
 {
     $cita = Cita::with('medico.especialidad')->findOrFail($id);
-    $esAro = optional(optional($cita->medico)->especialidad)->nombre === 'Aro (Embarazados)';
+    $esAro = (bool) optional(optional($cita->medico)->especialidad)->esAro();
 
     // Limpiar elementos vacíos ("") del arreglo enviador por el select por defecto
     if ($request->has('patologias')) {
@@ -172,7 +172,7 @@ class DiagnosticoController extends Controller
     }
 
     $request->validate([
-        'diagnostico_libre' => 'nullable|string|max:5000',
+        'diagnostico_libre' => 'required|string|max:5000',
         'patologias' => 'nullable|array',
         'patologias.*' => 'exists:patologias,id',
         'semanas_gestacion' => $esAro ? 'required|integer|min:0|max:42' : 'nullable|integer|min:0|max:42',
@@ -251,7 +251,7 @@ class DiagnosticoController extends Controller
         return redirect()->route('morbilidad.pendientes');
     }
 
-    $esAro = $cita->medico->especialidad->nombre === 'Aro (Embarazados)';
+    $esAro = (bool) $cita->medico->especialidad->esAro();
 
     // 1. Filtrar valores vacíos de las patologías enviadas por los selects por defecto
     if ($request->has('patologias')) {
@@ -263,7 +263,7 @@ class DiagnosticoController extends Controller
     }
 
     $request->validate([
-        'diagnostico_libre' => 'nullable|string|max:5000',
+        'diagnostico_libre' => 'required|string|max:5000',
         'patologias' => 'nullable|array',
         'patologias.*' => 'exists:patologias,id',
         'semanas_gestacion' => $esAro ? 'required|integer|min:0|max:42' : 'nullable|integer|min:0|max:42',

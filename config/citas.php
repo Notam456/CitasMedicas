@@ -18,4 +18,22 @@ return [
         'Aro (Embarazados)',
         'Pre Operatorio Emb',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reportes
+    |--------------------------------------------------------------------------
+    |
+    | distrito_otros_estados: nombre del distrito que agrupa pacientes de
+    | otros estados. Solo se usa para marcar distritos.es_agrupador durante
+    | la migracion; el reporte ya no compara nombres.
+    |
+    | especialidad_aro: solo se usa como respaldo si la bandera
+    | especialidades.es_aro no esta marcada.
+    |
+    */
+
+    'distrito_otros_estados' => 'Otros Estados',
+
+    'especialidad_aro' => 'Aro (Embarazados)',
 ];

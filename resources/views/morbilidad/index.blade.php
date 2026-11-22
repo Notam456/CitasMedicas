@@ -62,6 +62,20 @@
         </div>
     @endif
 
+    @if ($errors->any())
+        <div class="container pt-3">
+            <div class="alert alert-danger alert-dismissible fade show mb-0" role="alert">
+                <strong>Revise el formulario:</strong>
+                <ul class="mb-0 mt-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+        </div>
+    @endif
+
     <div class="container py-4">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">

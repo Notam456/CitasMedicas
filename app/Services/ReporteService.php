@@ -6,12 +6,17 @@ use App\Models\Cita;
 use App\Models\CitaPatologia;
 use App\Models\Distrito;
 use App\Models\Especialidad;
-use App\Models\Municipio;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ReporteService
 {
+    /**
+     * Etiqueta para las citas que cuelgan de un calendario sin medico
+     * ("Cualquier Medico"). No se inventa un doctor: se muestra la categoria.
+     */
+    private const SIN_MEDICO = 'Sin médico asignado';
+
     public static function resolverRangoFechas(array $data): array
     {
         if (($data['tipo_rango'] ?? 'mes') === 'mes') {
@@ -29,6 +34,21 @@ class ReporteService
         return compact('fecha_desde', 'fecha_hasta', 'titulo');
     }
 
+    /**
+     * Procedencia de pacientes.
+     *
+     * Cuenta CITAS (no pacientes unicos) por municipio, separadas en una
+     * particion cerrada: atendidas / canceladas / pendientes. La suma de las
+     * tres columnas siempre equivale al total de la fila.
+     *
+     * La agregacion se hace por ID (distrito/municipio) y el nombre solo se usa
+     * como etiqueta: renombrar un distrito o municipio no altera el
+     * agrupamiento y dos municipios homonimos no se pisan.
+     *
+     * Las reglas de presentacion viven en la tabla distritos
+     * (es_agrupador, mostrar_desglose, orden), no en el codigo. Los pacientes
+     * sin distrito caen en una clave sintetica, no en un distrito ficticio.
+     */
     public static function procedencia(array $data): array
     {
         $rangos = self::resolverRangoFechas($data);
@@ -36,112 +56,184 @@ class ReporteService
         $fecha_hasta = $rangos['fecha_hasta'];
         $titulo = 'Procedencia de Pacientes - ' . $rangos['titulo'];
 
-        $distritosReales = Distrito::orderBy('id')->get();
-        $distritosEspeciales = [
-            (object) ['id' => 1000, 'nombre' => 'Ignorado']
-        ];
-        $todosLosDistritos = $distritosReales->concat($distritosEspeciales);
+        $claveIgnorado = '__sin_distrito__';
+        $claveSinMunicipio = '__sin_municipio__';
+        $cero = ['atendidas' => 0, 'canceladas' => 0, 'pendientes' => 0, 'total' => 0];
 
-        $reporte = [];
-        foreach ($todosLosDistritos as $distrito) {
-            $distritoNombre = $distrito->nombre;
-            $distritoId = $distrito->id;
-            $reporte[$distritoNombre] = [
-                'distrito_id' => $distritoId,
-                'municipios' => [],
-                'subtotal' => ['agendadas' => 0, 'atendidas' => 0, 'total' => 0]
-            ];
-            if (!in_array($distritoId, [6, 1000])) {
-                $municipiosDelDistrito = Municipio::where('distrito_id', $distritoId)->orderBy('nombre')->get();
-                foreach ($municipiosDelDistrito as $mun) {
-                    $reporte[$distritoNombre]['municipios'][$mun->nombre] = [
-                        'agendadas' => 0, 'atendidas' => 0, 'total' => 0
-                    ];
-                }
-            }
-        }
-        $reporte['Ignorado']['municipios']['Sin municipio'] = ['agendadas' => 0, 'atendidas' => 0, 'total' => 0];
-
-        $conteos = Cita::select(
-                'distritos.id as distrito_id',
-                'distritos.nombre as distrito_nombre',
-                'municipios.nombre as municipio_nombre',
-                DB::raw("COUNT(DISTINCT CASE WHEN citas.estado = 'Agendada' THEN citas.paciente_id END) as agendadas"),
-                DB::raw("COUNT(DISTINCT CASE WHEN citas.estado = 'Atendida' THEN citas.paciente_id END) as atendidas"),
-                DB::raw("COUNT(DISTINCT CASE WHEN citas.estado IN ('Agendada', 'Atendida') THEN citas.paciente_id END) as total_pacientes")
-            )
-            ->leftJoin('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
-            ->leftJoin('parroquias', 'pacientes.parroquia_id', '=', 'parroquias.id')
-            ->leftJoin('municipios', 'parroquias.municipio_id', '=', 'municipios.id')
-            ->leftJoin('distritos', 'municipios.distrito_id', '=', 'distritos.id')
-            ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
-            ->groupBy('distritos.id', 'distritos.nombre', 'municipios.nombre')
+        // Catalogo en una sola consulta (evita el N+1 por distrito).
+        $distritos = Distrito::with(['municipios' => fn ($q) => $q->orderBy('nombre')])
+            ->orderBy('orden')
+            ->orderBy('nombre')
             ->get();
 
+        // Un solo agregado: municipio, subtotal por distrito y total global.
+        // GROUPING() distingue subtotal de total general incluso cuando el
+        // distrito es nulo (bucket "Ignorado").
+        $conteos = DB::table('citas as c')
+            ->leftJoin('pacientes as p', 'c.paciente_id', '=', 'p.id')
+            ->leftJoin('parroquias as q', 'p.parroquia_id', '=', 'q.id')
+            ->leftJoin('municipios as m', 'q.municipio_id', '=', 'm.id')
+            ->leftJoin('distritos as d', 'm.distrito_id', '=', 'd.id')
+            ->whereBetween('c.fecha_cita', [$fecha_desde, $fecha_hasta])
+            ->selectRaw("
+                d.id as distrito_id,
+                m.id as municipio_id,
+                m.nombre as municipio_nombre,
+                COUNT(c.id) FILTER (WHERE c.estado = 'Atendida') as atendidas,
+                COUNT(c.id) FILTER (WHERE c.estado = 'Cancelada') as canceladas,
+                COUNT(c.id) FILTER (WHERE c.estado = 'Agendada') as pendientes,
+                GROUPING(d.id) as es_total,
+                GROUPING(m.id) as es_subtotal
+            ")
+            ->groupByRaw('GROUPING SETS ((d.id, d.nombre, m.id, m.nombre), (d.id, d.nombre), ())')
+            ->get();
+
+        $municipios = [];   // distritoKey => [municipioKey => fila]
+        $subtotales = [];   // distritoKey => fila
+        $totalesGlobales = $cero;
+
         foreach ($conteos as $row) {
-            if (is_null($row->distrito_id)) {
-                $distritoNombre = 'Ignorado';
-            } elseif ($row->distrito_id == 6) {
-                $distritoNombre = 'Otros Estados';
-            } else {
-                $distritoNombre = $row->distrito_nombre;
-            }
-            $municipioNombre = $row->municipio_nombre ?? 'Sin municipio';
+            $fila = [
+                'atendidas' => (int) $row->atendidas,
+                'canceladas' => (int) $row->canceladas,
+                'pendientes' => (int) $row->pendientes,
+            ];
+            $fila['total'] = $fila['atendidas'] + $fila['canceladas'] + $fila['pendientes'];
 
-            if (isset($reporte[$distritoNombre])) {
-                if (!isset($reporte[$distritoNombre]['municipios'][$municipioNombre])) {
-                    $reporte[$distritoNombre]['municipios'][$municipioNombre] = ['agendadas' => 0, 'atendidas' => 0, 'total' => 0];
-                }
-                $reporte[$distritoNombre]['municipios'][$municipioNombre]['agendadas'] = $row->agendadas;
-                $reporte[$distritoNombre]['municipios'][$municipioNombre]['atendidas'] = $row->atendidas;
-                $reporte[$distritoNombre]['municipios'][$municipioNombre]['total'] = $row->total_pacientes;
-
-                $reporte[$distritoNombre]['subtotal']['agendadas'] += $row->agendadas;
-                $reporte[$distritoNombre]['subtotal']['atendidas'] += $row->atendidas;
-                $reporte[$distritoNombre]['subtotal']['total'] += $row->total_pacientes;
+            if ((int) $row->es_total === 1) {
+                $totalesGlobales = $fila;
+                continue;
             }
+
+            $distritoKey = $row->distrito_id !== null ? (int) $row->distrito_id : $claveIgnorado;
+
+            if ((int) $row->es_subtotal === 1) {
+                $subtotales[$distritoKey] = $fila;
+                continue;
+            }
+
+            $municipioKey = $row->municipio_id !== null ? (int) $row->municipio_id : $claveSinMunicipio;
+            $municipios[$distritoKey][$municipioKey] = [
+                'nombre' => $row->municipio_nombre ?? 'Sin municipio',
+            ] + $fila;
         }
-
-        $ordenDistritos = [];
-        foreach ($distritosReales as $d) {
-            if ($d->nombre !== 'Otros Estados') {
-                $ordenDistritos[] = $d->nombre;
-            }
-        }
-        $ordenDistritos[] = 'Otros Estados';
-        $ordenDistritos[] = 'Ignorado';
 
         $reporteFinal = [];
-        foreach ($ordenDistritos as $nombreDistrito) {
-            if (isset($reporte[$nombreDistrito])) {
-                $municipiosArray = [];
-                foreach ($reporte[$nombreDistrito]['municipios'] as $munNombre => $datos) {
-                    $municipiosArray[] = [
-                        'nombre' => $munNombre,
-                        'agendadas' => $datos['agendadas'],
-                        'atendidas' => $datos['atendidas'],
-                        'total' => $datos['total']
-                    ];
+        $sumaSubtotales = $cero;
+
+        foreach ($distritos as $distrito) {
+            $distritoKey = (int) $distrito->id;
+            $subtotal = $subtotales[$distritoKey] ?? $cero;
+            $filasMunicipios = [];
+
+            if ($distrito->mostrar_desglose) {
+                $vistos = [];
+                foreach ($distrito->municipios as $municipio) {
+                    $municipioKey = (int) $municipio->id;
+                    $vistos[$municipioKey] = true;
+                    $filasMunicipios[] = ['nombre' => $municipio->nombre]
+                        + ($municipios[$distritoKey][$municipioKey] ?? $cero);
                 }
-                usort($municipiosArray, fn ($a, $b) => strcmp($a['nombre'], $b['nombre']));
-                $reporteFinal[] = [
-                    'distrito' => $nombreDistrito,
-                    'municipios' => $municipiosArray,
-                    'subtotal' => $reporte[$nombreDistrito]['subtotal']
-                ];
+
+                // Municipios con citas que no estuvieran en el catalogo leido.
+                foreach (($municipios[$distritoKey] ?? []) as $municipioKey => $fila) {
+                    if (!isset($vistos[$municipioKey])) {
+                        $filasMunicipios[] = $fila;
+                    }
+                }
+
+                usort($filasMunicipios, fn ($a, $b) => strcmp($a['nombre'], $b['nombre']));
+            }
+
+            $reporteFinal[] = [
+                'distrito' => $distrito->nombre,
+                'municipios' => $filasMunicipios,
+                'subtotal' => $subtotal,
+            ];
+
+            foreach ($cero as $clave => $valor) {
+                $sumaSubtotales[$clave] += $subtotal[$clave];
             }
         }
 
-        $totalesGlobales = ['agendadas' => 0, 'atendidas' => 0, 'todos' => 0];
-        foreach ($reporteFinal as $item) {
-            $totalesGlobales['agendadas'] += $item['subtotal']['agendadas'];
-            $totalesGlobales['atendidas'] += $item['subtotal']['atendidas'];
-            $totalesGlobales['todos'] += $item['subtotal']['total'];
+        $ignoradoSubtotal = $subtotales[$claveIgnorado] ?? $cero;
+        $ignoradoMunicipios = array_values($municipios[$claveIgnorado] ?? []);
+        usort($ignoradoMunicipios, fn ($a, $b) => strcmp($a['nombre'], $b['nombre']));
+
+        $reporteFinal[] = [
+            'distrito' => 'Ignorado',
+            'municipios' => $ignoradoMunicipios,
+            'subtotal' => $ignoradoSubtotal,
+        ];
+
+        foreach ($cero as $clave => $valor) {
+            $sumaSubtotales[$clave] += $ignoradoSubtotal[$clave];
         }
+
+        self::verificarCuadreProcedencia($reporteFinal, $sumaSubtotales, $totalesGlobales);
 
         return compact('reporteFinal', 'totalesGlobales', 'titulo', 'fecha_desde', 'fecha_hasta');
     }
 
+    /**
+     * Red de seguridad del reporte: los subtotales deben sumar el total global
+     * y los municipios deben sumar su distrito. En local/testing falla rapido;
+     * en produccion deja rastro en el log.
+     */
+    private static function verificarCuadreProcedencia(array $reporteFinal, array $sumaSubtotales, array $totalesGlobales): void
+    {
+        $descuadres = [];
+
+        foreach ($totalesGlobales as $clave => $valor) {
+            if ((int) $sumaSubtotales[$clave] !== (int) $valor) {
+                $descuadres[] = "{$clave}: subtotales={$sumaSubtotales[$clave]} total={$valor}";
+            }
+        }
+
+        foreach ($reporteFinal as $item) {
+            if (count($item['municipios']) === 0) {
+                continue;
+            }
+
+            $suma = ['atendidas' => 0, 'canceladas' => 0, 'pendientes' => 0, 'total' => 0];
+            foreach ($item['municipios'] as $fila) {
+                foreach ($suma as $clave => $valor) {
+                    $suma[$clave] += $fila[$clave];
+                }
+            }
+
+            foreach ($suma as $clave => $valor) {
+                if ((int) $valor !== (int) $item['subtotal'][$clave]) {
+                    $descuadres[] = "{$item['distrito']} / {$clave}: municipios={$valor} subtotal={$item['subtotal'][$clave]}";
+                }
+            }
+        }
+
+        if ($descuadres === []) {
+            return;
+        }
+
+        $mensaje = 'Procedencia descuadrada: ' . implode(' | ', $descuadres);
+
+        if (app()->environment(['local', 'testing'])) {
+            throw new \RuntimeException($mensaje);
+        }
+
+        \Illuminate\Support\Facades\Log::error($mensaje);
+    }
+
+    /**
+     * Movimiento de consulta externa.
+     *
+     * Columnas reconciliables:
+     *   agendadas + atendidas = primera_vez + sucesivas + orden_medica
+     *   total = agendadas + atendidas + ausentes + ausencia_medico + sin_motivo
+     *
+     * "adolescentes" es una vista superpuesta (solo atendidas de 10-19), no
+     * forma parte de la particion.
+     *
+     * "Agendadas" es el estado pendiente (no el volumen historico).
+     */
     public static function movimientoConsultas(array $data): array
     {
         $rangos = self::resolverRangoFechas($data);
@@ -149,7 +241,7 @@ class ReporteService
         $fecha_hasta = $rangos['fecha_hasta'];
         $fechaTexto = $rangos['titulo'];
 
-        $tipoPaciente = $data['tipo_paciente'];
+        $tipoPaciente = $data['tipo_paciente'] ?? 'todas';
         $edadCondicion = match ($tipoPaciente) {
             'adulto' => '> 12',
             'pediatria' => '<= 12',
@@ -158,21 +250,19 @@ class ReporteService
         $edadCol = $edadCondicion ? "EXTRACT(YEAR FROM AGE(pacientes.fecha_nacimiento)) {$edadCondicion}" : null;
         $especialidadId = $data['especialidad_id'] ?? null;
         $especialidad = $especialidadId ? Especialidad::find($especialidadId) : null;
-        $aroId = Especialidad::where('nombre', 'Aro (Embarazados)')->value('id');
 
         $columnas = [
             'agendadas' => 'Citas Agendadas',
             'atendidas' => 'Citas Atendidas',
             'primera_vez' => 'Citas de Primera Vez',
             'sucesivas' => 'Citas Sucesivas',
+            'orden_medica' => 'Citas por Orden Médica',
             'ausentes' => 'Ausencia del Paciente',
             'ausencia_medico' => 'Ausencia del Médico',
+            'sin_motivo' => 'Canceladas sin Motivo',
             'adolescentes' => 'Adolescentes 10-19',
+            'total' => 'Total Citas',
         ];
-
-        if ($especialidad && $especialidad->nombre === 'Aro (Embarazados)') {
-            $columnas['menos_13_sem'] = '13 Semanas Gestación';
-        }
 
         $sum = function ($condicion) use ($edadCol) {
             return "SUM(CASE WHEN {$condicion}" . ($edadCol ? " AND {$edadCol}" : '') . ' THEN 1 ELSE 0 END)';
@@ -182,23 +272,20 @@ class ReporteService
             'especialidades.nombre as especialidad',
             DB::raw($sum("citas.estado = 'Agendada'") . ' as agendadas'),
             DB::raw($sum("citas.estado = 'Atendida'") . ' as atendidas'),
-            DB::raw($sum("citas.tipo_paciente = 'primera_vez'") . ' as primera_vez'),
-            DB::raw($sum("citas.tipo_paciente = 'control'") . ' as sucesivas'),
-            DB::raw($sum("citas.estado = 'Cancelada' AND COALESCE(cc.motivo, 'ausencia_paciente') = 'ausencia_paciente'") . ' as ausentes'),
+            DB::raw($sum("citas.tipo_paciente = 'primera_vez' AND citas.estado IN ('Agendada', 'Atendida')") . ' as primera_vez'),
+            DB::raw($sum("citas.tipo_paciente = 'control' AND citas.estado IN ('Agendada', 'Atendida')") . ' as sucesivas'),
+            DB::raw($sum("citas.tipo_paciente = 'orden_medica' AND citas.estado IN ('Agendada', 'Atendida')") . ' as orden_medica'),
+            DB::raw($sum("citas.estado = 'Cancelada' AND cc.motivo = 'ausencia_paciente'") . ' as ausentes'),
             DB::raw($sum("citas.estado = 'Cancelada' AND cc.motivo = 'ausencia_medico'") . ' as ausencia_medico'),
+            DB::raw($sum("citas.estado = 'Cancelada' AND cc.motivo IS NULL") . ' as sin_motivo'),
             DB::raw("SUM(CASE WHEN citas.estado = 'Atendida' AND EXTRACT(YEAR FROM AGE(pacientes.fecha_nacimiento)) BETWEEN 10 AND 19 THEN 1 ELSE 0 END) as adolescentes"),
+            DB::raw($sum('1 = 1') . ' as total'),
         ];
-
-        if (isset($columnas['menos_13_sem'])) {
-            $selects[] = DB::raw("SUM(CASE WHEN acd.semanas_gestacion IS NOT NULL AND acd.semanas_gestacion < 13 AND citas.estado = 'Atendida' AND especialidades.id = {$aroId} THEN 1 ELSE 0 END) as menos_13_sem");
-        }
 
         $queryData = Cita::select($selects)
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
-            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
-            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
-            ->leftJoin('aro_cita_datos as acd', 'acd.cita_id', '=', 'citas.id')
             ->leftJoin('cita_cancelaciones as cc', 'cc.cita_id', '=', 'citas.id')
             ->when($especialidadId, fn ($q) => $q->where('especialidades.id', $especialidadId))
             ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
@@ -237,8 +324,19 @@ class ReporteService
         $fecha_desde = $rangos['fecha_desde'];
         $fecha_hasta = $rangos['fecha_hasta'];
         $fechaTexto = $rangos['titulo'];
+        $titulo = 'Movimiento de Consulta Aro Mensual';
 
-        $aroEsp = Especialidad::where('nombre', 'Aro (Embarazados)')->first();
+        $aroEsp = Especialidad::aro()->first();
+
+        if (!$aroEsp) {
+            return [
+                'queryData' => [],
+                'totales' => ['menos_13_sem' => 0, 'adolescentes' => 0, 'total_consultas' => 0],
+                'titulo' => $titulo,
+                'fechaTexto' => $fechaTexto,
+                'aroEsp' => null,
+            ];
+        }
 
         $queryData = Cita::select(
                 DB::raw("to_char(citas.fecha_cita, 'YYYY-MM') as mes"),
@@ -247,8 +345,7 @@ class ReporteService
                 DB::raw("COUNT(*) as total_consultas")
             )
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
-            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
-            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
             ->leftJoin('aro_cita_datos as acd', 'acd.cita_id', '=', 'citas.id')
             ->where('especialidades.id', $aroEsp->id)
@@ -271,11 +368,17 @@ class ReporteService
             'total_consultas' => array_sum(array_column($queryData, 'total_consultas')),
         ];
 
-        $titulo = 'Movimiento de Consulta Aro Mensual';
-
         return compact('queryData', 'totales', 'titulo', 'fechaTexto', 'aroEsp');
     }
 
+    /**
+     * 25 principales causas.
+     *
+     * Cuenta CONSULTAS distintas (una consulta con varias patologias suma 1 a
+     * cada causa). Las cinco columnas de desglose suman el total de la fila.
+     * El total general del reporte NO es la suma de filas: es el numero de
+     * consultas atendidas con al menos una patologia en el periodo.
+     */
     public static function causasPrincipales(array $data): array
     {
         $rangos = self::resolverRangoFechas($data);
@@ -286,22 +389,23 @@ class ReporteService
         $queryData = CitaPatologia::select(
                 'patologias.nombre as patologia',
                 'especialidades.nombre as especialidad',
-                DB::raw("COUNT(CASE WHEN pacientes.sexo = 'Masculino' AND citas.tipo_paciente = 'primera_vez' THEN 1 END) as masculino_primera"),
-                DB::raw("COUNT(CASE WHEN pacientes.sexo = 'Masculino' AND citas.tipo_paciente = 'control' THEN 1 END) as masculino_sucesivas"),
-                DB::raw("COUNT(CASE WHEN pacientes.sexo = 'Femenino' AND citas.tipo_paciente = 'primera_vez' THEN 1 END) as femenino_primera"),
-                DB::raw("COUNT(CASE WHEN pacientes.sexo = 'Femenino' AND citas.tipo_paciente = 'control' THEN 1 END) as femenino_sucesivas"),
-                DB::raw("COUNT(*) as total")
+                DB::raw("COUNT(DISTINCT CASE WHEN pacientes.sexo = 'Masculino' AND citas.tipo_paciente = 'primera_vez' THEN citas.id END) as masculino_primera"),
+                DB::raw("COUNT(DISTINCT CASE WHEN pacientes.sexo = 'Masculino' AND citas.tipo_paciente = 'control' THEN citas.id END) as masculino_sucesivas"),
+                DB::raw("COUNT(DISTINCT CASE WHEN pacientes.sexo = 'Femenino' AND citas.tipo_paciente = 'primera_vez' THEN citas.id END) as femenino_primera"),
+                DB::raw("COUNT(DISTINCT CASE WHEN pacientes.sexo = 'Femenino' AND citas.tipo_paciente = 'control' THEN citas.id END) as femenino_sucesivas"),
+                DB::raw("COUNT(DISTINCT CASE WHEN citas.tipo_paciente = 'orden_medica' THEN citas.id END) as orden_medica"),
+                DB::raw("COUNT(DISTINCT citas.id) as total")
             )
             ->join('citas', 'cita_patologias.cita_id', '=', 'citas.id')
             ->join('patologias', 'cita_patologias.patologia_id', '=', 'patologias.id')
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
-            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
-            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
             ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
-            ->whereIn('citas.estado', ['Atendida', 'Agendada'])
+            ->where('citas.estado', 'Atendida')
             ->groupBy('especialidades.id', 'especialidades.nombre', 'patologias.id', 'patologias.nombre')
-            ->orderByDesc(DB::raw('COUNT(*)'))
+            ->orderByDesc(DB::raw('COUNT(DISTINCT citas.id)'))
+            ->orderBy('patologias.nombre')
             ->limit(25)
             ->get()
             ->map(fn ($item) => [
@@ -311,15 +415,43 @@ class ReporteService
                 'masculino_sucesivas' => (int) $item->masculino_sucesivas,
                 'femenino_primera' => (int) $item->femenino_primera,
                 'femenino_sucesivas' => (int) $item->femenino_sucesivas,
+                'orden_medica' => (int) $item->orden_medica,
                 'total' => (int) $item->total,
             ])
             ->toArray();
 
+        $totales = [
+            'masculino_primera' => array_sum(array_column($queryData, 'masculino_primera')),
+            'masculino_sucesivas' => array_sum(array_column($queryData, 'masculino_sucesivas')),
+            'femenino_primera' => array_sum(array_column($queryData, 'femenino_primera')),
+            'femenino_sucesivas' => array_sum(array_column($queryData, 'femenino_sucesivas')),
+            'orden_medica' => array_sum(array_column($queryData, 'orden_medica')),
+            'total' => array_sum(array_column($queryData, 'total')),
+            'total_consultas' => Cita::query()
+                ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
+                ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
+                ->where('citas.estado', 'Atendida')
+                ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
+                ->whereExists(function ($q) {
+                    $q->select(DB::raw(1))
+                      ->from('cita_patologias')
+                      ->whereColumn('cita_patologias.cita_id', 'citas.id');
+                })
+                ->count('citas.id'),
+        ];
+
         $titulo = '25 Principales Causas de Consulta Externa';
 
-        return compact('queryData', 'titulo', 'fechaTexto');
+        return compact('queryData', 'totales', 'titulo', 'fechaTexto');
     }
 
+    /**
+     * Inasistencias.
+     *
+     * Denominador: citas cerradas (atendidas + canceladas). Las pendientes se
+     * muestran en su propia columna y no distorsionan las tasas. Las
+     * cancelaciones sin motivo registrado ya no se atribuyen al paciente.
+     */
     public static function inasistencias(array $data): array
     {
         $rangos = self::resolverRangoFechas($data);
@@ -330,30 +462,35 @@ class ReporteService
 
         $queryData = Cita::select(
                 'especialidades.nombre as especialidad',
-                DB::raw("COUNT(DISTINCT CASE WHEN citas.estado = 'Cancelada' AND (cc.motivo IS NULL OR cc.motivo = 'ausencia_paciente') THEN citas.id END) as ausencia_paciente"),
+                DB::raw("COUNT(DISTINCT CASE WHEN citas.estado = 'Cancelada' AND cc.motivo = 'ausencia_paciente' THEN citas.id END) as ausencia_paciente"),
                 DB::raw("COUNT(DISTINCT CASE WHEN citas.estado = 'Cancelada' AND cc.motivo = 'ausencia_medico' THEN citas.id END) as ausencia_medico"),
-                DB::raw("COUNT(DISTINCT citas.id) as total_citas")
+                DB::raw("COUNT(DISTINCT CASE WHEN citas.estado = 'Cancelada' AND cc.motivo IS NULL THEN citas.id END) as sin_motivo"),
+                DB::raw("COUNT(DISTINCT CASE WHEN citas.estado IN ('Atendida', 'Cancelada') THEN citas.id END) as total_citas"),
+                DB::raw("COUNT(DISTINCT CASE WHEN citas.estado = 'Agendada' THEN citas.id END) as pendientes")
             )
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
-            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
-            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
             ->leftJoin('cita_cancelaciones as cc', 'cc.cita_id', '=', 'citas.id')
             ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
             ->groupBy('especialidades.id', 'especialidades.nombre')
-            ->orderByDesc(DB::raw('COUNT(DISTINCT citas.id)'))
+            ->orderByDesc(DB::raw("COUNT(DISTINCT citas.id)"))
             ->get()
             ->map(function ($item) {
-                $totalInasistencias = $item->ausencia_paciente + $item->ausencia_medico;
                 $totalCitas = (int) $item->total_citas;
+                $ausenciaPaciente = (int) $item->ausencia_paciente;
+                $ausenciaMedico = (int) $item->ausencia_medico;
+
                 return [
                     'especialidad' => $item->especialidad,
-                    'ausencia_paciente' => (int) $item->ausencia_paciente,
-                    'ausencia_paciente_pct' => $totalCitas > 0 ? round(($item->ausencia_paciente / $totalCitas) * 100, 1) : 0,
-                    'ausencia_medico' => (int) $item->ausencia_medico,
-                    'ausencia_medico_pct' => $totalCitas > 0 ? round(($item->ausencia_medico / $totalCitas) * 100, 1) : 0,
-                    'total_inasistencias' => $totalInasistencias,
+                    'ausencia_paciente' => $ausenciaPaciente,
+                    'ausencia_paciente_pct' => $totalCitas > 0 ? round(($ausenciaPaciente / $totalCitas) * 100, 1) : 0,
+                    'ausencia_medico' => $ausenciaMedico,
+                    'ausencia_medico_pct' => $totalCitas > 0 ? round(($ausenciaMedico / $totalCitas) * 100, 1) : 0,
+                    'sin_motivo' => (int) $item->sin_motivo,
+                    'total_inasistencias' => $ausenciaPaciente + $ausenciaMedico,
                     'total_citas' => $totalCitas,
-                    'tasa_inasistencia' => $totalCitas > 0 ? round(($totalInasistencias / $totalCitas) * 100, 1) : 0,
+                    'pendientes' => (int) $item->pendientes,
+                    'tasa_inasistencia' => $totalCitas > 0 ? round((($ausenciaPaciente + $ausenciaMedico) / $totalCitas) * 100, 1) : 0,
                 ];
             })
             ->toArray();
@@ -361,8 +498,10 @@ class ReporteService
         $totales = [
             'ausencia_paciente' => array_sum(array_column($queryData, 'ausencia_paciente')),
             'ausencia_medico' => array_sum(array_column($queryData, 'ausencia_medico')),
+            'sin_motivo' => array_sum(array_column($queryData, 'sin_motivo')),
             'total_inasistencias' => array_sum(array_column($queryData, 'total_inasistencias')),
             'total_citas' => array_sum(array_column($queryData, 'total_citas')),
+            'pendientes' => array_sum(array_column($queryData, 'pendientes')),
         ];
         $totales['ausencia_paciente_pct'] = $totales['total_citas'] > 0 ? round(($totales['ausencia_paciente'] / $totales['total_citas']) * 100, 1) : 0;
         $totales['ausencia_medico_pct'] = $totales['total_citas'] > 0 ? round(($totales['ausencia_medico'] / $totales['total_citas']) * 100, 1) : 0;
@@ -371,6 +510,15 @@ class ReporteService
         return compact('queryData', 'totales', 'titulo', 'fechaTexto');
     }
 
+    /**
+     * Productividad por medico.
+     *
+     * Capa 1: dias de agenda (no depende de cupos).
+     * Capa 2: cupos ofrecidos / perdidos por suspension y ocupacion.
+     *
+     * Los dias cubiertos por una suspension se excluyen de la capacidad
+     * ofrecida porque el suplente hereda los mismos cupos y se duplicaria.
+     */
     public static function productividadMedico(array $data): array
     {
         $rangos = self::resolverRangoFechas($data);
@@ -380,43 +528,112 @@ class ReporteService
         $especialidadId = $data['especialidad_id'] ?? null;
         $especialidad = $especialidadId ? Especialidad::find($especialidadId) : null;
 
-        $queryData = Cita::select(
+        $citasPorMedico = Cita::select(
+                'medicos.id as medico_id',
                 'medicos.nombre as medico_nombre',
                 'medicos.apellido as medico_apellido',
                 'especialidades.nombre as especialidad',
                 DB::raw("COUNT(*) as total_citas"),
                 DB::raw("SUM(CASE WHEN citas.estado = 'Atendida' THEN 1 ELSE 0 END) as atendidas"),
                 DB::raw("SUM(CASE WHEN citas.estado = 'Agendada' THEN 1 ELSE 0 END) as agendadas"),
-                DB::raw("SUM(CASE WHEN citas.estado = 'Cancelada' THEN 1 ELSE 0 END) as canceladas"),
-                DB::raw("ROUND(SUM(CASE WHEN citas.estado = 'Atendida' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as tasa_atencion")
+                DB::raw("SUM(CASE WHEN citas.estado = 'Cancelada' THEN 1 ELSE 0 END) as canceladas")
             )
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
             ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
-            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
             ->when($especialidadId, fn ($q) => $q->where('especialidades.id', $especialidadId))
             ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
             ->groupBy('medicos.id', 'medicos.nombre', 'medicos.apellido', 'especialidades.id', 'especialidades.nombre')
-            ->orderByDesc('total_citas')
             ->get()
-            ->map(fn ($item) => [
-                'medico' => $item->medico_nombre . ' ' . $item->medico_apellido,
-                'especialidad' => $item->especialidad,
-                'total_citas' => (int) $item->total_citas,
-                'atendidas' => (int) $item->atendidas,
-                'agendadas' => (int) $item->agendadas,
-                'canceladas' => (int) $item->canceladas,
-                'tasa_atencion' => (float) $item->tasa_atencion,
-            ])
-            ->toArray();
+            ->keyBy('medico_id');
+
+        $capacidad = DB::table('calendarios')
+            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
+            ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
+            ->when($especialidadId, fn ($q) => $q->where('especialidades.id', $especialidadId))
+            ->whereBetween('calendarios.fecha', [$fecha_desde, $fecha_hasta])
+            ->selectRaw("
+                medicos.id as medico_id,
+                medicos.nombre as medico_nombre,
+                medicos.apellido as medico_apellido,
+                especialidades.nombre as especialidad,
+                COUNT(DISTINCT calendarios.fecha) FILTER (WHERE NOT EXISTS (
+                    SELECT 1 FROM suspensiones_medicos s
+                    WHERE s.medico_id = medicos.id
+                      AND s.deleted_at IS NULL
+                      AND calendarios.fecha BETWEEN s.fecha_inicio AND s.fecha_fin
+                )) as dias_agenda,
+                COUNT(DISTINCT calendarios.fecha) FILTER (WHERE EXISTS (
+                    SELECT 1 FROM suspensiones_medicos s
+                    WHERE s.medico_id = medicos.id
+                      AND s.deleted_at IS NULL
+                      AND calendarios.fecha BETWEEN s.fecha_inicio AND s.fecha_fin
+                )) as dias_suspendidos,
+                COALESCE(SUM(calendarios.cupos_primera_vez + calendarios.cupos_sucesivos) FILTER (WHERE NOT EXISTS (
+                    SELECT 1 FROM suspensiones_medicos s
+                    WHERE s.medico_id = medicos.id
+                      AND s.deleted_at IS NULL
+                      AND calendarios.fecha BETWEEN s.fecha_inicio AND s.fecha_fin
+                )), 0) as cupos_ofrecidos,
+                COALESCE(SUM(calendarios.cupos_primera_vez + calendarios.cupos_sucesivos) FILTER (WHERE EXISTS (
+                    SELECT 1 FROM suspensiones_medicos s
+                    WHERE s.medico_id = medicos.id
+                      AND s.deleted_at IS NULL
+                      AND calendarios.fecha BETWEEN s.fecha_inicio AND s.fecha_fin
+                )), 0) as cupos_perdidos
+            ")
+            ->groupBy('medicos.id', 'medicos.nombre', 'medicos.apellido', 'especialidades.id', 'especialidades.nombre')
+            ->get()
+            ->keyBy('medico_id');
+
+        $ids = $citasPorMedico->keys()->merge($capacidad->keys())->unique()->values();
+
+        $queryData = $ids->map(function ($id) use ($citasPorMedico, $capacidad) {
+            $cita = $citasPorMedico->get($id);
+            $cap = $capacidad->get($id);
+
+            $atendidas = (int) ($cita->atendidas ?? 0);
+            $agendadas = (int) ($cita->agendadas ?? 0);
+            $canceladas = (int) ($cita->canceladas ?? 0);
+            $cerradas = $atendidas + $canceladas;
+            $cupos = (int) ($cap->cupos_ofrecidos ?? 0);
+
+            $nombre = trim(($cita->medico_nombre ?? $cap->medico_nombre) . ' ' . ($cita->medico_apellido ?? $cap->medico_apellido));
+
+            return [
+                'medico' => $nombre,
+                'especialidad' => $cita->especialidad ?? $cap->especialidad,
+                'dias_agenda' => (int) ($cap->dias_agenda ?? 0),
+                'dias_suspendidos' => (int) ($cap->dias_suspendidos ?? 0),
+                'cupos_ofrecidos' => $cupos,
+                'cupos_perdidos' => (int) ($cap->cupos_perdidos ?? 0),
+                'total_citas' => (int) ($cita->total_citas ?? 0),
+                'atendidas' => $atendidas,
+                'agendadas' => $agendadas,
+                'canceladas' => $canceladas,
+                'tasa_atencion' => $cerradas > 0 ? round($atendidas * 100 / $cerradas, 1) : 0.0,
+                'ocupacion' => $cupos > 0 ? round($cerradas * 100 / $cupos, 1) : 0.0,
+            ];
+        })->sortBy([
+            ['total_citas', 'desc'],
+            ['medico', 'asc'],
+        ])->values()->toArray();
 
         $totales = [
+            'dias_agenda' => array_sum(array_column($queryData, 'dias_agenda')),
+            'dias_suspendidos' => array_sum(array_column($queryData, 'dias_suspendidos')),
+            'cupos_ofrecidos' => array_sum(array_column($queryData, 'cupos_ofrecidos')),
+            'cupos_perdidos' => array_sum(array_column($queryData, 'cupos_perdidos')),
             'total_citas' => array_sum(array_column($queryData, 'total_citas')),
             'atendidas' => array_sum(array_column($queryData, 'atendidas')),
             'agendadas' => array_sum(array_column($queryData, 'agendadas')),
             'canceladas' => array_sum(array_column($queryData, 'canceladas')),
         ];
-        $totales['tasa_atencion'] = $totales['total_citas'] > 0
-            ? round($totales['atendidas'] * 100.0 / $totales['total_citas'], 1)
+
+        $cerradas = $totales['atendidas'] + $totales['canceladas'];
+        $totales['tasa_atencion'] = $cerradas > 0 ? round($totales['atendidas'] * 100 / $cerradas, 1) : 0;
+        $totales['ocupacion'] = $totales['cupos_ofrecidos'] > 0
+            ? round($cerradas * 100 / $totales['cupos_ofrecidos'], 1)
             : 0;
 
         $titulo = 'Productividad por Médico - ' . $rangos['titulo'];
@@ -425,6 +642,13 @@ class ReporteService
         return compact('queryData', 'totales', 'titulo', 'fechaTexto', 'especialidadNombre');
     }
 
+    /**
+     * Citas atendidas sin patologia registrada.
+     *
+     * El diagnostico se registra en diagnostico_libre y/o en cita_patologias
+     * (multi-select). Este reporte vigila el registro de PATOLOGIAS, que es
+     * el dato que alimenta el reporte de causas.
+     */
     public static function citasSinDiagnostico(array $data): array
     {
         $rangos = self::resolverRangoFechas($data);
@@ -445,11 +669,11 @@ class ReporteService
                 'citas.observacion'
             )
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
-            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
-            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->leftJoin('medicos', 'calendarios.medico_id', '=', 'medicos.id')
+            ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
             ->where('citas.estado', 'Atendida')
-            ->whereNull('citas.diagnostico_libre')
+            ->whereDoesntHave('patologias')
             ->when($especialidadId, fn ($q) => $q->where('especialidades.id', $especialidadId))
             ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
             ->orderBy('especialidades.nombre')
@@ -457,7 +681,7 @@ class ReporteService
             ->orderBy('citas.fecha_cita')
             ->get()
             ->map(fn ($item) => [
-                'medico' => $item->medico_nombre . ' ' . $item->medico_apellido,
+                'medico' => trim($item->medico_nombre . ' ' . $item->medico_apellido) ?: self::SIN_MEDICO,
                 'especialidad' => $item->especialidad,
                 'paciente' => $item->paciente_nombre . ' ' . $item->paciente_apellido,
                 'cedula' => $item->paciente_cedula,
@@ -476,6 +700,15 @@ class ReporteService
         return compact('queryData', 'totales', 'titulo', 'fechaTexto', 'especialidadNombre');
     }
 
+    /**
+     * Eficiencia de atencion.
+     *
+     * Las tasas se calculan sobre citas cerradas (atendidas + canceladas);
+     * las pendientes se informan aparte. El % de historia traida usa como
+     * denominador las atendidas, porque el campo solo se llena al atender.
+     * "Dias promedio" es antelacion de agenda (fecha_cita - fecha_registro)
+     * medida solo sobre atendidas.
+     */
     public static function eficienciaAtencion(array $data): array
     {
         $rangos = self::resolverRangoFechas($data);
@@ -483,57 +716,71 @@ class ReporteService
         $fecha_hasta = $rangos['fecha_hasta'];
         $fechaTexto = $rangos['titulo'];
 
+        $pct = fn ($parte, $total) => $total > 0 ? round(($parte / $total) * 100, 1) : 0;
+
         $queryData = Cita::select(
                 DB::raw("TO_CHAR(citas.fecha_cita, 'YYYY-MM') as mes"),
                 DB::raw("COUNT(*) as total"),
                 DB::raw("SUM(CASE WHEN citas.estado = 'Atendida' THEN 1 ELSE 0 END) as atendidas"),
-                DB::raw("ROUND(SUM(CASE WHEN citas.estado = 'Atendida' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as tasa_atencion"),
                 DB::raw("SUM(CASE WHEN citas.estado = 'Cancelada' THEN 1 ELSE 0 END) as canceladas"),
-                DB::raw("ROUND(SUM(CASE WHEN citas.estado = 'Cancelada' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as tasa_cancelacion"),
-                DB::raw("SUM(CASE WHEN citas.tipo_paciente = 'primera_vez' THEN 1 ELSE 0 END) as primera_vez"),
-                DB::raw("ROUND(SUM(CASE WHEN citas.tipo_paciente = 'primera_vez' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as pct_primera_vez"),
-                DB::raw("SUM(CASE WHEN citas.tipo_paciente = 'control' THEN 1 ELSE 0 END) as control"),
-                DB::raw("ROUND(SUM(CASE WHEN citas.tipo_paciente = 'control' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as pct_control"),
-                DB::raw("SUM(CASE WHEN citas.historia_traida = true THEN 1 ELSE 0 END) as historia_traida"),
-                DB::raw("ROUND(SUM(CASE WHEN citas.historia_traida = true THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as pct_historia_traida"),
-                DB::raw("ROUND(AVG(citas.fecha_cita - citas.fecha_registro), 1) as promedio_dias_espera")
+                DB::raw("SUM(CASE WHEN citas.estado = 'Agendada' THEN 1 ELSE 0 END) as pendientes"),
+                DB::raw("SUM(CASE WHEN citas.tipo_paciente = 'primera_vez' AND citas.estado IN ('Atendida', 'Cancelada') THEN 1 ELSE 0 END) as primera_vez"),
+                DB::raw("SUM(CASE WHEN citas.tipo_paciente = 'control' AND citas.estado IN ('Atendida', 'Cancelada') THEN 1 ELSE 0 END) as control"),
+                DB::raw("SUM(CASE WHEN citas.tipo_paciente = 'orden_medica' AND citas.estado IN ('Atendida', 'Cancelada') THEN 1 ELSE 0 END) as orden_medica"),
+                DB::raw("SUM(CASE WHEN citas.historia_traida = true AND citas.estado = 'Atendida' THEN 1 ELSE 0 END) as historia_traida"),
+                DB::raw("ROUND(AVG(citas.fecha_cita - citas.fecha_registro) FILTER (WHERE citas.estado = 'Atendida'), 1) as promedio_dias_espera")
             )
             ->whereBetween('citas.fecha_cita', [$fecha_desde, $fecha_hasta])
             ->groupBy(DB::raw("TO_CHAR(citas.fecha_cita, 'YYYY-MM')"))
             ->orderBy('mes')
             ->get()
-            ->map(fn ($item) => [
-                'mes' => $item->mes,
-                'total' => (int) $item->total,
-                'atendidas' => (int) $item->atendidas,
-                'tasa_atencion' => (float) $item->tasa_atencion,
-                'canceladas' => (int) $item->canceladas,
-                'tasa_cancelacion' => (float) $item->tasa_cancelacion,
-                'primera_vez' => (int) $item->primera_vez,
-                'pct_primera_vez' => (float) $item->pct_primera_vez,
-                'control' => (int) $item->control,
-                'pct_control' => (float) $item->pct_control,
-                'historia_traida' => (int) $item->historia_traida,
-                'pct_historia_traida' => (float) $item->pct_historia_traida,
-                'promedio_dias_espera' => (float) $item->promedio_dias_espera,
-            ])
+            ->map(function ($item) use ($pct) {
+                $atendidas = (int) $item->atendidas;
+                $canceladas = (int) $item->canceladas;
+                $cerradas = $atendidas + $canceladas;
+
+                return [
+                    'mes' => $item->mes,
+                    'total' => (int) $item->total,
+                    'cerradas' => $cerradas,
+                    'atendidas' => $atendidas,
+                    'tasa_atencion' => $pct($atendidas, $cerradas),
+                    'canceladas' => $canceladas,
+                    'tasa_cancelacion' => $pct($canceladas, $cerradas),
+                    'pendientes' => (int) $item->pendientes,
+                    'primera_vez' => (int) $item->primera_vez,
+                    'pct_primera_vez' => $pct((int) $item->primera_vez, $cerradas),
+                    'control' => (int) $item->control,
+                    'pct_control' => $pct((int) $item->control, $cerradas),
+                    'orden_medica' => (int) $item->orden_medica,
+                    'historia_traida' => (int) $item->historia_traida,
+                    'pct_historia_traida' => $pct((int) $item->historia_traida, $atendidas),
+                    'promedio_dias_espera' => (float) $item->promedio_dias_espera,
+                ];
+            })
             ->toArray();
 
         $totales = [
             'total' => array_sum(array_column($queryData, 'total')),
+            'cerradas' => array_sum(array_column($queryData, 'cerradas')),
             'atendidas' => array_sum(array_column($queryData, 'atendidas')),
             'canceladas' => array_sum(array_column($queryData, 'canceladas')),
+            'pendientes' => array_sum(array_column($queryData, 'pendientes')),
             'primera_vez' => array_sum(array_column($queryData, 'primera_vez')),
             'control' => array_sum(array_column($queryData, 'control')),
+            'orden_medica' => array_sum(array_column($queryData, 'orden_medica')),
             'historia_traida' => array_sum(array_column($queryData, 'historia_traida')),
         ];
-        $totales['tasa_atencion'] = $totales['total'] > 0 ? round($totales['atendidas'] * 100.0 / $totales['total'], 1) : 0;
-        $totales['tasa_cancelacion'] = $totales['total'] > 0 ? round($totales['canceladas'] * 100.0 / $totales['total'], 1) : 0;
-        $totales['pct_primera_vez'] = $totales['total'] > 0 ? round($totales['primera_vez'] * 100.0 / $totales['total'], 1) : 0;
-        $totales['pct_control'] = $totales['total'] > 0 ? round($totales['control'] * 100.0 / $totales['total'], 1) : 0;
-        $totales['pct_historia_traida'] = $totales['total'] > 0 ? round($totales['historia_traida'] * 100.0 / $totales['total'], 1) : 0;
-        $totales['promedio_dias_espera'] = $totales['total'] > 0
-            ? round(array_sum(array_map(fn ($r) => $r['promedio_dias_espera'] * $r['total'], $queryData)) / $totales['total'], 1)
+        $totales['tasa_atencion'] = $pct($totales['atendidas'], $totales['cerradas']);
+        $totales['tasa_cancelacion'] = $pct($totales['canceladas'], $totales['cerradas']);
+        $totales['pct_primera_vez'] = $pct($totales['primera_vez'], $totales['cerradas']);
+        $totales['pct_control'] = $pct($totales['control'], $totales['cerradas']);
+        $totales['pct_historia_traida'] = $pct($totales['historia_traida'], $totales['atendidas']);
+        $totales['promedio_dias_espera'] = $totales['atendidas'] > 0
+            ? round(array_sum(array_map(
+                fn ($r) => $r['promedio_dias_espera'] * $r['atendidas'],
+                $queryData
+            )) / $totales['atendidas'], 1)
             : 0;
 
         $titulo = 'Eficiencia de Atención - ' . $rangos['titulo'];

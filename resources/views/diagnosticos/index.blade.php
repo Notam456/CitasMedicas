@@ -6,6 +6,20 @@
 @section('content')
     @include('layouts.navbar')
 
+    @if ($errors->any())
+        <div class="table-responsive px-4 pt-4">
+            <div class="alert alert-danger alert-dismissible fade show mb-0" role="alert">
+                <strong>Revise el formulario:</strong>
+                <ul class="mb-0 mt-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+        </div>
+    @endif
+
     <div class="table-responsive bg-light rounded h-100 p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="mb-0">Citas Atendidas - Diagnósticos</h3>

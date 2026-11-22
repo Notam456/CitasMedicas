@@ -59,11 +59,12 @@
             text-align: left;
         }
         /* Anchos de columna */
-        th:first-child, td:first-child { width: 18%; }
-        th:nth-child(2), td:nth-child(2) { width: 32%; }
-        th:nth-child(3), td:nth-child(3) { width: 15%; }
-        th:nth-child(4), td:nth-child(4) { width: 15%; }
-        th:nth-child(5), td:nth-child(5) { width: 20%; }
+        th:first-child, td:first-child { width: 16%; }
+        th:nth-child(2), td:nth-child(2) { width: 28%; }
+        th:nth-child(3), td:nth-child(3) { width: 14%; }
+        th:nth-child(4), td:nth-child(4) { width: 14%; }
+        th:nth-child(5), td:nth-child(5) { width: 14%; }
+        th:nth-child(6), td:nth-child(6) { width: 14%; }
         /* Evitar que las filas se partan en dos páginas */
         tr {
             page-break-inside: avoid;
@@ -85,48 +86,52 @@
             <tr>
                 <th>Distrito</th>
                 <th>Municipio</th>
-                <th>Citas Agendadas</th>
                 <th>Citas Atendidas</th>
-                <th>Total Pacientes*</th>
+                <th>Citas Canceladas</th>
+                <th>Citas Pendientes</th>
+                <th>Total Citas</th>
             </tr>
-            @php
-                $grandTotal = ['agendadas' => 0, 'atendidas' => 0, 'todos' => 0];
-            @endphp
             @foreach($reporteFinal as $distritoInfo)
-                @foreach($distritoInfo['municipios'] as $municipio)
-                    <tr>
-                        <td class="distrito-row">{{ $distritoInfo['distrito'] }}</td>
-                        <td class="text-left">{{ $municipio['nombre'] }}</td>
-                        <td>{{ $municipio['agendadas'] }}</td>
-                        <td>{{ $municipio['atendidas'] }}</td>
-                        <td>{{ $municipio['total'] }}</td>
-                    </tr>
-                @endforeach
                 @if(count($distritoInfo['municipios']) > 0)
+                    @foreach($distritoInfo['municipios'] as $municipio)
+                        <tr>
+                            <td class="distrito-row">{{ $distritoInfo['distrito'] }}</td>
+                            <td class="text-left">{{ $municipio['nombre'] }}</td>
+                            <td>{{ $municipio['atendidas'] }}</td>
+                            <td>{{ $municipio['canceladas'] }}</td>
+                            <td>{{ $municipio['pendientes'] }}</td>
+                            <td>{{ $municipio['total'] }}</td>
+                        </tr>
+                    @endforeach
                     <tr class="subtotal-row">
                         <td colspan="2"><strong>Subtotal {{ $distritoInfo['distrito'] }}</strong></td>
-                        <td><strong>{{ $distritoInfo['subtotal']['agendadas'] }}</strong></td>
                         <td><strong>{{ $distritoInfo['subtotal']['atendidas'] }}</strong></td>
+                        <td><strong>{{ $distritoInfo['subtotal']['canceladas'] }}</strong></td>
+                        <td><strong>{{ $distritoInfo['subtotal']['pendientes'] }}</strong></td>
                         <td><strong>{{ $distritoInfo['subtotal']['total'] }}</strong></td>
                     </tr>
+                @elseif($distritoInfo['subtotal']['total'] > 0)
+                    <tr class="distrito-row">
+                        <td>{{ $distritoInfo['distrito'] }}</td>
+                        <td>&mdash;</td>
+                        <td>{{ $distritoInfo['subtotal']['atendidas'] }}</td>
+                        <td>{{ $distritoInfo['subtotal']['canceladas'] }}</td>
+                        <td>{{ $distritoInfo['subtotal']['pendientes'] }}</td>
+                        <td>{{ $distritoInfo['subtotal']['total'] }}</td>
+                    </tr>
                 @endif
-                @php
-                    $grandTotal['agendadas'] += $distritoInfo['subtotal']['agendadas'];
-                    $grandTotal['atendidas'] += $distritoInfo['subtotal']['atendidas'];
-                    $grandTotal['todos'] += $distritoInfo['subtotal']['total'];
-                @endphp
             @endforeach
             <tr class="total-row">
                 <td colspan="2"><strong>TOTAL GENERAL</strong></td>
-                <td><strong>{{ $grandTotal['agendadas'] }}</strong></td>
-                <td><strong>{{ $grandTotal['atendidas'] }}</strong></td>
-                <td><strong>{{ $grandTotal['todos'] }}</strong></td>
+                <td><strong>{{ $totalesGlobales['atendidas'] }}</strong></td>
+                <td><strong>{{ $totalesGlobales['canceladas'] }}</strong></td>
+                <td><strong>{{ $totalesGlobales['pendientes'] }}</strong></td>
+                <td><strong>{{ $totalesGlobales['total'] }}</strong></td>
             </tr>
-        </tbody>
     </table>
 
     <div class="fecha">
-        <p><small>* Total Pacientes: pacientes únicos con al menos una cita (Agendada o Atendida) en el período.</small></p>
+        <p><small>* El reporte cuenta citas, no pacientes únicos: un paciente con varias citas en el período suma una por cada cita. Total = Atendidas + Canceladas + Pendientes.</small></p>
         <p>Reporte generado el {{ now()->format('d/m/Y H:i:s') }}</p>
         <p>Rango de fechas: {{ \Carbon\Carbon::parse($fecha_desde)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fecha_hasta)->format('d/m/Y') }}</p>
     </div>

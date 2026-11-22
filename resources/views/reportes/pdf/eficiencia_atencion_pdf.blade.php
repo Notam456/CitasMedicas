@@ -13,6 +13,7 @@
         th { background-color: #f2f2f2; font-weight: bold; }
         tr { page-break-inside: avoid; }
         .total-row { background-color: #c3e6cb; font-weight: bold; }
+        .nota { font-size: 8px; color: #666666; margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -36,7 +37,7 @@
             <tr>
                 <th>#</th>
                 <th>Mes</th>
-                <th>Total</th>
+                <th>Cerradas</th>
                 <th>Atendidas</th>
                 <th>Tasa Atención</th>
                 <th>Canceladas</th>
@@ -53,7 +54,7 @@
             <tr>
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $row['mes'] }}</td>
-                <td>{{ $row['total'] }}</td>
+                <td>{{ $row['cerradas'] }}</td>
                 <td>{{ $row['atendidas'] }}</td>
                 <td>{{ $row['tasa_atencion'] }}%</td>
                 <td>{{ $row['canceladas'] }}</td>
@@ -69,7 +70,7 @@
             @endforeach
             <tr class="total-row">
                 <td colspan="2"><strong>TOTAL</strong></td>
-                <td><strong>{{ $totales['total'] }}</strong></td>
+                <td><strong>{{ $totales['cerradas'] }}</strong></td>
                 <td><strong>{{ $totales['atendidas'] }}</strong></td>
                 <td><strong>{{ $totales['tasa_atencion'] }}%</strong></td>
                 <td><strong>{{ $totales['canceladas'] }}</strong></td>
@@ -83,6 +84,7 @@
                 <td><strong>{{ $totales['promedio_dias_espera'] }}</strong></td>
             </tr>
         </table>
+        <p class="nota">* Las tasas se calculan sobre citas cerradas (atendidas + canceladas). Las citas pendientes (agendadas) del período no se incluyen en los denominadores. El % de historia traída se calcula solo sobre atendidas. "Días Prom." es la antelación media de la cita (fecha de la cita menos fecha de registro).</p>
     @else
         <p>No hay datos para el período seleccionado.</p>
     @endif

@@ -11,12 +11,14 @@ use Illuminate\Contracts\View\View;
 class CausasPrincipalesExport implements FromView, ShouldAutoSize, WithEvents
 {
     protected $data;
+    protected $totales;
     protected $titulo;
     protected $fechaTexto;
 
-    public function __construct($data, $titulo, $fechaTexto)
+    public function __construct($data, $totales, $titulo, $fechaTexto)
     {
         $this->data = $data;
+        $this->totales = $totales;
         $this->titulo = $titulo;
         $this->fechaTexto = $fechaTexto;
     }
@@ -25,6 +27,7 @@ class CausasPrincipalesExport implements FromView, ShouldAutoSize, WithEvents
     {
         return view('reportes.excel.causas_principales_excel', [
             'data' => $this->data,
+            'totales' => $this->totales,
             'titulo' => $this->titulo,
             'fechaTexto' => $this->fechaTexto,
         ]);
@@ -43,7 +46,7 @@ class CausasPrincipalesExport implements FromView, ShouldAutoSize, WithEvents
                 $sheet->getRowDimension(4)->setRowHeight(30);
 
                 if ($highestRow >= 4) {
-                    $sheet->setAutoFilter('A4:H' . $highestRow);
+                    $sheet->setAutoFilter('A4:I' . $highestRow);
                 }
             },
         ];

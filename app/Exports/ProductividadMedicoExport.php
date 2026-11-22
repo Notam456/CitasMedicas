@@ -49,13 +49,16 @@ class ProductividadMedicoExport implements FromView, ShouldAutoSize, WithEvents
                 $sheet->getRowDimension(4)->setRowHeight(35);
 
                 if ($highestRow >= 4) {
-                    $sheet->setAutoFilter('A4:H' . $highestRow);
+                    $sheet->setAutoFilter('A4:M' . $highestRow);
                 }
 
                 if ($highestRow >= 5) {
-                    $sheet->getStyle('H5:H' . $highestRow)
-                        ->getNumberFormat()
-                        ->setFormatCode('0.0%');
+                    $percentColumns = ['L', 'M'];
+                    foreach ($percentColumns as $col) {
+                        $sheet->getStyle($col . '5:' . $col . $highestRow)
+                            ->getNumberFormat()
+                            ->setFormatCode('0.0%');
+                    }
                 }
             },
         ];
