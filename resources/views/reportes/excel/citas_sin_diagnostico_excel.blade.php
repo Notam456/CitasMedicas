@@ -34,3 +34,4 @@
         <td style="padding: 10px; text-align: center; border: 1px solid #81C784; font-weight: bold;">{{ $totales['sin_diagnostico'] }} citas</td>
     </tr>
 </table>
+<p style="font-size: 9px; color: #888888;"><em>* Incluye únicamente citas atendidas en el período que no tienen ninguna patología registrada en el diagnóstico. El diagnóstico libre escrito no sustituye el registro de patologías.</em></p>

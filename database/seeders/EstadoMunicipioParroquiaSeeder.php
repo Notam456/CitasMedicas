@@ -10,10 +10,14 @@ class EstadoMunicipioParroquiaSeeder extends Seeder
     public function run()
     {
  
+        // Sin id explicito: al insertar con id fijo la secuencia no avanza y el
+        // primer alta manual desde la interfaz choca con la PK (SQLSTATE 23505).
         DB::table('estados')->updateOrInsert(
-            ['id' => 1],
-            ['nombre' => 'Yaracuy', 'created_at' => now(), 'updated_at' => now()]
+            ['nombre' => 'Yaracuy'],
+            ['created_at' => now(), 'updated_at' => now()]
         );
+
+        $estadoId = DB::table('estados')->where('nombre', 'Yaracuy')->value('id');
 
 
         $distritos = [
@@ -65,7 +69,7 @@ class EstadoMunicipioParroquiaSeeder extends Seeder
         foreach ($municipiosConDistrito as $nombre => $distritoNombre) {
             $distritoId = $distritoIds[$distritoNombre] ?? null;
             DB::table('municipios')->updateOrInsert(
-                ['nombre' => $nombre, 'estado_id' => 1],
+                ['nombre' => $nombre, 'estado_id' => $estadoId],
                 [
                     'distrito_id' => $distritoId,
                     'created_at' => now(),
@@ -74,7 +78,7 @@ class EstadoMunicipioParroquiaSeeder extends Seeder
             );
         }
 
-        $municipios = DB::table('municipios')->where('estado_id', 1)->get(['id', 'nombre']);
+        $municipios = DB::table('municipios')->where('estado_id', $estadoId)->get(['id', 'nombre']);
         foreach ($municipios as $municipio) {
             DB::table('parroquias')->updateOrInsert(
                 ['nombre' => $municipio->nombre, 'municipio_id' => $municipio->id],

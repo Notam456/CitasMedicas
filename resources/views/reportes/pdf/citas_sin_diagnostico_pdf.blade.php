@@ -14,6 +14,7 @@
         th:nth-child(4), td:nth-child(4) { text-align: left; }
         tr { page-break-inside: avoid; }
         .total-row { background-color: #c3e6cb; font-weight: bold; }
+        .nota { font-size: 8px; color: #666666; margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -60,6 +61,7 @@
                 <td></td>
             </tr>
         </table>
+        <p class="nota">* Incluye únicamente citas atendidas en el período que no tienen ninguna patología registrada en el diagnóstico. El diagnóstico libre escrito no sustituye el registro de patologías.</p>
     @else
         <p>No hay datos para el período seleccionado.</p>
     @endif

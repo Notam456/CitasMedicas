@@ -84,11 +84,7 @@ class ReporteController extends Controller
 
     public function movimientoConsultas(ReporteRequest $request)
     {
-        $validated = $request->validated();
-        $validated['tipo_paciente'] = $request->tipo_paciente;
-        $validated['especialidad_id'] = $request->especialidad_id;
-
-        $data = ReporteService::movimientoConsultas($validated);
+        $data = ReporteService::movimientoConsultas($request->validated());
 
         if ($request->has('excel')) {
             $edad = $this->sanitizeFilename($data['tipoPacienteTexto']);
@@ -161,11 +157,12 @@ class ReporteController extends Controller
 
         if ($request->has('excel')) {
             $fechaParte = $this->sanitizeFilename($data['fechaTexto']);
-            return Excel::download(new CausasPrincipalesExport($data['queryData'], $data['titulo'], $data['fechaTexto']), "25_causas_principales_{$fechaParte}.xlsx");
+            return Excel::download(new CausasPrincipalesExport($data['queryData'], $data['totales'], $data['titulo'], $data['fechaTexto']), "25_causas_principales_{$fechaParte}.xlsx");
         }
 
         $pdf = Pdf::loadView('reportes.pdf.causas_principales_pdf', [
-            'data' => $data['queryData'], 'titulo' => $data['titulo'],
+            'data' => $data['queryData'], 'totales' => $data['totales'],
+            'titulo' => $data['titulo'],
             'fechaTexto' => $data['fechaTexto'], 'membrete' => Membrete::base64(),
         ]);
         return $pdf->stream('25_causas_principales.pdf');
@@ -215,9 +212,7 @@ class ReporteController extends Controller
 
     public function productividadMedico(ReporteRequest $request)
     {
-        $validated = $request->validated();
-        $validated['especialidad_id'] = $request->especialidad_id;
-        $data = ReporteService::productividadMedico($validated);
+        $data = ReporteService::productividadMedico($request->validated());
 
         if ($request->has('excel')) {
             $fechaParte = $this->sanitizeFilename($data['fechaTexto']);
@@ -250,9 +245,7 @@ class ReporteController extends Controller
 
     public function citasSinDiagnostico(ReporteRequest $request)
     {
-        $validated = $request->validated();
-        $validated['especialidad_id'] = $request->especialidad_id;
-        $data = ReporteService::citasSinDiagnostico($validated);
+        $data = ReporteService::citasSinDiagnostico($request->validated());
 
         if ($request->has('excel')) {
             $fechaParte = $this->sanitizeFilename($data['fechaTexto']);

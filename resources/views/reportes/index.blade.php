@@ -140,7 +140,7 @@
             @slot('card_title','Citas sin Diagnóstico')
 
             @slot('card_desc')
-            Listado de citas atendidas que no tienen diagnóstico registrado.
+            Listado de citas atendidas que no tienen patologías registradas en el diagnóstico.
             @endslot
 
             @slot('reporte_bs_target','#modalCitasSinDiagnostico')

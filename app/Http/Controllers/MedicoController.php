@@ -39,6 +39,7 @@ class MedicoController extends Controller
         ->selectRaw('EXISTS (
             SELECT 1 FROM suspensiones_medicos
             WHERE suspensiones_medicos.medico_id = medicos.id
+            AND suspensiones_medicos.deleted_at IS NULL
             AND suspensiones_medicos.fecha_inicio <= ?
             AND suspensiones_medicos.fecha_fin >= ?
         ) as esta_suspendido', [$today, $today]);
@@ -61,6 +62,7 @@ class MedicoController extends Controller
                     $sub->selectRaw(1)
                         ->from('suspensiones_medicos')
                         ->whereColumn('suspensiones_medicos.medico_id', 'medicos.id')
+                        ->whereNull('suspensiones_medicos.deleted_at')
                         ->where('suspensiones_medicos.fecha_inicio', '<=', $today)
                         ->where('suspensiones_medicos.fecha_fin', '>=', $today);
                 });
@@ -69,6 +71,7 @@ class MedicoController extends Controller
                     $sub->selectRaw(1)
                         ->from('suspensiones_medicos')
                         ->whereColumn('suspensiones_medicos.medico_id', 'medicos.id')
+                        ->whereNull('suspensiones_medicos.deleted_at')
                         ->where('suspensiones_medicos.fecha_inicio', '<=', $today)
                         ->where('suspensiones_medicos.fecha_fin', '>=', $today);
                 });
@@ -296,13 +299,46 @@ class MedicoController extends Controller
 
     public function destroy(int $id)
     {
-        $medico = Medico::withCount('citas')->findOrFail($id);
+        $medico = Medico::withCount([
+            'citas',
+            'calendarios',
+            'horarios',
+            // El soft delete no exime del FK: el registro sigue en la tabla.
+            'suspensiones' => fn ($q) => $q->withTrashed(),
+        ])->findOrFail($id);
+
+        $motivos = [];
+
         if ($medico->citas_count > 0) {
-            alert()->error('No se puede eliminar', 'Este médico tiene citas médicas asociadas en el sistema.');
+            $motivos[] = "{$medico->citas_count} cita(s)";
+        }
+        if ($medico->calendarios_count > 0) {
+            $motivos[] = "{$medico->calendarios_count} calendario(s) de agenda";
+        }
+        if ($medico->horarios_count > 0) {
+            $motivos[] = "{$medico->horarios_count} horario(s) configurado(s)";
+        }
+        if ($medico->suspensiones_count > 0) {
+            $motivos[] = "{$medico->suspensiones_count} suspensión(es) registrada(s)";
+        }
+
+        if ($motivos !== []) {
+            alert()->error('No se puede eliminar', 'Este médico tiene registros asociados: ' . implode(', ', $motivos) . '.');
 
             return redirect()->route('medicos.index');
         }
-        $medico->delete();
+
+        try {
+            $medico->delete();
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23503') {
+                alert()->error('No se puede eliminar', 'Este médico todavía tiene registros asociados. Reasigne o elimine primero su agenda y su historial.');
+
+                return redirect()->route('medicos.index');
+            }
+
+            throw $e;
+        }
 
         alert()->success('Médico eliminado exitosamente.');
 

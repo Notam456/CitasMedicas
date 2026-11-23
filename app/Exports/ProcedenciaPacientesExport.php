@@ -49,7 +49,7 @@ class ProcedenciaPacientesExport implements FromView, ShouldAutoSize, WithEvents
                 $sheet->getRowDimension(4)->setRowHeight(35);
 
                 if ($highestRow >= 4) {
-                    $sheet->setAutoFilter('A4:E' . $highestRow);
+                    $sheet->setAutoFilter('A4:F' . $highestRow);
                 }
             },
         ];

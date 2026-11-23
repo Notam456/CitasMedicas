@@ -46,12 +46,12 @@ class InasistenciasExport implements FromView, ShouldAutoSize, WithEvents
                 $sheet->getRowDimension(4)->setRowHeight(35);
 
                 if ($highestRow >= 4) {
-                    $sheet->setAutoFilter('A4:I' . $highestRow);
+                    $sheet->setAutoFilter('A4:K' . $highestRow);
                 }
 
-                // Apply percentage format to columns D, F, I (data rows start at 5)
+                // Aplica formato porcentual a Aus.Pac. %, Aus.Med. % y Tasa (datos desde la fila 5)
                 if ($highestRow >= 5) {
-                    $percentColumns = ['D', 'F', 'I'];
+                    $percentColumns = ['D', 'F', 'K'];
                     foreach ($percentColumns as $col) {
                         $sheet->getStyle($col . '5:' . $col . $highestRow)
                             ->getNumberFormat()

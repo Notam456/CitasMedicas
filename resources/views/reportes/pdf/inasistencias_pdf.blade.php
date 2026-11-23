@@ -9,13 +9,13 @@
         .fecha { text-align: center; font-size: 10px; margin-bottom: 10px; }
         h1 { color: #20356B; text-align: center; font-size: 18px; margin: 10px 0; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 6px 4px; text-align: center; vertical-align: middle; word-wrap: break-word; }
-        th { background-color: #f2f2f2; font-weight: bold; font-size: 9px; }
+        th, td { border: 1px solid #ddd; padding: 5px 3px; text-align: center; vertical-align: middle; word-wrap: break-word; }
+        th { background-color: #f2f2f2; font-weight: bold; font-size: 8px; }
         th:first-child, td:first-child { width: 4%; }
-        th:nth-child(2), td:nth-child(2) { width: 22%; text-align: left; }
+        th:nth-child(2), td:nth-child(2) { width: 18%; text-align: left; }
         tr { page-break-inside: avoid; }
         .total-row { background-color: #c3e6cb; font-weight: bold; }
-        .section-header { background-color: #e8e8e8; font-weight: bold; }
+        .nota { font-size: 8px; color: #666666; margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -37,19 +37,17 @@
     @if(count($data) > 0)
         <table>
             <tr>
-                <th rowspan="2">#</th>
-                <th rowspan="2">Especialidad</th>
-                <th colspan="2">Ausencia Paciente</th>
-                <th colspan="2">Ausencia Médico</th>
-                <th rowspan="2">Total Inasistencias</th>
-                <th rowspan="2">Total Citas</th>
-                <th rowspan="2">Tasa Inasistencia</th>
-            </tr>
-            <tr>
-                <th>Cantidad</th>
-                <th>%</th>
-                <th>Cantidad</th>
-                <th>%</th>
+                <th>#</th>
+                <th>Especialidad</th>
+                <th>Aus. Pac.<br>Cant.</th>
+                <th>Aus. Pac.<br>%</th>
+                <th>Aus. Méd.<br>Cant.</th>
+                <th>Aus. Méd.<br>%</th>
+                <th>Canceladas<br>sin Motivo</th>
+                <th>Total<br>Inasist.</th>
+                <th>Citas<br>Cerradas</th>
+                <th>Pendientes</th>
+                <th>Tasa<br>Inasist.</th>
             </tr>
             @foreach($data as $index => $row)
             <tr>
@@ -59,8 +57,10 @@
                 <td>{{ $row['ausencia_paciente_pct'] }}%</td>
                 <td>{{ $row['ausencia_medico'] }}</td>
                 <td>{{ $row['ausencia_medico_pct'] }}%</td>
+                <td>{{ $row['sin_motivo'] }}</td>
                 <td>{{ $row['total_inasistencias'] }}</td>
                 <td>{{ $row['total_citas'] }}</td>
+                <td>{{ $row['pendientes'] }}</td>
                 <td>{{ $row['tasa_inasistencia'] }}%</td>
             </tr>
             @endforeach
@@ -70,11 +70,14 @@
                 <td><strong>{{ $totales['ausencia_paciente_pct'] }}%</strong></td>
                 <td><strong>{{ $totales['ausencia_medico'] }}</strong></td>
                 <td><strong>{{ $totales['ausencia_medico_pct'] }}%</strong></td>
+                <td><strong>{{ $totales['sin_motivo'] }}</strong></td>
                 <td><strong>{{ $totales['total_inasistencias'] }}</strong></td>
                 <td><strong>{{ $totales['total_citas'] }}</strong></td>
+                <td><strong>{{ $totales['pendientes'] }}</strong></td>
                 <td><strong>{{ $totales['tasa_inasistencia'] }}%</strong></td>
             </tr>
         </table>
+        <p class="nota">* La tasa se calcula sobre citas cerradas (atendidas + canceladas); las pendientes se informan aparte. "Ausencia Médico" incluye las citas canceladas automáticamente por suspensión del médico sin suplente.</p>
     @else
         <p>No hay datos para el período seleccionado.</p>
     @endif

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Especialidad;
 use App\Models\User;
 use App\Notifications\NuevaEspecialidad;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -118,10 +119,39 @@ class EspecialidadController extends Controller
 
     public function destroy(int $id)
     {
-        $especialidad = Especialidad::findOrFail($id);
-        $especialidad->delete();
+        $especialidad = Especialidad::withCount(['medicos', 'calendarios', 'patologias'])->findOrFail($id);
 
-        alert()->success('Especialidad eliminada exitosamente.');
+        $motivos = [];
+
+        if ($especialidad->medicos_count > 0) {
+            $motivos[] = "{$especialidad->medicos_count} médico(s)";
+        }
+        if ($especialidad->calendarios_count > 0) {
+            $motivos[] = "{$especialidad->calendarios_count} calendario(s) de agenda";
+        }
+        if ($especialidad->patologias_count > 0) {
+            $motivos[] = "{$especialidad->patologias_count} patología(s)";
+        }
+
+        if ($motivos !== []) {
+            Alert::error('No se puede eliminar', 'Esta especialidad tiene registros asociados: ' . implode(', ', $motivos) . '.');
+
+            return redirect()->route('especialidades.index');
+        }
+
+        try {
+            $especialidad->delete();
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23503') {
+                Alert::error('No se puede eliminar', 'Esta especialidad todavía tiene registros asociados en el sistema.');
+
+                return redirect()->route('especialidades.index');
+            }
+
+            throw $e;
+        }
+
+        Alert::success('Especialidad eliminada exitosamente.');
         return redirect()->route('especialidades.index');
     }
 }
