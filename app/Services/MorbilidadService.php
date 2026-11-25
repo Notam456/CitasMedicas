@@ -13,8 +13,8 @@ class MorbilidadService
         $query = Cita::query()
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
-            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
-            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->leftJoin('medicos', 'citas.medico_id', '=', 'medicos.id')
+            ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
             ->leftJoin('expedientes', 'pacientes.id', '=', 'expedientes.paciente_id')
             ->leftJoin(DB::raw("(SELECT cp.cita_id, STRING_AGG(p.nombre, ', ' ORDER BY p.nombre) as patologias_nombres FROM cita_patologias cp JOIN patologias p ON p.id = cp.patologia_id GROUP BY cp.cita_id) as pats"), 'pats.cita_id', '=', 'citas.id')
             ->select(
@@ -60,7 +60,7 @@ class MorbilidadService
             $query->whereDate('citas.created_at', '<=', $request->fecha_registro_hasta);
         }
         if ($request->filled('medico_id')) {
-            $query->where('medicos.id', $request->medico_id);
+            $query->where('citas.medico_id', $request->medico_id);
         }
 
         return $query;
@@ -71,8 +71,8 @@ class MorbilidadService
         $query = Cita::query()
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
-            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
-            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->leftJoin('medicos', 'citas.medico_id', '=', 'medicos.id')
+            ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
             ->leftJoin('expedientes', 'pacientes.id', '=', 'expedientes.paciente_id')
             ->select(
                 'citas.id',

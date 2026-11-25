@@ -35,9 +35,12 @@ class CitaService
 
         $this->manejarExpediente($paciente, $data['numero_expediente'] ?? null);
 
+        $medicoId = Calendario::whereKey($data['calendario_id'])->value('medico_id');
+
         return Cita::create([
             'paciente_id' => $paciente->id,
             'calendario_id' => $data['calendario_id'],
+            'medico_id' => $medicoId,
             'user_id' => Auth::id() ?? 1,
             'fecha_registro' => now()->toDateString(),
             'fecha_cita' => $data['fecha_cita'],

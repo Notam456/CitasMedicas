@@ -40,8 +40,8 @@
     <h2>Información de la Cita</h2>
     <table class="info-table">
         <tr><td>Fecha de la Cita</td><td>{{ \Carbon\Carbon::parse($cita->fecha_cita)->format('d/m/Y') }}</td></tr>
-        <tr><td>Especialidad</td><td>{{ $cita->medico->especialidad->nombre }}</td></tr>
-        <tr><td>Médico</td><td>Dr. {{ $cita->medico->nombre }} {{ $cita->medico->apellido }}</td></tr>
+        <tr><td>Especialidad</td><td>{{ optional($cita->especialidad)->nombre ?? 'N/E' }}</td></tr>
+        <tr><td>Médico</td><td>{{ $cita->medico ? 'Dr. ' . $cita->medico->nombre . ' ' . $cita->medico->apellido : 'Cualquier médico' }}</td></tr>
         <tr><td>Estado</td><td>{{ $cita->estado }}</td></tr>
         <tr><td>Tipo de Paciente</td><td>{{ $cita->tipo_paciente === 'primera_vez' ? 'Primera Vez' : ($cita->tipo_paciente === 'control' ? 'Control' : 'Orden Médica') }}</td></tr>
         <tr><td>Observaciones</td><td>{{ $cita->observacion ?? 'Ninguna' }}</td></tr>

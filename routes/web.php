@@ -153,7 +153,7 @@ Route::middleware(['auth', 'can:Gestión de Cita'])->group(function () {
 
 Route::get('/api/patologias/por-cita/{cita}', function ($citaId) {
     $cita = App\Models\Cita::findOrFail($citaId);
-    $especialidadId = $cita->medico->especialidad_id;
+    $especialidadId = optional($cita->especialidad)->id;
     return App\Models\Patologia::where('especialidad_id', $especialidadId)->get();
 })->middleware('auth')->middleware('throttle:detalle_cita');
 

@@ -40,7 +40,7 @@ class CitaController extends Controller
         return Cita::query()
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
-            ->leftJoin('medicos', 'calendarios.medico_id', '=', 'medicos.id')
+            ->leftJoin('medicos', 'citas.medico_id', '=', 'medicos.id')
             ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
             ->select(
                 'citas.id',
@@ -372,7 +372,7 @@ class CitaController extends Controller
      */
     public function show(int $id)
     {
-        $cita = Cita::with('paciente', 'calendario.medico.especialidad')->findOrFail($id);
+        $cita = Cita::with('paciente', 'medico.especialidad', 'especialidad', 'calendario')->findOrFail($id);
 
         return response()->json($cita);
     }

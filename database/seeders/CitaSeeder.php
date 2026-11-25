@@ -45,6 +45,7 @@ class CitaSeeder extends Seeder
                 $cita = Cita::create([
                     'paciente_id' => $paciente->id,
                     'calendario_id' => $calendario->id,
+                    'medico_id' => $calendario->medico_id,
                     'user_id' => $userAdmin->id ?? 1,
                     'fecha_registro' => now()->subDays(rand(0, 30))->format('Y-m-d'),
                     'fecha_cita' => $calendario->fecha,

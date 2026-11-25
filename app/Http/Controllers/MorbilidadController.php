@@ -154,6 +154,7 @@ class MorbilidadController extends Controller
         $cita = Cita::with([
             'paciente',
             'medico.especialidad',
+            'especialidad',
             'patologias',
             'atendidoPor',
             'user',
@@ -167,6 +168,7 @@ class MorbilidadController extends Controller
         $cita = Cita::with([
             'paciente',
             'medico.especialidad',
+            'especialidad',
             'patologias',
             'atendidoPor',
         ])->findOrFail($id);
@@ -252,13 +254,17 @@ class MorbilidadController extends Controller
 
             $historiaCol = '<div class="historia-inline">' . $historiaInput . $switchTraida . '</div>';
 
+            $medicoNombreFull = $row->medico_nombre
+                ? 'Dr. ' . $row->medico_nombre . ' ' . $row->medico_apellido
+                : 'Cualquier médico';
+
             $dataFormatted[] = [
                 $historiaCol,
                 $row->paciente_nombre . ' ' . $row->paciente_apellido,
                 $row->paciente_cedula,
                 Carbon::parse($row->fecha_cita)->format('d/m/Y'),
                 $row->especialidad_nombre,
-                'Dr. ' . $row->medico_nombre . ' ' . $row->medico_apellido,
+                $medicoNombreFull,
                 $tipoBadge,
                 $estadoBadge,
                 Carbon::parse($row->created_at)->format('d/m/Y'),
@@ -320,13 +326,17 @@ class MorbilidadController extends Controller
 
             $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnAtender . $btnCancelar . '</div>';
 
+            $medicoNombreFull = $row->medico_nombre
+                ? 'Dr. ' . $row->medico_nombre . ' ' . $row->medico_apellido
+                : 'Cualquier médico';
+
             $dataFormatted[] = [
                 $row->paciente_nombre . ' ' . $row->paciente_apellido,
                 $row->paciente_cedula,
                 $expedienteBadge,
                 Carbon::parse($row->fecha_cita)->format('d/m/Y'),
                 $row->especialidad_nombre,
-                'Dr. ' . $row->medico_nombre . ' ' . $row->medico_apellido,
+                $medicoNombreFull,
                 $acciones,
             ];
         }

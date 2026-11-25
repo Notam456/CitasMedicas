@@ -105,7 +105,7 @@
                 <td>{{ $m->paciente_nombre }} {{ $m->paciente_apellido }}</td>
                 <td class="text-center">{{ $m->historia_traida ? 'TH' : 'FH' }}</td>
                 @if($showEsp)<td>{{ $m->especialidad_nombre }}</td>@endif
-                @if($showMedico)<td>Dr. {{ $m->medico_nombre }} {{ $m->medico_apellido }}</td>@endif
+                @if($showMedico)<td>{{ $m->medico_nombre ? 'Dr. ' . $m->medico_nombre . ' ' . $m->medico_apellido : 'Cualquier médico' }}</td>@endif
                 @if($showFechaCita)<td class="text-center">{{ \Carbon\Carbon::parse($m->fecha_cita)->format('d/m/Y') }}</td>@endif
                 @if($showTipo)<td>{{ $m->tipo_paciente === 'primera_vez' ? 'Primera Vez' : ($m->tipo_paciente === 'control' ? 'Sucesiva' : 'Orden Médica') }}</td>@endif
                 @if($showEstado)<td>{{ $m->estado }}</td>@endif

@@ -531,8 +531,8 @@
                     $('#edit_info_paciente').text(`${cita.paciente.nombre} ${cita.paciente.apellido}`);
                     $('#edit_info_cedula').text(cita.paciente.cedula);
                     $('#edit_info_fecha').text(new Date(cita.fecha_cita).toLocaleDateString());
-                    $('#edit_info_medico').text(`Dr. ${cita.medico.nombre} ${cita.medico.apellido}`);
-                    $('#edit_info_especialidad').text(cita.medico.especialidad.nombre);
+                    $('#edit_info_medico').text(cita.medico ? `Dr. ${cita.medico.nombre} ${cita.medico.apellido}` : 'Cualquier médico');
+                    $('#edit_info_especialidad').text(cita.especialidad ? cita.especialidad.nombre : '');
 
                     if (cita.patologias && cita.patologias.length) {
                         cita.patologias.forEach(pat => addEditPatologiaRow(pat.id));

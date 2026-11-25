@@ -103,6 +103,16 @@
                             </div>
                         </div>
 
+                        <!-- Médico que atiende (citas de "cualquier médico") -->
+                        <div class="mb-4 d-none" id="medicoAsignadoWrap">
+                            <label class="form-label fw-bold">Médico que atiende</label>
+                            <select name="medico_id" id="medico_id" class="form-select">
+                                <option value="">Seleccione un médico</option>
+                            </select>
+                            <div class="form-text">Esta cita es de "cualquier médico". Indique cuál de los médicos de la
+                                especialidad realizó la atención.</div>
+                        </div>
+
                         <!-- Diagnóstico libre -->
                         <div class="mb-4">
                             <label class="form-label fw-bold">Diagnóstico libre (impresión diagnóstica)</label>
@@ -322,9 +332,28 @@
                             $('#info_paciente').text(data.cita.paciente.nombre + ' ' + data.cita.paciente.apellido);
                             $('#info_cedula').text(data.cita.paciente.cedula);
                             $('#info_fecha').text(new Date(data.cita.fecha_cita).toLocaleDateString());
-                            $('#info_medico').text('Dr. ' + data.cita.medico.nombre + ' ' + data.cita.medico.apellido);
                             $('#nro_historia').text(numero_historia);
-                            $('#info_especialidad').text(data.cita.medico.especialidad.nombre);
+                            $('#info_especialidad').text(data.cita.especialidad ? data.cita.especialidad.nombre : '');
+
+                            const medicoSelect = document.getElementById('medico_id');
+                            medicoSelect.innerHTML = '<option value="">Seleccione un médico</option>';
+                            (data.medicos || []).forEach(function(m) {
+                                const opt = document.createElement('option');
+                                opt.value = m.id;
+                                opt.textContent = 'Dr. ' + m.nombre + ' ' + m.apellido;
+                                medicoSelect.appendChild(opt);
+                            });
+
+                            if (data.cita.medico) {
+                                $('#info_medico').text('Dr. ' + data.cita.medico.nombre + ' ' + data.cita.medico.apellido);
+                                $('#medicoAsignadoWrap').addClass('d-none');
+                                $('#medico_id').prop('required', false).val('');
+                            } else {
+                                $('#info_medico').text('Cualquier médico');
+                                $('#medicoAsignadoWrap').removeClass('d-none');
+                                $('#medico_id').prop('required', true);
+                            }
+
                             $('#diagnostico_libre').val(data.cita.diagnostico_libre || '');
 
                             if (data.es_aro) {
@@ -353,6 +382,8 @@
                 $('#formDiagnostico')[0].reset();
                 $('#patologias-container').empty();
                 $('#semanas_gestacion').prop('required', false);
+                $('#medicoAsignadoWrap').addClass('d-none');
+                $('#medico_id').prop('required', false);
             });
 
             // Cancelar cita (ausencia del paciente o del médico)

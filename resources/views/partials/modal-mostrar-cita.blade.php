@@ -71,8 +71,10 @@ function populateShowModal(cita, pdfUrl) {
     document.getElementById('show_cedula').innerText = cita.paciente.cedula;
     document.getElementById('show_telefono').innerText = cita.paciente.telefono || 'N/E';
     document.getElementById('show_direccion').innerText = cita.paciente.direccion || 'N/E';
-    document.getElementById('show_medico').innerText = `Dr. ${cita.medico.nombre} ${cita.medico.apellido}`;
-    document.getElementById('show_especialidad').innerText = cita.medico.especialidad.nombre;
+    document.getElementById('show_medico').innerText = cita.medico
+        ? `Dr. ${cita.medico.nombre} ${cita.medico.apellido}`
+        : 'Cualquier médico';
+    document.getElementById('show_especialidad').innerText = cita.especialidad ? cita.especialidad.nombre : '';
     document.getElementById('show_fecha_cita').innerText = new Date(cita.fecha_cita).toLocaleDateString();
     document.getElementById('show_estado').innerText = cita.estado;
     document.getElementById('show_tipo').innerText = cita.tipo_paciente === 'primera_vez' ? 'Primera Vez' : cita.tipo_paciente === 'control' ? 'Control' : 'Orden Médica';

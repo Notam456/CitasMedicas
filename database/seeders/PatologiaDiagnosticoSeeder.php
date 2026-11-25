@@ -88,7 +88,7 @@ class PatologiaDiagnosticoSeeder extends Seeder
         $citasAtendidas = Cita::where('estado', 'Atendida')->get();
 
         foreach ($citasAtendidas as $cita) {
-            $especialidadId = $cita->medico->especialidad_id ?? null;
+            $especialidadId = optional($cita->especialidad)->id;
             if (!$especialidadId) continue;
 
             // Diagnóstico libre

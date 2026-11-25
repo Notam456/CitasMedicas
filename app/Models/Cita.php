@@ -16,6 +16,7 @@ class Cita extends Model implements Auditable
         'user_id',
         'paciente_id',
         'calendario_id',
+        'medico_id',
         'fecha_registro',
         'fecha_cita',
         'estado',
@@ -51,6 +52,11 @@ class Cita extends Model implements Auditable
     }
 
     public function medico()
+    {
+        return $this->belongsTo(Medico::class, 'medico_id');
+    }
+
+    public function medicoPlanificado()
     {
         return $this->hasOneThrough(Medico::class, Calendario::class, 'id', 'id', 'calendario_id', 'medico_id');
     }

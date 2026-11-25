@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Cita;
 use App\Models\Patologia;
 use App\Models\Especialidad;
+use App\Models\Medico;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -28,8 +30,8 @@ class DiagnosticoController extends Controller
         $query = Cita::query()
             ->join('pacientes', 'citas.paciente_id', '=', 'pacientes.id')
             ->join('calendarios', 'citas.calendario_id', '=', 'calendarios.id')
-            ->join('medicos', 'calendarios.medico_id', '=', 'medicos.id')
-            ->join('especialidades', 'medicos.especialidad_id', '=', 'especialidades.id')
+            ->leftJoin('medicos', 'citas.medico_id', '=', 'medicos.id')
+            ->join('especialidades', 'calendarios.especialidad_id', '=', 'especialidades.id')
             ->leftJoin('users as atendido', 'citas.atendido_por', '=', 'atendido.id')
             ->leftJoin('users as creador', 'citas.user_id', '=', 'creador.id')
             ->select(
@@ -117,12 +119,16 @@ class DiagnosticoController extends Controller
             //$btnDelete = '<a href="' . route('diagnosticos.destroy', $row->id) . '" class="btn btn-xs btn-square btn-neutral text-danger-hover border-danger-hover" data-confirm-delete="true"><i class="bi bi-trash"></i></a>';
             $acciones = '<div class="hstack gap-2 justify-content-end">' . $btnShow . $btnEdit . '</div>';
 
+            $medicoNombreFull = $row->medico_nombre
+                ? 'Dr. ' . $row->medico_nombre . ' ' . $row->medico_apellido
+                : 'Cualquier médico';
+
             $dataFormatted[] = [
                 $row->paciente_nombre . ' ' . $row->paciente_apellido,
                 $row->paciente_cedula,
                 Carbon::parse($row->fecha_cita)->format('d/m/Y'),
                 $row->especialidad_nombre,
-                'Dr. ' . $row->medico_nombre . ' ' . $row->medico_apellido,
+                $medicoNombreFull,
                 $diagnosticoStr,
                 $row->estado,
                 $row->creado_por_nombre,
@@ -144,23 +150,36 @@ class DiagnosticoController extends Controller
         $cita = Cita::with([
             'paciente.expediente',
             'medico.especialidad',
+            'especialidad',
             'patologias',
             'aroDato'
         ])->findOrFail($id);
 
-        $patologiasDisponibles = Patologia::where('especialidad_id', $cita->medico->especialidad_id)->get();
+        $especialidadId = $cita->especialidad?->id;
+
+        $patologiasDisponibles = $especialidadId
+            ? Patologia::where('especialidad_id', $especialidadId)->get()
+            : collect();
+
+        $medicos = $especialidadId
+            ? Medico::where('especialidad_id', $especialidadId)
+                ->orderBy('nombre')
+                ->get(['id', 'nombre', 'apellido'])
+            : collect();
 
         return response()->json([
             'cita' => $cita,
             'patologias_disponibles' => $patologiasDisponibles,
-            'es_aro' => (bool) optional($cita->medico->especialidad)->esAro(),
+            'medicos' => $medicos,
+            'es_aro' => (bool) $cita->especialidad?->esAro(),
         ]);
     }
 
    public function update(Request $request, $id)
 {
-    $cita = Cita::with('medico.especialidad')->findOrFail($id);
-    $esAro = (bool) optional(optional($cita->medico)->especialidad)->esAro();
+    $cita = Cita::with('especialidad')->findOrFail($id);
+    $especialidadId = $cita->especialidad?->id;
+    $esAro = (bool) $cita->especialidad?->esAro();
 
     // Limpiar elementos vacíos ("") del arreglo enviador por el select por defecto
     if ($request->has('patologias')) {
@@ -176,13 +195,25 @@ class DiagnosticoController extends Controller
         'patologias' => 'nullable|array',
         'patologias.*' => 'exists:patologias,id',
         'semanas_gestacion' => $esAro ? 'required|integer|min:0|max:42' : 'nullable|integer|min:0|max:42',
+        'medico_id' => [
+            'nullable',
+            'integer',
+            Rule::exists('medicos', 'id')->where(function ($q) use ($especialidadId) {
+                $q->where('especialidad_id', $especialidadId);
+            }),
+        ],
     ]);
 
     DB::beginTransaction();
     try {
-        $cita->update([
-            'diagnostico_libre' => $request->diagnostico_libre
-        ]);
+        $datos = [
+            'diagnostico_libre' => $request->diagnostico_libre,
+        ];
+        if ($request->filled('medico_id')) {
+            $datos['medico_id'] = $request->medico_id;
+        }
+
+        $cita->update($datos);
 
         // Si patologías viene vacío o no se seleccionó ninguna, sync([]) borrará las patologías asignadas
         $patologias = $request->input('patologias', []);
@@ -217,6 +248,7 @@ class DiagnosticoController extends Controller
         $cita = Cita::with([
             'paciente',
             'medico.especialidad',
+            'especialidad',
             'patologias',
             'atendidoPor'
         ])->findOrFail($id);
@@ -230,28 +262,39 @@ class DiagnosticoController extends Controller
             return redirect()->route('Citas.index');
         }
 
-        $cita->load('paciente', 'medico.especialidad');
+        $cita->load('paciente', 'medico.especialidad', 'especialidad');
 
         if ($this->esCitaBloqueadaPorSexo($cita)) {
             Alert::error('Error', 'Esta cita corresponde a una especialidad exclusiva para pacientes de sexo femenino.');
             return redirect()->route('morbilidad.pendientes');
         }
 
-        $patologias = Patologia::where('especialidad_id', $cita->medico->especialidad_id)->get();
+        $especialidadId = $cita->especialidad?->id;
 
-        return view('morbilidad.pendientes', compact('cita', 'patologias'));
+        $patologias = $especialidadId
+            ? Patologia::where('especialidad_id', $especialidadId)->get()
+            : collect();
+
+        $medicos = $especialidadId
+            ? Medico::where('especialidad_id', $especialidadId)->orderBy('nombre')->get(['id', 'nombre', 'apellido'])
+            : collect();
+
+        $especialidades = Especialidad::where('estado', true)->get();
+
+        return view('morbilidad.pendientes', compact('cita', 'patologias', 'medicos', 'especialidades'));
     }
 
     public function store(Request $request, Cita $cita)
 {
-    $cita->load('medico.especialidad', 'paciente');
+    $cita->load('medico.especialidad', 'paciente', 'especialidad');
 
     if ($this->esCitaBloqueadaPorSexo($cita)) {
         Alert::error('Error', 'Esta cita corresponde a una especialidad exclusiva para pacientes de sexo femenino.');
         return redirect()->route('morbilidad.pendientes');
     }
 
-    $esAro = (bool) $cita->medico->especialidad->esAro();
+    $especialidadId = $cita->especialidad?->id;
+    $esAro = (bool) $cita->especialidad?->esAro();
 
     // 1. Filtrar valores vacíos de las patologías enviadas por los selects por defecto
     if ($request->has('patologias')) {
@@ -267,15 +310,27 @@ class DiagnosticoController extends Controller
         'patologias' => 'nullable|array',
         'patologias.*' => 'exists:patologias,id',
         'semanas_gestacion' => $esAro ? 'required|integer|min:0|max:42' : 'nullable|integer|min:0|max:42',
+        'medico_id' => [
+            $cita->medico_id ? 'nullable' : 'required',
+            'integer',
+            Rule::exists('medicos', 'id')->where(function ($q) use ($especialidadId) {
+                $q->where('especialidad_id', $especialidadId);
+            }),
+        ],
     ]);
 
     DB::beginTransaction();
     try {
-        $cita->update([
+        $datos = [
             'diagnostico_libre' => $request->diagnostico_libre,
             'atendido_por' => Auth::id(),
             'estado' => 'Atendida',
-        ]);
+        ];
+        if ($request->filled('medico_id')) {
+            $datos['medico_id'] = $request->medico_id;
+        }
+
+        $cita->update($datos);
 
         // 2. Sincronizar patologías (o limpiar si el arreglo filtrado está vacío)
         $patologias = $request->input('patologias', []);
@@ -300,9 +355,7 @@ class DiagnosticoController extends Controller
 
     private function esCitaBloqueadaPorSexo(Cita $cita): bool
     {
-        $especialidad = optional(optional($cita->medico)->especialidad);
-
         return $cita->paciente?->sexo === 'Masculino'
-            && $especialidad?->esSoloFemenino();
+            && $cita->especialidad?->esSoloFemenino();
     }
 }

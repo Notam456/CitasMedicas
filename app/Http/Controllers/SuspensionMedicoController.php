@@ -174,6 +174,7 @@ class SuspensionMedicoController extends Controller
 
                     $cita->update([
                         'calendario_id' => $newCalendario->id,
+                        'medico_id' => $suplente_id,
                         'tipo_paciente' => 'orden_medica', // Cambiar tipo a Orden Médica
                     ]);
                 }
